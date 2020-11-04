@@ -53,6 +53,7 @@
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -150,6 +151,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.waveformPainter2);
             this.splitContainer1.Panel2.Controls.Add(this.waveformPainter1);
@@ -161,16 +163,18 @@
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
             this.splitContainer1.Size = new System.Drawing.Size(1284, 608);
-            this.splitContainer1.SplitterDistance = 427;
+            this.splitContainer1.SplitterDistance = 625;
             this.splitContainer1.TabIndex = 1;
             // 
             // navigator
             // 
             this.navigator.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.navigator.DoubleClickSelect = false;
             this.navigator.Location = new System.Drawing.Point(0, 0);
             this.navigator.Name = "navigator";
-            this.navigator.Size = new System.Drawing.Size(427, 608);
+            this.navigator.Size = new System.Drawing.Size(625, 608);
             this.navigator.TabIndex = 0;
+            this.navigator.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
             // chkLoop
             // 
@@ -191,10 +195,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveformPainter2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.waveformPainter2.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.waveformPainter2.Location = new System.Drawing.Point(66, 298);
+            this.waveformPainter2.Location = new System.Drawing.Point(21, 303);
             this.waveformPainter2.Margin = new System.Windows.Forms.Padding(4);
             this.waveformPainter2.Name = "waveformPainter2";
-            this.waveformPainter2.Size = new System.Drawing.Size(744, 74);
+            this.waveformPainter2.Size = new System.Drawing.Size(602, 74);
             this.waveformPainter2.TabIndex = 51;
             this.waveformPainter2.Text = "waveformPainter1";
             // 
@@ -204,10 +208,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveformPainter1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.waveformPainter1.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.waveformPainter1.Location = new System.Drawing.Point(66, 220);
+            this.waveformPainter1.Location = new System.Drawing.Point(21, 225);
             this.waveformPainter1.Margin = new System.Windows.Forms.Padding(4);
             this.waveformPainter1.Name = "waveformPainter1";
-            this.waveformPainter1.Size = new System.Drawing.Size(744, 74);
+            this.waveformPainter1.Size = new System.Drawing.Size(602, 74);
             this.waveformPainter1.TabIndex = 52;
             this.waveformPainter1.Text = "waveformPainter1";
             // 
@@ -216,7 +220,7 @@
             this.volumeMeter2.Amplitude = 0F;
             this.volumeMeter2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.volumeMeter2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.volumeMeter2.Location = new System.Drawing.Point(443, 16);
+            this.volumeMeter2.Location = new System.Drawing.Point(431, 16);
             this.volumeMeter2.Margin = new System.Windows.Forms.Padding(4);
             this.volumeMeter2.MaxDb = 3F;
             this.volumeMeter2.MinDb = -60F;
@@ -230,7 +234,7 @@
             this.volumeMeter1.Amplitude = 0F;
             this.volumeMeter1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.volumeMeter1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.volumeMeter1.Location = new System.Drawing.Point(397, 16);
+            this.volumeMeter1.Location = new System.Drawing.Point(377, 16);
             this.volumeMeter1.Margin = new System.Windows.Forms.Padding(4);
             this.volumeMeter1.MaxDb = 3F;
             this.volumeMeter1.MinDb = -60F;
@@ -244,11 +248,11 @@
             this.trackBarPosition.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.trackBarPosition.LargeChange = 10;
-            this.trackBarPosition.Location = new System.Drawing.Point(47, 445);
+            this.trackBarPosition.Location = new System.Drawing.Point(21, 397);
             this.trackBarPosition.Margin = new System.Windows.Forms.Padding(4);
             this.trackBarPosition.Maximum = 100;
             this.trackBarPosition.Name = "trackBarPosition";
-            this.trackBarPosition.Size = new System.Drawing.Size(771, 56);
+            this.trackBarPosition.Size = new System.Drawing.Size(602, 56);
             this.trackBarPosition.TabIndex = 46;
             this.trackBarPosition.TickFrequency = 5;
             this.trackBarPosition.Scroll += new System.EventHandler(this.TrackBarPosition_Scroll);
@@ -316,6 +320,15 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
+            // rtbInfo
+            // 
+            this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbInfo.Location = new System.Drawing.Point(31, 452);
+            this.rtbInfo.Name = "rtbInfo";
+            this.rtbInfo.Size = new System.Drawing.Size(575, 144);
+            this.rtbInfo.TabIndex = 56;
+            this.rtbInfo.Text = "";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -367,6 +380,7 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.RichTextBox rtbInfo;
     }
 }
 

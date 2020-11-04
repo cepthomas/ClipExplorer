@@ -33,6 +33,9 @@ namespace ClipExplorer
         [TypeConverter(typeof(SystemFixedListTypeConverter))]
         public string OutputDevice { get; set; } = "";
 
+        [DisplayName("Autoplay Files"), Description("Single click plays file otherwise double click."), Browsable(true)]
+        public bool Autoplay { get; set; } = true;
+
         [DisplayName("Wasapi Exclusive Mode"), Description("Mode."), Browsable(true)]
         public bool WasapiExclusive { get; set; } = true;
 

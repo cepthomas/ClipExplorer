@@ -28,7 +28,7 @@ namespace ClipExplorer
         #endregion
 
         #region Fields
-        string _supportedExtensions = "*.wav;"; //*.aiff;*.mp3;*.aac";
+        string _fileExts = ".wav;.mp3;"; //.aiff;.aac";
 
         IWavePlayer _waveOut;
 
@@ -69,7 +69,9 @@ namespace ClipExplorer
 
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
 
-            navigator.Init(UserSettings.TheSettings.RootDir);
+            List<string> paths = new List<string>() { UserSettings.TheSettings.RootDir, @"C:\Dev\repos\ClipExplorer\files" };
+            List<string> exts = _fileExts.SplitByToken(";");
+            navigator.Init(paths, exts);
 
             timer1.Enabled = true;
         }
@@ -221,11 +223,21 @@ namespace ClipExplorer
         /// </summary>
         void Open_Click(object sender, EventArgs e)
         {
+            //openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            //You can add several filter patterns to a filter by separating the file types with semicolons, for example:
+            //Image Files(*.BMP; *.JPG; *.GIF)| *.BMP; *.JPG; *.GIF | All files(*.*) | *.*
+            //".wav;.mp3;"
 
+            string sext = "";
+            foreach(string ext in _fileExts.SplitByToken(";"))
+            {
+                sext += ($"*{ext}; ");
+            }
+            
             OpenFileDialog openDlg = new OpenFileDialog()
             {
-                Filter = string.Format("All Supported Files|{0}|All Files (*.*)|*.*", _supportedExtensions),
-                Title = "Select a ClipExplorer file"
+                Filter = sext,
+                Title = "Select a file"
             };
 
             if (openDlg.ShowDialog() == DialogResult.OK)
@@ -488,6 +500,18 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        private void Navigator_FileSelectedEvent(object sender, string e)
+        {
+            rtbInfo.AppendText($"Sel file {e}{Environment.NewLine}");
+            //TODOC play file.
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Timer1_Tick(object sender, EventArgs e)
         {
             if (_waveOut != null && _audioFileReader != null)
@@ -515,6 +539,11 @@ namespace ClipExplorer
                 //ProcessPlay(chkPlay.Checked ? PlayCommand.Stop : PlayCommand.Start, true);
                 e.Handled = true;
             }
+        }
+
+        private void navigator_FileSelectedEvent(object sender, string e)
+        {
+
         }
     }
 }

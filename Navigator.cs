@@ -10,18 +10,53 @@ using System.Windows.Forms;
 using System.IO;
 
 
-namespace ClipExplorer
+namespace ClipExplorer // TODOC make generic -> nbot
 {
-    //TODOC modes:
-    // Mode: tree selection displays files in dir with selectable filtertags - click to play
-    // Mode: select ftag(s) and display all entries with full paths - click to play
-    // Mode: edit ftags, check for invalid or in use.
+    // TODOC: tree selection displays files in dir with selectable filtertags
 
+    // TODOC: select filtertag(s) and display all entries with full paths
+
+
+    /// <summary>
+    /// 
+    /// </summary>
     public partial class Navigator : UserControl
     {
+        #region Fields
+        /// <summary>
+        /// Base path(s) for the tree.
+        /// </summary>
+        List<string> _rootPaths = new List<string>();
+
+        /// <summary>
+        /// Show only these file types.
+        /// </summary>
+        List<string> _filterExts = new List<string>();
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Generate event for single or double click.
+        /// </summary>
+        public bool DoubleClickSelect { get; set; } = false;
+
+        /// <summary>
+        /// All possible tags - client supplied.
+        /// </summary>
+        public HashSet<string> AllTags = new HashSet<string>();
+
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// User has selected a file.
+        /// </summary>
+        public event EventHandler<string> FileSelectedEvent = null;
+        #endregion
+
         #region Lifecycle
         /// <summary>
-        /// 
+        /// Default constructor.
         /// </summary>
         public Navigator()
         {
@@ -33,177 +68,72 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Navigator_Load(object sender, EventArgs e)
         {
-           // PopulateTreeView();
-
-            // Add tags containing alert messages to a few nodes 
-            // and set the node background color to highlight them.
-            //treeView.Nodes[1].Nodes[0].Tag = "urgent!";
-            //treeView.Nodes[1].Nodes[0].BackColor = Color.Yellow;
-            //treeView.SelectedNode = treeView.Nodes[1].Nodes[0];
-            //treeView.Nodes[2].Nodes[1].Tag = "urgent!";
-            //treeView.Nodes[2].Nodes[1].BackColor = Color.Yellow;
-
-            // Configure the TreeView control for owner-draw and add a handler for the DrawNode event.
-
-            //treeView.DrawMode = TreeViewDrawMode.OwnerDrawText;
-            //treeView.DrawNode += new DrawTreeNodeEventHandler(treeView_DrawNode);
-
-            // Add a handler for the MouseDown event so that a node can be 
-            // selected by clicking the tag text as well as the node text.
-            treeView.MouseDown += new MouseEventHandler(treeView_MouseDown);
-            treeView.NodeMouseClick += new TreeNodeMouseClickEventHandler(TreeView_NodeMouseClick);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
         #endregion
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="path"></param>
-        public void Init(string path)
+        /// <param name="rootPaths">Where the files be.</param>
+        /// <param name="filterExts">Oly these kinds.</param>
+        public void Init(List<string> rootPaths, List<string> filterExts)
         {
-            PopulateTreeView(path);
+            _rootPaths = rootPaths;
+            _filterExts = filterExts;
+            PopulateTreeView();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        void PopulateTreeView(string path)
+        void PopulateTreeView()
         {
-            TreeNode rootNode;
-
-            DirectoryInfo info = new DirectoryInfo(path);
-            if (info.Exists)
+            foreach(string path in _rootPaths)
             {
-                rootNode = new TreeNode(info.Name)
-                {
-                    Tag = info
-                };
+                TreeNode rootNode;
 
-                GetDirectories(info.GetDirectories(), rootNode);
-                treeView.Nodes.Add(rootNode);
+                DirectoryInfo info = new DirectoryInfo(path);
+                if (info.Exists)
+                {
+                    rootNode = new TreeNode(info.Name)
+                    {
+                        Tag = info
+                    };
+
+                    ShowDirectories(info.GetDirectories(), rootNode);
+                    treeView.Nodes.Add(rootNode);
+                }
+                // else error... TODOC
+
             }
-            // else error...
+
+            foreach (TreeNode n in treeView.Nodes)
+            {
+                n.Expand();
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="subDirs"></param>
-        /// <param name="nodeToAddTo"></param>
-        void GetDirectories(DirectoryInfo[] subDirs, TreeNode nodeToAddTo)
+        /// <param name="dirs"></param>
+        /// <param name="parentNode"></param>
+        void ShowDirectories(DirectoryInfo[] dirs, TreeNode parentNode)
         {
-            TreeNode subDirNode;
-            DirectoryInfo[] subSubDirs;
-
-            foreach (DirectoryInfo subDir in subDirs)
+            foreach (DirectoryInfo dir in dirs)
             {
-                subDirNode = new TreeNode(subDir.Name, 0, 0)
+                TreeNode subDirNode = new TreeNode(dir.Name, 0, 0)
                 {
-                    Tag = subDir,
+                    Tag = dir,
                     ImageKey = "folder"
                 };
 
-                // Get the files.
- //               subDir.GetFiles()
-
-                // Recurse.
-                subSubDirs = subDir.GetDirectories();
-                GetDirectories(subSubDirs, subDirNode);
-                nodeToAddTo.Nodes.Add(subDirNode);
+                // Go a little lower now.
+                DirectoryInfo[] subDirs = dir.GetDirectories();
+                ShowDirectories(subDirs, subDirNode);
+                parentNode.Nodes.Add(subDirNode);
             }
-        }
-
-        // Draws a node.
-        private void treeView_DrawNode(object sender, DrawTreeNodeEventArgs e)
-        {
-            // Draw the background and node text for a selected node.
-            if ((e.State & TreeNodeStates.Selected) != 0)
-            {
-                // Draw the background of the selected node. The NodeBounds
-                // method makes the highlight rectangle large enough to
-                // include the text of a node tag, if one is present.
-                e.Graphics.FillRectangle(Brushes.Green, NodeBounds(e.Node));
-
-                // Retrieve the node font. If the node font has not been set,
-                // use the TreeView font.
-                Font nodeFont = e.Node.NodeFont;
-                if (nodeFont == null)
-                {
-                    nodeFont = ((TreeView)sender).Font;
-                }
-
-                // Draw the node text.
-                e.Graphics.DrawString(e.Node.Text, nodeFont, Brushes.White, Rectangle.Inflate(e.Bounds, 2, 0));
-            }
-            // Use the default background and node text.
-            else
-            {
-                e.DrawDefault = true;
-            }
-
-            // If a node tag is present, draw its string representation to the right of the label text.
-            if (e.Node.Tag != null)
-            {
-                e.Graphics.DrawString(e.Node.Tag.ToString(), this.Font, Brushes.Yellow, e.Bounds.Right + 2, e.Bounds.Top);
-            }
-
-            // If the node has focus, draw the focus rectangle large, making it large enough to include the text of the node tag, if present.
-            if ((e.State & TreeNodeStates.Focused) != 0)
-            {
-                using (Pen focusPen = new Pen(Color.Black))
-                {
-                    focusPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-                    Rectangle focusBounds = NodeBounds(e.Node);
-                    focusBounds.Size = new Size(focusBounds.Width - 1,
-                    focusBounds.Height - 1);
-                    e.Graphics.DrawRectangle(focusPen, focusBounds);
-                }
-            }
-        }
-
-        // Selects a node that is clicked on its label or tag text.
-        private void treeView_MouseDown(object sender, MouseEventArgs e)
-        {
-            TreeNode clickedNode = treeView.GetNodeAt(e.X, e.Y);
-            if (NodeBounds(clickedNode).Contains(e.X, e.Y))
-            {
-                treeView.SelectedNode = clickedNode;
-            }
-        }
-
-        // Returns the bounds of the specified node, including the region 
-        // occupied by the node label and any node tag displayed.
-        private Rectangle NodeBounds(TreeNode node)
-        {
-            // Set the return value to the normal node bounds.
-            Rectangle bounds = node.Bounds;
-            if (node.Tag != null)
-            {
-                // Retrieve a Graphics object from the TreeView handle
-                // and use it to calculate the display width of the tag.
-                Graphics g = treeView.CreateGraphics();
-                int tagWidth = (int)g.MeasureString(node.Tag.ToString(), this.Font).Width + 6;
-
-                // Adjust the node bounds using the calculated value.
-                bounds.Offset(tagWidth / 2, 0);
-                bounds = Rectangle.Inflate(bounds, tagWidth / 2, 0);
-                g.Dispose();
-            }
-
-            return bounds;
         }
 
         /// <summary>
@@ -211,26 +141,88 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void TreeView_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        private void TreeView_MouseClick(object sender, MouseEventArgs e)
         {
-            TreeNode newSelected = e.Node;
-            listViewFiles.Items.Clear();
-            DirectoryInfo nodeDirInfo = (DirectoryInfo)newSelected.Tag;
-            ListViewItem.ListViewSubItem[] subItems;
-            ListViewItem item = null;
+            TreeNode clickedNode = treeView.GetNodeAt(e.X, e.Y);
+
+            lvFiles.Items.Clear();
+            var nodeDirInfo = clickedNode.Tag as DirectoryInfo;
 
             foreach (FileInfo file in nodeDirInfo.GetFiles())
             {
-                item = new ListViewItem(file.Name, 1);
-                subItems = new ListViewItem.ListViewSubItem[]
-                    { new ListViewItem.ListViewSubItem(item, "File"),
-                      new ListViewItem.ListViewSubItem(item, file.LastAccessTime.ToShortDateString())};
+                if(_filterExts.Contains(Path.GetExtension(file.Name)))
+                {
+                    var item = new ListViewItem(new[] { file.Name, "TODOC tags" });
+                    item.Tag = file.FullName;
+                    lvFiles.Items.Add(item);
+                }
+            }
+        }
 
-                item.SubItems.AddRange(subItems);
-                listViewFiles.Items.Add(item);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ListFiles_Click(object sender, EventArgs e)
+        {
+            if(!DoubleClickSelect && FileSelectedEvent != null)
+            {
+                FileSelectedEvent.Invoke(this, lvFiles.SelectedItems[0].Tag.ToString());
             }
 
-            listViewFiles.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ListFiles_DoubleClick(object sender, EventArgs e)
+        {
+            if (DoubleClickSelect && FileSelectedEvent != null)
+            {
+                FileSelectedEvent.Invoke(this, lvFiles.SelectedItems[0].Tag.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Navigator_Resize(object sender, EventArgs e)
+        {
+            lvFiles.Columns[0].Width = lvFiles.Width / 2;
+            lvFiles.Columns[1].Width = -2;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void EditTags_Click(object sender, EventArgs e)
+        {
+            // TODOC: edit filtertags, check for invalid or in use.
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FilterByTags_DropDownOpening(object sender, EventArgs e)
+        {
+            //I'm doing this in two places. In one of them, it turns out (I forgot) that every one was a check box. I was able to get this working by:
+            //Instead of putting the dropdowns directly into the button, creating a context menu and loading that as the list; then calling the closing event for that context menu, and not allowing a close on ItemClick.
+
+            //   Add all the ToolStripMenuItems to the NoCloseItems Array in the Form.Load event that you want to make the menu stay open when they are clicked.Then you iterate through all those items and add a single Paint event handler sub to them.
+            //That Paint event will be raised every time one of them is highlighted (selected) or un-highlighted (not selected).  In the Paint even you can cast the sender Object to a ToolStripMenuItem and find if it is Selected or not.
+            //If it is selected then, set its OwnerItem.DropDown.AutoClose property to False so it will not close if the item is clicked.If it is not selected then set it to True so the DropDown will close when something else on the form gets the focus.
+            //You will want to use the Paint event instead of the Mouse events because, the user may be using the keyboard to navigate and select the menu items instead of the mouse.
+
         }
     }
 }
