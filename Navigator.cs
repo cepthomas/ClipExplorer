@@ -41,10 +41,9 @@ namespace ClipExplorer // TODOC make generic -> nbot
         public bool DoubleClickSelect { get; set; } = false;
 
         /// <summary>
-        /// All possible tags - client supplied.
+        /// All possible tags - client supplies and persists.
         /// </summary>
         public HashSet<string> AllTags = new HashSet<string>();
-
         #endregion
 
         #region Events

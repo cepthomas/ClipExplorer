@@ -20,26 +20,49 @@ namespace ClipExplorer
     public class UserSettings
     {
         #region Persisted editable properties
-        //TODOC Support multiple dirs.
-        [DisplayName("Root Directoriy"), Description("Where to start."), Browsable(true)]
+        [DisplayName("Root Directory")]
+        [Description("Where to start.")]
+        [Category("Navigator")]
+        [Browsable(true)]
         [Editor(typeof(FolderNameEditor), typeof(UITypeEditor))]
-        public string RootDir { get; set; } = "";
+        public string RootDir { get; set; } = "";  //TODOC Support multiple dirs
 
-        [DisplayName("Latency"), Description("What's the hurry?"), Browsable(true)]
-        [TypeConverter(typeof(SystemFixedListTypeConverter))]
-        public string Latency { get; set; } = "200";
+        [DisplayName("Autoplay Files")]
+        [Description("Single click plays file otherwise double click.")]
+        [Category("Navigator")]
+        [Browsable(true)]
+        public bool Autoplay { get; set; } = true;
 
-        [DisplayName("Output Device"), Description("Where to go."), Browsable(true)]
+        [DisplayName("All Tags")]
+        [Description("All possible tags.")]
+        [Category("Navigator")]
+        [Browsable(true)]
+        public List<string> AllTags { get; set; } = new List<string>();
+
+        [DisplayName("Output Device")]
+        [Description("Where to go.")]
+        [Category("Audio")]
+        [Browsable(true)]
         [TypeConverter(typeof(SystemFixedListTypeConverter))]
         public string OutputDevice { get; set; } = "";
 
-        [DisplayName("Autoplay Files"), Description("Single click plays file otherwise double click."), Browsable(true)]
-        public bool Autoplay { get; set; } = true;
+        [DisplayName("Latency")]
+        [Description("What's the hurry?")]
+        [Category("Audio")]
+        [Browsable(true)]
+        [TypeConverter(typeof(SystemFixedListTypeConverter))]
+        public string Latency { get; set; } = "200";
 
-        [DisplayName("Wasapi Exclusive Mode"), Description("Mode."), Browsable(true)]
+        [DisplayName("Wasapi Exclusive Mode")]
+        [Description("Mode.")]
+        [Category("Audio")]
+        [Browsable(true)]
         public bool WasapiExclusive { get; set; } = true;
 
-        [DisplayName("Wasapi Event Callback"), Description("Mode."), Browsable(true)]
+        [DisplayName("Wasapi Event Callback")]
+        [Description("Mode.")]
+        [Category("Audio")]
+        [Browsable(true)]
         public bool WasapiEventCallback { get; set; } = false;
         #endregion
 

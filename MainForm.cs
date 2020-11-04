@@ -28,12 +28,24 @@ namespace ClipExplorer
         #endregion
 
         #region Fields
+        /// <summary>
+        /// Supported file types.
+        /// </summary>
         string _fileExts = ".wav;.mp3;"; //.aiff;.aac";
 
-        IWavePlayer _waveOut;
-
+        /// <summary>
+        /// Current file name.
+        /// </summary>
         string _fn;
 
+        /// <summary>
+        /// Output play device.
+        /// </summary>
+        IWavePlayer _waveOut;
+
+        /// <summary>
+        /// Input device for file.
+        /// </summary>
         AudioFileReader _audioFileReader;
         #endregion
 
@@ -43,11 +55,6 @@ namespace ClipExplorer
         /// </summary>
         public MainForm()
         {
-            // Need to load settings before creating controls in MainForm_Load().
-            string appDir = MiscUtils.GetAppDataDir("ClipExplorer");
-            DirectoryInfo di = new DirectoryInfo(appDir);
-            di.Create();
-            UserSettings.Load(appDir);
             InitializeComponent();
         }
 
@@ -56,23 +63,25 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_Load(object sender, EventArgs e)
         {
+            // Get the settings.
+            string appDir = MiscUtils.GetAppDataDir("ClipExplorer");
+            DirectoryInfo di = new DirectoryInfo(appDir);
+            di.Create();
+            UserSettings.Load(appDir);
+
             // Init UI from settings
             Location = new Point(UserSettings.TheSettings.MainFormInfo.X, UserSettings.TheSettings.MainFormInfo.Y);
             Size = new Size(UserSettings.TheSettings.MainFormInfo.Width, UserSettings.TheSettings.MainFormInfo.Height);
             WindowState = FormWindowState.Normal;
-
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
 
             PopulateRecentMenu();
 
             CreateWaveOut();
 
+            InitNavigator();
+
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
-
-            List<string> paths = new List<string>() { UserSettings.TheSettings.RootDir, @"C:\Dev\repos\ClipExplorer\files" };
-            List<string> exts = _fileExts.SplitByToken(";");
-            navigator.Init(paths, exts);
-
             timer1.Enabled = true;
         }
 
@@ -108,10 +117,12 @@ namespace ClipExplorer
 
         #region User settings
         /// <summary>
-        /// Save user settings that aren't automatic.
+        /// Collect and save user settings.
         /// </summary>
         void SaveSettings()
         {
+            UserSettings.TheSettings.AllTags = navigator.AllTags.ToList();
+            UserSettings.TheSettings.Autoplay = !navigator.DoubleClickSelect;
             UserSettings.TheSettings.MainFormInfo.FromForm(this);
             UserSettings.TheSettings.Save();
         }
@@ -140,20 +151,25 @@ namespace ClipExplorer
                 };
 
                 // Detect changes of interest.
-                bool ctrls = false;
+                bool restart = false;
+                bool reinit = false;
                 pg.PropertyValueChanged += (sdr, args) =>
                 {
-                    string p = args.ChangedItem.PropertyDescriptor.Name;
-                    //ctrls |= (p.Contains("Font") | p.Contains("Color"));
+                    restart = args.ChangedItem.PropertyDescriptor.Category == "Audio";
+                    reinit = args.ChangedItem.PropertyDescriptor.Category == "Navigator";
                 };
 
                 f.Controls.Add(pg);
                 f.ShowDialog();
 
                 // Figure out what changed - each handled differently.
-                if (ctrls)
+                if (restart)
                 {
                     MessageBox.Show("UI changes require a restart to take effect.");
+                }
+                else if(reinit)
+                {
+                    InitNavigator();
                 }
 
                 SaveSettings();
@@ -168,7 +184,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void ErrorMessage(string s)
         {
-            MessageBox.Show(s); //TODOC
+            MessageBox.Show(s); //TODOC more?
         }
 
         /// <summary>
@@ -223,12 +239,7 @@ namespace ClipExplorer
         /// </summary>
         void Open_Click(object sender, EventArgs e)
         {
-            //openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            //You can add several filter patterns to a filter by separating the file types with semicolons, for example:
-            //Image Files(*.BMP; *.JPG; *.GIF)| *.BMP; *.JPG; *.GIF | All files(*.*) | *.*
-            //".wav;.mp3;"
-
-            string sext = "";
+            string sext = "Clip Files | ";
             foreach(string ext in _fileExts.SplitByToken(";"))
             {
                 sext += ($"*{ext}; ");
@@ -273,9 +284,10 @@ namespace ClipExplorer
                         _audioFileReader = new AudioFileReader(_fn);
 
                         var sampleChannel = new SampleChannel(_audioFileReader, true);
-                        sampleChannel.PreVolumeMeter += OnPreVolumeMeter;
+                        sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+
                         var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                        postVolumeMeter.StreamVolume += OnPostVolumeMeter;
+                        postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
                         sampleProvider = postVolumeMeter;
                         _waveOut.Init(sampleProvider);
@@ -339,12 +351,7 @@ namespace ClipExplorer
             if(chkPlay.Checked)
             {
                 // Start.
-
-
                 labelTotalTime.Text = string.Format("{0:00}:{1:00}", (int)_audioFileReader.TotalTime.TotalMinutes, _audioFileReader.TotalTime.Seconds);
-
-
-
                 _waveOut?.Play();
             }
             else
@@ -374,12 +381,9 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void TrackBarPosition_Scroll(object sender, EventArgs e)
         {
-            if (_waveOut != null)
-            {
-                _audioFileReader.CurrentTime = TimeSpan.FromSeconds(_audioFileReader.TotalTime.TotalSeconds * trackBarPosition.Value / 100.0);
-            }
+            _audioFileReader.CurrentTime = TimeSpan.FromSeconds(_audioFileReader.TotalTime.TotalSeconds * trackBarPosition.Value / 100.0);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -397,7 +401,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnPreVolumeMeter(object sender, StreamVolumeEventArgs e)
+        void SampleChannel_PreVolumeMeter(object sender, StreamVolumeEventArgs e)
         {
             // we know it is stereo TODOC???
             waveformPainter1.AddMax(e.MaxSampleValues[0]);
@@ -409,7 +413,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnPostVolumeMeter(object sender, StreamVolumeEventArgs e)
+        void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
             // we know it is stereo TODOC???
             volumeMeter1.Amplitude = e.MaxSampleValues[0];
@@ -447,7 +451,7 @@ namespace ClipExplorer
                     int.Parse(UserSettings.TheSettings.Latency));
 
                 _waveOut = wasapi;
-                _waveOut.PlaybackStopped += OnPlaybackStopped;
+                _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
             }
             else
             {
@@ -460,17 +464,25 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnPlaybackStopped(object sender, StoppedEventArgs e)
+        void WaveOut_PlaybackStopped(object sender, StoppedEventArgs e)
         {
             if (e.Exception != null)
             {
                 MessageBox.Show(e.Exception.Message, "Playback Device Error");
             }
+
             if (_audioFileReader != null)
             {
                 _audioFileReader.Position = 0;
 
-                //TODOC Check for loop and restart. Else unset button.
+                if(chkLoop.Checked)
+                {
+                    _waveOut.Play();
+                }
+                else
+                {
+                    chkPlay.Checked = false;
+                }
             }
         }
 
@@ -496,14 +508,28 @@ namespace ClipExplorer
         #endregion
 
         /// <summary>
+        /// Initialize navigator from user settings.
+        /// </summary>
+        void InitNavigator()
+        {
+            // Init the navigator control
+            List<string> paths = new List<string>() { UserSettings.TheSettings.RootDir, @"C:\Dev\repos\ClipExplorer\files" };
+            List<string> exts = _fileExts.SplitByToken(";");
+            navigator.AllTags = UserSettings.TheSettings.AllTags.ToHashSet();
+            navigator.DoubleClickSelect = !UserSettings.TheSettings.Autoplay;
+            navigator.Init(paths, exts);
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Navigator_FileSelectedEvent(object sender, string e)
+        /// <param name="fn"></param>
+        private void Navigator_FileSelectedEvent(object sender, string fn)
         {
-            rtbInfo.AppendText($"Sel file {e}{Environment.NewLine}");
+            rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
             //TODOC play file.
+            OpenFile(fn);
 
         }
 
