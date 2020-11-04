@@ -102,19 +102,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\glyphicons-37-file.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-79-warning-sign.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\glyphicons-82-refresh.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\glyphicons-86-repeat.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-114-justify.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\glyphicons-137-cogwheel.png" />
@@ -153,31 +144,10 @@
     <None Include="Resources\glyphicons-195-question-sign.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\glyphicons-206-electricity.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-213-arrow-down.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-214-arrow-up.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-221-play-button.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\glyphicons-366-restart.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\glyphicons-440-wrench.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-458-transfer.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-551-erase.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\glyphicons-701-ear.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\README.md">

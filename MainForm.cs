@@ -291,6 +291,7 @@ namespace ClipExplorer
 
                         sampleProvider = postVolumeMeter;
                         _waveOut.Init(sampleProvider);
+                        _waveOut.Volume = (float)sldVolume.Value;
                     }
                     else
                     {
@@ -383,7 +384,9 @@ namespace ClipExplorer
         {
             _audioFileReader.CurrentTime = TimeSpan.FromSeconds(_audioFileReader.TotalTime.TotalSeconds * trackBarPosition.Value / 100.0);
         }
+        #endregion
 
+        #region Volume
         /// <summary>
         /// 
         /// </summary>
@@ -512,8 +515,7 @@ namespace ClipExplorer
         /// </summary>
         void InitNavigator()
         {
-            // Init the navigator control
-            List<string> paths = new List<string>() { UserSettings.TheSettings.RootDir, @"C:\Dev\repos\ClipExplorer\files" };
+            List<string> paths = UserSettings.TheSettings.RootDirs;
             List<string> exts = _fileExts.SplitByToken(";");
             navigator.AllTags = UserSettings.TheSettings.AllTags.ToHashSet();
             navigator.DoubleClickSelect = !UserSettings.TheSettings.Autoplay;
@@ -528,9 +530,7 @@ namespace ClipExplorer
         private void Navigator_FileSelectedEvent(object sender, string fn)
         {
             rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
-            //TODOC play file.
             OpenFile(fn);
-
         }
 
         /// <summary>
@@ -561,15 +561,18 @@ namespace ClipExplorer
         {
             if (e.KeyCode == Keys.Space)
             {
-                // Handle start/stop toggle.
-                //ProcessPlay(chkPlay.Checked ? PlayCommand.Stop : PlayCommand.Start, true);
+                if(chkPlay.Checked)
+                {
+                    _waveOut.Pause();
+                    chkPlay.Checked = false;
+                }
+                else
+                {
+                    _waveOut.Play();
+                    chkPlay.Checked = true;
+                }
                 e.Handled = true;
             }
-        }
-
-        private void navigator_FileSelectedEvent(object sender, string e)
-        {
-
         }
     }
 }

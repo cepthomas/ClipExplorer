@@ -24,8 +24,7 @@ namespace ClipExplorer
         [Description("Where to start.")]
         [Category("Navigator")]
         [Browsable(true)]
-        [Editor(typeof(FolderNameEditor), typeof(UITypeEditor))]
-        public string RootDir { get; set; } = "";  //TODOC Support multiple dirs
+        public List<string> RootDirs { get; set; } = new List<string>(); //TODOC fancy editor maybe
 
         [DisplayName("Autoplay Files")]
         [Description("Single click plays file otherwise double click.")]
@@ -37,20 +36,20 @@ namespace ClipExplorer
         [Description("All possible tags.")]
         [Category("Navigator")]
         [Browsable(true)]
-        public List<string> AllTags { get; set; } = new List<string>();
+        public List<string> AllTags { get; set; } = new List<string>(); //TODOC fancy editor maybe
 
         [DisplayName("Output Device")]
         [Description("Where to go.")]
         [Category("Audio")]
         [Browsable(true)]
-        [TypeConverter(typeof(SystemFixedListTypeConverter))]
+        [TypeConverter(typeof(FixedListTypeConverter))]
         public string OutputDevice { get; set; } = "";
 
         [DisplayName("Latency")]
         [Description("What's the hurry?")]
         [Category("Audio")]
         [Browsable(true)]
-        [TypeConverter(typeof(SystemFixedListTypeConverter))]
+        [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
 
         [DisplayName("Wasapi Exclusive Mode")]
@@ -144,9 +143,8 @@ namespace ClipExplorer
         #endregion
     }
 
-
     /// <summary>Converter for selecting property value from known lists.</summary>
-    public class SystemFixedListTypeConverter : TypeConverter
+    public class FixedListTypeConverter : TypeConverter
     {
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
