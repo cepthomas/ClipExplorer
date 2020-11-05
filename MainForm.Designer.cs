@@ -37,7 +37,7 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.navigator = new ClipExplorer.Navigator();
+            this.navigator = new NBagOfTricks.UI.Navigator();
             this.volR = new NBagOfTricks.UI.Meter();
             this.volL = new NBagOfTricks.UI.Meter();
             this.lblTime = new System.Windows.Forms.Label();
@@ -332,7 +332,7 @@
         private NAudio.Gui.WaveformPainter waveformPainter2;
         private NAudio.Gui.WaveformPainter waveformPainter1;
         private System.Windows.Forms.TrackBar trackBarPosition;
-        private Navigator navigator;
+        private NBagOfTricks.UI.Navigator navigator;
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
