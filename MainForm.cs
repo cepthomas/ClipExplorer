@@ -36,17 +36,17 @@ namespace ClipExplorer
         /// <summary>
         /// Current file name.
         /// </summary>
-        string _fn;
+        string _fn = "???";
 
         /// <summary>
         /// Output play device.
         /// </summary>
-        IWavePlayer _waveOut;
+        WaveOut _waveOut = null;
 
         /// <summary>
         /// Input device for file.
         /// </summary>
-        AudioFileReader _audioFileReader;
+        AudioFileReader _audioFileReader = null;
         #endregion
 
         #region Lifecycle
@@ -77,8 +77,6 @@ namespace ClipExplorer
 
             PopulateRecentMenu();
 
-            CreateWaveOut();
-
             InitNavigator();
 
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
@@ -86,32 +84,14 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Clean up on shutdown.
+        /// Clean up on shutdown. Dispose() will get the rest.
         /// </summary>
         void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _waveOut?.Stop();
-            timer1?.Stop();
-
+            CloseDevices();
+            
             // Save user settings.
             SaveSettings();
-        }
-
-        /// <summary>
-        /// Resource clean up.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                timer1?.Dispose();
-                _audioFileReader?.Dispose();
-                _waveOut?.Dispose();
-                components?.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
         #endregion
 
@@ -264,7 +244,7 @@ namespace ClipExplorer
         /// <returns>Status.</returns>
         public bool OpenFile(string fn)
         {
-            string ret = "";
+            bool ret = true;
 
             using (new WaitCursor())
             {
@@ -277,39 +257,68 @@ namespace ClipExplorer
 
                         _fn = fn;
 
-                        // Create reader.
-                        ISampleProvider sampleProvider;
+                        // Clean up first.
+                        CloseDevices();
 
-                        _audioFileReader?.Dispose();
-                        _audioFileReader = new AudioFileReader(_fn);
+                        // Create output device.
+                        for (int id = 0; id < WaveOut.DeviceCount; id++)
+                        {
+                            var cap = WaveOut.GetCapabilities(id);
+                            if (UserSettings.TheSettings.OutputDevice == cap.ProductName)
+                            {
+                                _waveOut = new WaveOut
+                                {
+                                    DeviceNumber = id,
+                                    DesiredLatency = int.Parse(UserSettings.TheSettings.Latency)
+                                };
+                                _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
+                                break;
+                            }
+                        }
 
-                        var sampleChannel = new SampleChannel(_audioFileReader, true);
-                        sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+                        // Create input device.
+                        if (_waveOut != null)
+                        {
+                            _audioFileReader = new AudioFileReader(_fn);
 
-                        var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                        postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+                            // Create reader.
+                            ISampleProvider sampleProvider;
 
-                        sampleProvider = postVolumeMeter;
-                        _waveOut.Init(sampleProvider);
-                        _waveOut.Volume = (float)sldVolume.Value;
+                            var sampleChannel = new SampleChannel(_audioFileReader, true);
+                            sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+
+                            var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
+                            postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+
+                            sampleProvider = postVolumeMeter;
+                            _waveOut.Init(sampleProvider);
+                            _waveOut.Volume = (float)sldVolume.Value;
+                        }
+                        else
+                        {
+                            ErrorMessage($"Failed to create output device: {UserSettings.TheSettings.OutputDevice}");
+                            ret = false;
+                        }
+
+                        if (_waveOut == null || _audioFileReader == null)
+                        {
+                            CloseDevices();
+                        }
                     }
                     else
                     {
-                        ret = $"Invalid file: {fn}";
+                        ErrorMessage($"Invalid file: {fn}");
+                        ret = false;
                     }
                 }
                 catch (Exception ex)
                 {
-                    ret = $"Couldn't open the file: {fn} because: {ex.Message}";
+                    ErrorMessage($"Couldn't open the file: {fn} because: {ex.Message}");
+                    ret = false;
                 }
             }
 
-            if(ret != "")
-            {
-                ErrorMessage(ret);
-            }
-
-            return ret == "";
+            return ret;
         }
 
         /// <summary>
@@ -428,43 +437,6 @@ namespace ClipExplorer
         /// <summary>
         /// 
         /// </summary>
-        void CreateWaveOut()
-        {
-            CloseWaveOut();
-
-            // Find output device.
-            MMDevice mmd = null;
-
-            var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            foreach (var endPoint in endPoints)
-            {
-                if(UserSettings.TheSettings.OutputDevice == endPoint.FriendlyName)
-                {
-                    mmd = endPoint;
-                    break;
-                }
-            }
-
-            if (mmd != null)
-            {
-                var wasapi = new WasapiOut(
-                    mmd,
-                    UserSettings.TheSettings.WasapiExclusive ? AudioClientShareMode.Exclusive : AudioClientShareMode.Shared,
-                    UserSettings.TheSettings.WasapiEventCallback,
-                    int.Parse(UserSettings.TheSettings.Latency));
-
-                _waveOut = wasapi;
-                _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
-            }
-            else
-            {
-                ErrorMessage($"Bad device: {UserSettings.TheSettings.OutputDevice}");
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void WaveOut_PlaybackStopped(object sender, StoppedEventArgs e)
@@ -492,21 +464,14 @@ namespace ClipExplorer
         /// <summary>
         /// 
         /// </summary>
-        void CloseWaveOut()
+        void CloseDevices()
         {
-            if (_waveOut != null)
-            {
-                _waveOut.Stop();
-                //TODOC -= events?
-                _waveOut.Dispose();
-                _waveOut = null;
-            }
+            _waveOut?.Stop();
+            _waveOut?.Dispose();
+            _waveOut = null;
 
-            if (_audioFileReader != null)
-            {
-                _audioFileReader.Dispose();
-                _audioFileReader = null;
-            }
+            _audioFileReader?.Dispose();
+            _audioFileReader = null;
         }
         #endregion
 

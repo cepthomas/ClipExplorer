@@ -9,9 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
-using NAudio.CoreAudioApi;
-using NBagOfTricks.Utils;
 using Newtonsoft.Json;
+using NBagOfTricks.Utils;
+using NAudio.CoreAudioApi;
+using NAudio.Wave;
 
 
 namespace ClipExplorer
@@ -52,17 +53,17 @@ namespace ClipExplorer
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
 
-        [DisplayName("Wasapi Exclusive Mode")]
-        [Description("Mode.")]
-        [Category("Audio")]
-        [Browsable(true)]
-        public bool WasapiExclusive { get; set; } = true;
+        //[DisplayName("Wasapi Exclusive Mode")]
+        //[Description("Mode.")]
+        //[Category("Audio")]
+        //[Browsable(true)]
+        //public bool WasapiExclusive { get; set; } = true;
 
-        [DisplayName("Wasapi Event Callback")]
-        [Description("Mode.")]
-        [Category("Audio")]
-        [Browsable(true)]
-        public bool WasapiEventCallback { get; set; } = false;
+        //[DisplayName("Wasapi Event Callback")]
+        //[Description("Mode.")]
+        //[Category("Audio")]
+        //[Browsable(true)]
+        //public bool WasapiEventCallback { get; set; } = false;
         #endregion
 
         #region Persisted non-editable properties
@@ -162,8 +163,12 @@ namespace ClipExplorer
 
                 case "OutputDevice":
                     rec = new List<string>();
-                    var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-                    endPoints.ForEach(e => rec.Add(e.FriendlyName));
+                    // –1 indicates the default output device, while 0 is the first output device
+                    for (int id = 0; id < WaveOut.DeviceCount; id++)
+                    {
+                        var cap = WaveOut.GetCapabilities(id);
+                        rec.Add(cap.ProductName);
+                    }
                     break;
             }
 
