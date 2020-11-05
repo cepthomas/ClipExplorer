@@ -75,6 +75,7 @@ namespace ClipExplorer
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = UserSettings.TheSettings.Volume;
+            ResetMeters();
 
             PopulateRecentMenu();
 
@@ -365,7 +366,7 @@ namespace ClipExplorer
                 if (chkPlay.Checked)
                 {
                     // Start.
-                    labelTotalTime.Text = string.Format("{0:00}:{1:00}", (int)_audioFileReader.TotalTime.TotalMinutes, _audioFileReader.TotalTime.Seconds);
+                    lblTime.Text = string.Format("{0:00}:{1:00}", (int)_audioFileReader.TotalTime.TotalMinutes, _audioFileReader.TotalTime.Seconds);
                     _waveOut?.Play();
                 }
                 else
@@ -373,7 +374,34 @@ namespace ClipExplorer
                     // Stop/pause.
                     //_waveOut?.Stop();
                     _waveOut?.Pause();
+                    ResetMeters();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Do some global key handling. Space bar is used for stop/start playing.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MainForm_KeyDown(object sender, KeyEventArgs e) //TODOC consolidate with above + time display.
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                // Toggle.
+
+                if (chkPlay.Checked)
+                {
+                    _waveOut.Pause();
+                    chkPlay.Checked = false;
+                    ResetMeters();
+                }
+                else
+                {
+                    _waveOut.Play();
+                    chkPlay.Checked = true;
+                }
+                e.Handled = true;
             }
         }
 
@@ -440,8 +468,8 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
-            volumeMeter1.Amplitude = e.MaxSampleValues[0];
-            volumeMeter2.Amplitude = e.MaxSampleValues[1];
+            volL.AddValue(e.MaxSampleValues[0]);
+            volR.AddValue(e.MaxSampleValues[1]);
         }
         #endregion
 
@@ -519,35 +547,19 @@ namespace ClipExplorer
             {
                 TimeSpan currentTime = (_waveOut.PlaybackState == PlaybackState.Stopped) ? TimeSpan.Zero : _audioFileReader.CurrentTime;
                 trackBarPosition.Value = Math.Min(trackBarPosition.Maximum, (int)(100 * currentTime.TotalSeconds / _audioFileReader.TotalTime.TotalSeconds));
-                labelCurrentTime.Text = string.Format("{0:00}:{1:00}", (int)currentTime.TotalMinutes, currentTime.Seconds);
+                lblTime.Text = string.Format("{0:00}:{1:00}", (int)currentTime.TotalMinutes, currentTime.Seconds);
             }
             else
             {
                 trackBarPosition.Value = 0;
+                lblTime.Text = "boing";
             }
         }
 
-        /// <summary>
-        /// Do some global key handling. Space bar is used for stop/start playing.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void MainForm_KeyDown(object sender, KeyEventArgs e)
+        void ResetMeters()
         {
-            if (e.KeyCode == Keys.Space)
-            {
-                if(chkPlay.Checked)
-                {
-                    _waveOut.Pause();
-                    chkPlay.Checked = false;
-                }
-                else
-                {
-                    _waveOut.Play();
-                    chkPlay.Checked = true;
-                }
-                e.Handled = true;
-            }
+            volL.AddValue(0);
+            volR.AddValue(0);
         }
     }
 }

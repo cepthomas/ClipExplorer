@@ -36,24 +36,20 @@
             this.recentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.labelCurrentTime = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
-            this.labelTotalTime = new System.Windows.Forms.ToolStripLabel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.navigator = new ClipExplorer.Navigator();
+            this.volR = new NBagOfTricks.UI.Meter();
+            this.volL = new NBagOfTricks.UI.Meter();
+            this.lblTime = new System.Windows.Forms.Label();
+            this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.waveformPainter2 = new NAudio.Gui.WaveformPainter();
             this.waveformPainter1 = new NAudio.Gui.WaveformPainter();
-            this.volumeMeter2 = new NAudio.Gui.VolumeMeter();
-            this.volumeMeter1 = new NAudio.Gui.VolumeMeter();
             this.trackBarPosition = new System.Windows.Forms.TrackBar();
             this.sldVolume = new NBagOfTricks.UI.Slider();
-            this.potSpeed = new NBagOfTricks.UI.Pot();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -115,30 +111,6 @@
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.About_Click);
             // 
-            // toolStripLabel1
-            // 
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(97, 24);
-            this.toolStripLabel1.Text = "Current Time:";
-            // 
-            // labelCurrentTime
-            // 
-            this.labelCurrentTime.Name = "labelCurrentTime";
-            this.labelCurrentTime.Size = new System.Drawing.Size(44, 24);
-            this.labelCurrentTime.Text = "00:00";
-            // 
-            // toolStripLabel3
-            // 
-            this.toolStripLabel3.Name = "toolStripLabel3";
-            this.toolStripLabel3.Size = new System.Drawing.Size(82, 24);
-            this.toolStripLabel3.Text = "Total Time:";
-            // 
-            // labelTotalTime
-            // 
-            this.labelTotalTime.Name = "labelTotalTime";
-            this.labelTotalTime.Size = new System.Drawing.Size(44, 24);
-            this.labelTotalTime.Text = "00:00";
-            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -151,15 +123,15 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.volR);
+            this.splitContainer1.Panel2.Controls.Add(this.volL);
+            this.splitContainer1.Panel2.Controls.Add(this.lblTime);
             this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.waveformPainter2);
             this.splitContainer1.Panel2.Controls.Add(this.waveformPainter1);
-            this.splitContainer1.Panel2.Controls.Add(this.volumeMeter2);
-            this.splitContainer1.Panel2.Controls.Add(this.volumeMeter1);
             this.splitContainer1.Panel2.Controls.Add(this.trackBarPosition);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
-            this.splitContainer1.Panel2.Controls.Add(this.potSpeed);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
             this.splitContainer1.Size = new System.Drawing.Size(1284, 608);
@@ -175,6 +147,50 @@
             this.navigator.Size = new System.Drawing.Size(625, 608);
             this.navigator.TabIndex = 0;
             this.navigator.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
+            // 
+            // volR
+            // 
+            this.volR.ControlColor = System.Drawing.Color.Orange;
+            this.volR.Label = "R";
+            this.volR.Location = new System.Drawing.Point(312, 16);
+            this.volR.Maximum = 3D;
+            this.volR.MeterType = NBagOfTricks.UI.MeterType.Log;
+            this.volR.Minimum = -60D;
+            this.volR.Name = "volR";
+            this.volR.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.volR.Size = new System.Drawing.Size(32, 150);
+            this.volR.TabIndex = 59;
+            // 
+            // volL
+            // 
+            this.volL.ControlColor = System.Drawing.Color.Orange;
+            this.volL.Label = "L";
+            this.volL.Location = new System.Drawing.Point(274, 16);
+            this.volL.Maximum = 3D;
+            this.volL.MeterType = NBagOfTricks.UI.MeterType.Log;
+            this.volL.Minimum = -60D;
+            this.volL.Name = "volL";
+            this.volL.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.volL.Size = new System.Drawing.Size(32, 150);
+            this.volL.TabIndex = 58;
+            // 
+            // lblTime
+            // 
+            this.lblTime.AutoSize = true;
+            this.lblTime.Location = new System.Drawing.Point(19, 159);
+            this.lblTime.Name = "lblTime";
+            this.lblTime.Size = new System.Drawing.Size(46, 17);
+            this.lblTime.TabIndex = 57;
+            this.lblTime.Text = "label1";
+            // 
+            // rtbInfo
+            // 
+            this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbInfo.Location = new System.Drawing.Point(31, 452);
+            this.rtbInfo.Name = "rtbInfo";
+            this.rtbInfo.Size = new System.Drawing.Size(575, 144);
+            this.rtbInfo.TabIndex = 56;
+            this.rtbInfo.Text = "";
             // 
             // chkLoop
             // 
@@ -215,34 +231,6 @@
             this.waveformPainter1.TabIndex = 52;
             this.waveformPainter1.Text = "waveformPainter1";
             // 
-            // volumeMeter2
-            // 
-            this.volumeMeter2.Amplitude = 0F;
-            this.volumeMeter2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.volumeMeter2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.volumeMeter2.Location = new System.Drawing.Point(431, 16);
-            this.volumeMeter2.Margin = new System.Windows.Forms.Padding(4);
-            this.volumeMeter2.MaxDb = 3F;
-            this.volumeMeter2.MinDb = -60F;
-            this.volumeMeter2.Name = "volumeMeter2";
-            this.volumeMeter2.Size = new System.Drawing.Size(19, 126);
-            this.volumeMeter2.TabIndex = 49;
-            this.volumeMeter2.Text = "volumeMeter1";
-            // 
-            // volumeMeter1
-            // 
-            this.volumeMeter1.Amplitude = 0F;
-            this.volumeMeter1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.volumeMeter1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.volumeMeter1.Location = new System.Drawing.Point(377, 16);
-            this.volumeMeter1.Margin = new System.Windows.Forms.Padding(4);
-            this.volumeMeter1.MaxDb = 3F;
-            this.volumeMeter1.MinDb = -60F;
-            this.volumeMeter1.Name = "volumeMeter1";
-            this.volumeMeter1.Size = new System.Drawing.Size(19, 126);
-            this.volumeMeter1.TabIndex = 50;
-            this.volumeMeter1.Text = "volumeMeter1";
-            // 
             // trackBarPosition
             // 
             this.trackBarPosition.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -267,27 +255,12 @@
             this.sldVolume.Maximum = 1D;
             this.sldVolume.Minimum = 0D;
             this.sldVolume.Name = "sldVolume";
-            this.sldVolume.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.sldVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.sldVolume.ResetValue = 0D;
-            this.sldVolume.Size = new System.Drawing.Size(88, 42);
+            this.sldVolume.Size = new System.Drawing.Size(33, 109);
             this.sldVolume.TabIndex = 42;
             this.sldVolume.Value = 1D;
             this.sldVolume.ValueChanged += new System.EventHandler(this.Volume_ValueChanged);
-            // 
-            // potSpeed
-            // 
-            this.potSpeed.ControlColor = System.Drawing.Color.Black;
-            this.potSpeed.DecPlaces = 0;
-            this.potSpeed.Label = "";
-            this.potSpeed.Location = new System.Drawing.Point(164, 16);
-            this.potSpeed.Margin = new System.Windows.Forms.Padding(5);
-            this.potSpeed.Maximum = 200D;
-            this.potSpeed.Minimum = 30D;
-            this.potSpeed.Name = "potSpeed";
-            this.potSpeed.Size = new System.Drawing.Size(43, 39);
-            this.potSpeed.TabIndex = 40;
-            this.potSpeed.Taper = NBagOfTricks.UI.Taper.Linear;
-            this.potSpeed.Value = 100D;
             // 
             // btnRewind
             // 
@@ -319,15 +292,6 @@
             // timer1
             // 
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
-            // 
-            // rtbInfo
-            // 
-            this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbInfo.Location = new System.Drawing.Point(31, 452);
-            this.rtbInfo.Name = "rtbInfo";
-            this.rtbInfo.Size = new System.Drawing.Size(575, 144);
-            this.rtbInfo.TabIndex = 56;
-            this.rtbInfo.Text = "";
             // 
             // MainForm
             // 
@@ -363,17 +327,10 @@
         private System.Windows.Forms.ToolStripMenuItem recentToolStripMenuItem;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private NBagOfTricks.UI.Slider sldVolume;
-        private NBagOfTricks.UI.Pot potSpeed;
         private System.Windows.Forms.Button btnRewind;
         private System.Windows.Forms.CheckBox chkPlay;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
-        private System.Windows.Forms.ToolStripLabel labelCurrentTime;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel3;
-        private System.Windows.Forms.ToolStripLabel labelTotalTime;
         private NAudio.Gui.WaveformPainter waveformPainter2;
         private NAudio.Gui.WaveformPainter waveformPainter1;
-        private NAudio.Gui.VolumeMeter volumeMeter2;
-        private NAudio.Gui.VolumeMeter volumeMeter1;
         private System.Windows.Forms.TrackBar trackBarPosition;
         private Navigator navigator;
         private System.Windows.Forms.CheckBox chkLoop;
@@ -381,6 +338,9 @@
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox rtbInfo;
+        private System.Windows.Forms.Label lblTime;
+        private NBagOfTricks.UI.Meter volL;
+        private NBagOfTricks.UI.Meter volR;
     }
 }
 
