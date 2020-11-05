@@ -16,7 +16,7 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 using NAudio.Midi;
 using System.Diagnostics;
-
+using NAudio.Gui;
 
 namespace ClipExplorer
 {
@@ -74,6 +74,7 @@ namespace ClipExplorer
             Size = new Size(UserSettings.TheSettings.MainFormInfo.Width, UserSettings.TheSettings.MainFormInfo.Height);
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
+            sldVolume.Value = UserSettings.TheSettings.Volume;
 
             PopulateRecentMenu();
 
@@ -103,6 +104,7 @@ namespace ClipExplorer
         {
             UserSettings.TheSettings.AllTags = navigator.AllTags.ToList();
             UserSettings.TheSettings.Autoplay = !navigator.DoubleClickSelect;
+            UserSettings.TheSettings.Volume = sldVolume.Value;
             UserSettings.TheSettings.MainFormInfo.FromForm(this);
             UserSettings.TheSettings.Save();
         }
@@ -358,17 +360,20 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Play_CheckedChanged(object sender, EventArgs e)
         {
-            if(chkPlay.Checked)
+            if(_waveOut != null && _audioFileReader != null)
             {
-                // Start.
-                labelTotalTime.Text = string.Format("{0:00}:{1:00}", (int)_audioFileReader.TotalTime.TotalMinutes, _audioFileReader.TotalTime.Seconds);
-                _waveOut?.Play();
-            }
-            else
-            {
-                // Stop/pause.
-                //_waveOut?.Stop();
-                _waveOut?.Pause();
+                if (chkPlay.Checked)
+                {
+                    // Start.
+                    labelTotalTime.Text = string.Format("{0:00}:{1:00}", (int)_audioFileReader.TotalTime.TotalMinutes, _audioFileReader.TotalTime.Seconds);
+                    _waveOut?.Play();
+                }
+                else
+                {
+                    // Stop/pause.
+                    //_waveOut?.Stop();
+                    _waveOut?.Pause();
+                }
             }
         }
 
@@ -379,8 +384,11 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Rewind_Click(object sender, EventArgs e)
         {
-            _waveOut.Stop();
-            _audioFileReader.Position = 0;
+            if (_waveOut != null && _audioFileReader != null)
+            {
+                _waveOut.Stop();
+                _audioFileReader.Position = 0;
+            }
             chkPlay.Checked = false;
         }
 
@@ -391,7 +399,10 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void TrackBarPosition_Scroll(object sender, EventArgs e)
         {
-            _audioFileReader.CurrentTime = TimeSpan.FromSeconds(_audioFileReader.TotalTime.TotalSeconds * trackBarPosition.Value / 100.0);
+            if (_waveOut != null && _audioFileReader != null)
+            {
+                _audioFileReader.CurrentTime = TimeSpan.FromSeconds(_audioFileReader.TotalTime.TotalSeconds * trackBarPosition.Value / 100.0);
+            }
         }
         #endregion
 
@@ -403,7 +414,10 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Volume_ValueChanged(object sender, EventArgs e)
         {
-            _waveOut.Volume = (float)sldVolume.Value;
+            if(_waveOut != null)
+            {
+                _waveOut.Volume = (float)sldVolume.Value;
+            }
         }
         #endregion
 
@@ -415,7 +429,6 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void SampleChannel_PreVolumeMeter(object sender, StreamVolumeEventArgs e)
         {
-            // we know it is stereo TODOC???
             waveformPainter1.AddMax(e.MaxSampleValues[0]);
             waveformPainter2.AddMax(e.MaxSampleValues[1]);
         }
@@ -427,13 +440,11 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
-            // we know it is stereo TODOC???
             volumeMeter1.Amplitude = e.MaxSampleValues[0];
             volumeMeter2.Amplitude = e.MaxSampleValues[1];
         }
         #endregion
 
-        #region Wave device management
         /// <summary>
         /// 
         /// </summary>
@@ -473,7 +484,6 @@ namespace ClipExplorer
             _audioFileReader?.Dispose();
             _audioFileReader = null;
         }
-        #endregion
 
         /// <summary>
         /// Initialize navigator from user settings.
@@ -492,7 +502,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="fn"></param>
-        private void Navigator_FileSelectedEvent(object sender, string fn)
+        void Navigator_FileSelectedEvent(object sender, string fn)
         {
             rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
             OpenFile(fn);
@@ -503,7 +513,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Timer1_Tick(object sender, EventArgs e)
+        void Timer1_Tick(object sender, EventArgs e)
         {
             if (_waveOut != null && _audioFileReader != null)
             {

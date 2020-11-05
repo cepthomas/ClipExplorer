@@ -52,18 +52,6 @@ namespace ClipExplorer
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
-
-        //[DisplayName("Wasapi Exclusive Mode")]
-        //[Description("Mode.")]
-        //[Category("Audio")]
-        //[Browsable(true)]
-        //public bool WasapiExclusive { get; set; } = true;
-
-        //[DisplayName("Wasapi Event Callback")]
-        //[Description("Mode.")]
-        //[Category("Audio")]
-        //[Browsable(true)]
-        //public bool WasapiEventCallback { get; set; } = false;
         #endregion
 
         #region Persisted non-editable properties
@@ -71,10 +59,7 @@ namespace ClipExplorer
         public FormInfo MainFormInfo { get; set; } = new FormInfo();
 
         [Browsable(false)]
-        public int Volume { get; set; } = 40;
-
-        [Browsable(false)]
-        public int Speed { get; set; } = 100;
+        public double Volume { get; set; } = 0.5;
 
         [Browsable(false)]
         public List<string> RecentFiles { get; set; } = new List<string>();
