@@ -31,7 +31,7 @@ namespace ClipExplorer
         /// <summary>
         /// Supported file types.
         /// </summary>
-        string _fileExts = ".wav;.mp3;"; //.aiff;.aac";
+        string _fileExts = ".wav;.mp3;";
 
         /// <summary>
         /// Current file name.
@@ -57,6 +57,8 @@ namespace ClipExplorer
         {
             InitializeComponent();
         }
+
+//TODOC add chkAutoplay
 
         /// <summary>
         /// Initialize form controls.
@@ -167,7 +169,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void ErrorMessage(string s)
         {
-            MessageBox.Show(s); //TODOC more?
+            MessageBox.Show(s);
         }
 
         /// <summary>

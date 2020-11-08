@@ -157,8 +157,7 @@ namespace ClipExplorer
                     break;
             }
 
-            StandardValuesCollection coll = new StandardValuesCollection(rec);
-            return coll;
+            return new StandardValuesCollection(rec);
         }
     }
 }
