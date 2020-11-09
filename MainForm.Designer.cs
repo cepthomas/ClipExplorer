@@ -37,7 +37,7 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.navigator = new NBagOfTricks.UI.TreeViewEx();
+            this.ftree = new NBagOfTricks.UI.FilTree();
             this.volR = new NBagOfTricks.UI.Meter();
             this.volL = new NBagOfTricks.UI.Meter();
             this.lblTime = new System.Windows.Forms.Label();
@@ -119,7 +119,7 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.navigator);
+            this.splitContainer1.Panel1.Controls.Add(this.ftree);
             // 
             // splitContainer1.Panel2
             // 
@@ -138,15 +138,15 @@
             this.splitContainer1.SplitterDistance = 625;
             this.splitContainer1.TabIndex = 1;
             // 
-            // navigator
+            // ftree
             // 
-            this.navigator.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.navigator.DoubleClickSelect = false;
-            this.navigator.Location = new System.Drawing.Point(0, 0);
-            this.navigator.Name = "navigator";
-            this.navigator.Size = new System.Drawing.Size(625, 608);
-            this.navigator.TabIndex = 0;
-            this.navigator.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
+            this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ftree.DoubleClickSelect = false;
+            this.ftree.Location = new System.Drawing.Point(0, 0);
+            this.ftree.Name = "ftree";
+            this.ftree.Size = new System.Drawing.Size(625, 608);
+            this.ftree.TabIndex = 0;
+            this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
             // volR
             // 
@@ -300,7 +300,6 @@
             this.ClientSize = new System.Drawing.Size(1284, 635);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.Text = "Sound Explorer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
@@ -332,7 +331,7 @@
         private NAudio.Gui.WaveformPainter waveformPainter2;
         private NAudio.Gui.WaveformPainter waveformPainter1;
         private System.Windows.Forms.TrackBar trackBarPosition;
-        private NBagOfTricks.UI.TreeViewEx navigator;
+        private NBagOfTricks.UI.FilTree ftree;
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;

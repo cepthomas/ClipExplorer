@@ -105,8 +105,8 @@ namespace ClipExplorer
         /// </summary>
         void SaveSettings()
         {
-            UserSettings.TheSettings.AllTags = navigator.AllTags.ToList();
-            UserSettings.TheSettings.Autoplay = !navigator.DoubleClickSelect;
+            UserSettings.TheSettings.AllTags = ftree.AllTags.ToList();
+            UserSettings.TheSettings.Autoplay = !ftree.DoubleClickSelect;
             UserSettings.TheSettings.Volume = sldVolume.Value;
             UserSettings.TheSettings.MainFormInfo.FromForm(this);
             UserSettings.TheSettings.Save();
@@ -516,15 +516,16 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Initialize navigator from user settings.
+        /// Initialize ftree from user settings.
         /// </summary>
         void InitNavigator()
         {
-            List<string> paths = UserSettings.TheSettings.RootDirs;
-            List<string> exts = _fileExts.SplitByToken(";");
-            navigator.AllTags = UserSettings.TheSettings.AllTags.ToHashSet();
-            navigator.DoubleClickSelect = !UserSettings.TheSettings.Autoplay;
-            navigator.Init(paths, exts);
+            ftree.FilterExts = _fileExts.SplitByToken(";");
+            ftree.RootPaths = UserSettings.TheSettings.RootDirs.DeepClone();
+            ftree.AllTags = UserSettings.TheSettings.AllTags.DeepClone();
+            ftree.TaggedPaths = new List<(string path, string tags)>(); //TODOC from/to persistence.
+            ftree.DoubleClickSelect = !UserSettings.TheSettings.Autoplay;
+            ftree.Init();
         }
 
         /// <summary>
