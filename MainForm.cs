@@ -8,15 +8,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Diagnostics;
 using NAudio.Wave;
 using NAudio.CoreAudioApi;
 using NAudio.Wave.SampleProviders;
+using NAudio.Midi;
+//using NAudio.Gui;
 using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
-using NAudio.Midi;
-using System.Diagnostics;
-using NAudio.Gui;
+
+
+
+//load from file, save to file
+//ftree.Cleanup();
+//// Inspect.
+//var at = ftree.AllTags;
+//var tp = ftree.TaggedPaths;
+
 
 namespace ClipExplorer
 {
@@ -57,8 +66,6 @@ namespace ClipExplorer
         {
             InitializeComponent();
         }
-
-//TODOC add chkAutoplay
 
         /// <summary>
         /// Initialize form controls.
@@ -107,6 +114,10 @@ namespace ClipExplorer
         {
             UserSettings.TheSettings.AllTags = ftree.AllTags.ToList();
             UserSettings.TheSettings.Autoplay = !ftree.DoubleClickSelect;
+
+            UserSettings.TheSettings.TaggedPaths.Clear();
+            ftree.TaggedPaths.ForEach(v => UserSettings.TheSettings.TaggedPaths[v.path] = v.tags);
+
             UserSettings.TheSettings.Volume = sldVolume.Value;
             UserSettings.TheSettings.MainFormInfo.FromForm(this);
             UserSettings.TheSettings.Save();
@@ -214,13 +225,13 @@ namespace ClipExplorer
         /// </summary>
         void Recent_Click(object sender, EventArgs e)
         {
-            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            //ToolStripMenuItem item = sender as ToolStripMenuItem;
             string fn = sender.ToString();
             OpenFile(fn);
         }
 
         /// <summary>
-        /// Allows the user to select a file from file system.
+        /// Allows the user to select a n audio clip from file system.
         /// </summary>
         void Open_Click(object sender, EventArgs e)
         {
@@ -523,13 +534,16 @@ namespace ClipExplorer
             ftree.FilterExts = _fileExts.SplitByToken(";");
             ftree.RootPaths = UserSettings.TheSettings.RootDirs.DeepClone();
             ftree.AllTags = UserSettings.TheSettings.AllTags.DeepClone();
-            ftree.TaggedPaths = new List<(string path, string tags)>(); //TODOC from/to persistence.
             ftree.DoubleClickSelect = !UserSettings.TheSettings.Autoplay;
+
+            ftree.TaggedPaths.Clear();
+            UserSettings.TheSettings.TaggedPaths.ForEach(kv => ftree.TaggedPaths.Add((kv.Key, kv.Value)));
+
             ftree.Init();
         }
 
         /// <summary>
-        /// 
+        /// Tree has seleccted a file to play.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="fn"></param>
@@ -540,7 +554,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// 
+        /// Update realtime clock.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -559,6 +573,9 @@ namespace ClipExplorer
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         void ResetMeters()
         {
             volL.AddValue(0);

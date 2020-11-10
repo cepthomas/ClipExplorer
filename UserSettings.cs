@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Design;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.Design;
 using Newtonsoft.Json;
-using NBagOfTricks.Utils;
-using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
 
@@ -63,6 +55,9 @@ namespace ClipExplorer
 
         [Browsable(false)]
         public List<string> RecentFiles { get; set; } = new List<string>();
+
+        [Browsable(false)]
+        public Dictionary<string, string> TaggedPaths { get; set; } = new Dictionary<string, string>();
         #endregion
 
         #region Classes
