@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
+using System.Drawing;
+using System.Drawing.Design;
+using System.ComponentModel.Design;
+using System.Windows.Forms.Design;
 using Newtonsoft.Json;
 using NAudio.Wave;
+using NBagOfTricks.UI;
 
 
 namespace ClipExplorer
@@ -17,7 +22,8 @@ namespace ClipExplorer
         [Description("Where to start.")]
         [Category("Navigator")]
         [Browsable(true)]
-        public List<string> RootDirs { get; set; } = new List<string>(); //TODOC fancy editor maybe
+        [Editor(typeof(ListEditor), typeof(UITypeEditor))]
+        public List<string> RootDirs { get; set; } = new List<string>();
 
         [DisplayName("Autoplay Files")]
         [Description("Single click plays file otherwise double click.")]
@@ -29,26 +35,27 @@ namespace ClipExplorer
         [Description("All possible tags.")]
         [Category("Navigator")]
         [Browsable(true)]
+        [Editor(typeof(ListEditor), typeof(UITypeEditor))]
         public List<string> AllTags { get; set; } = new List<string>(); //TODOC fancy editor maybe
 
         [DisplayName("Output Device")]
         [Description("Where to go.")]
         [Category("Audio")]
         [Browsable(true)]
-        [TypeConverter(typeof(FixedListTypeConverter))]
+        [TypeConverter(typeof(OutputDeviceTypeConverter))]
         public string OutputDevice { get; set; } = "";
 
         [DisplayName("Latency")]
         [Description("What's the hurry?")]
         [Category("Audio")]
         [Browsable(true)]
-        [TypeConverter(typeof(FixedListTypeConverter))]
+        [TypeConverter(typeof(LatencyTypeConverter))]
         public string Latency { get; set; } = "200";
         #endregion
 
-        #region Persisted non-editable properties
+        #region Persisted Non-editable Properties
         [Browsable(false)]
-        public FormInfo MainFormInfo { get; set; } = new FormInfo();
+        public Rectangle MainFormInfo { get; set; } = new Rectangle(50, 50, 500, 400);
 
         [Browsable(false)]
         public double Volume { get; set; } = 0.5;
@@ -58,26 +65,6 @@ namespace ClipExplorer
 
         [Browsable(false)]
         public Dictionary<string, string> TaggedPaths { get; set; } = new Dictionary<string, string>();
-        #endregion
-
-        #region Classes
-        /// <summary>General purpose container for persistence.</summary>
-        [Serializable]
-        public class FormInfo
-        {
-            public int X { get; set; } = 50;
-            public int Y { get; set; } = 50;
-            public int Width { get; set; } = 1000;
-            public int Height { get; set; } = 700;
-
-            public void FromForm(Form f)
-            {
-                X = f.Location.X;
-                Y = f.Location.Y;
-                Width = f.Width;
-                Height = f.Height;
-            }
-        }
         #endregion
 
         #region Fields
@@ -125,7 +112,7 @@ namespace ClipExplorer
     }
 
     /// <summary>Converter for selecting property value from known lists.</summary>
-    public class FixedListTypeConverter : TypeConverter
+    public class LatencyTypeConverter : TypeConverter
     {
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
@@ -133,25 +120,26 @@ namespace ClipExplorer
         /// Get the list using the property name as key.
         public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
         {
-            List<string> rec = null;
+            return new StandardValuesCollection(new List<string>() { "25", "50", "100", "150", "200", "300", "400", "500" });
+        }
+    }
 
-            switch (context.PropertyDescriptor.Name)
+    /// <summary>Converter for selecting property value from known lists.</summary>
+    public class OutputDeviceTypeConverter : TypeConverter
+    {
+        public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
+        public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
+
+        /// Get the list using the property name as key.
+        public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+        {
+            List<string> rec = new List<string>();
+            // –1 indicates the default output device, while 0 is the first output device
+            for (int id = 0; id < WaveOut.DeviceCount; id++)
             {
-                case "Latency":
-                    rec = new List<string>() { "25", "50", "100", "150", "200", "300", "400", "500" };
-                    break;
-
-                case "OutputDevice":
-                    rec = new List<string>();
-                    // –1 indicates the default output device, while 0 is the first output device
-                    for (int id = 0; id < WaveOut.DeviceCount; id++)
-                    {
-                        var cap = WaveOut.GetCapabilities(id);
-                        rec.Add(cap.ProductName);
-                    }
-                    break;
+                var cap = WaveOut.GetCapabilities(id);
+                rec.Add(cap.ProductName);
             }
-
             return new StandardValuesCollection(rec);
         }
     }

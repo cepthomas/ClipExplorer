@@ -100,8 +100,9 @@ namespace ClipExplorer
         void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             CloseDevices();
-            
+
             // Save user settings.
+            ftree.Cleanup();
             SaveSettings();
         }
         #endregion
@@ -119,7 +120,8 @@ namespace ClipExplorer
             ftree.TaggedPaths.ForEach(v => UserSettings.TheSettings.TaggedPaths[v.path] = v.tags);
 
             UserSettings.TheSettings.Volume = sldVolume.Value;
-            UserSettings.TheSettings.MainFormInfo.FromForm(this);
+            UserSettings.TheSettings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
+
             UserSettings.TheSettings.Save();
         }
 
@@ -580,6 +582,11 @@ namespace ClipExplorer
         {
             volL.AddValue(0);
             volR.AddValue(0);
+        }
+
+        private void TimeControl_ValueChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

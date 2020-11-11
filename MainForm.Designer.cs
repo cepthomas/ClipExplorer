@@ -50,6 +50,7 @@
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timeControl = new NBagOfTricks.UI.TimeControl();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -123,6 +124,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.timeControl);
             this.splitContainer1.Panel2.Controls.Add(this.volR);
             this.splitContainer1.Panel2.Controls.Add(this.volL);
             this.splitContainer1.Panel2.Controls.Add(this.lblTime);
@@ -140,12 +142,16 @@
             // 
             // ftree
             // 
+            this.ftree.AllTags = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.AllTags")));
             this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ftree.DoubleClickSelect = false;
+            this.ftree.FilterExts = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.FilterExts")));
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
+            this.ftree.RootPaths = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.RootPaths")));
             this.ftree.Size = new System.Drawing.Size(625, 608);
             this.ftree.TabIndex = 0;
+            this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
             // volR
@@ -293,6 +299,16 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
+            // timeControl
+            // 
+            this.timeControl.ControlColor = System.Drawing.Color.Orange;
+            this.timeControl.Location = new System.Drawing.Point(22, 180);
+            this.timeControl.Name = "timeControl";
+            this.timeControl.ShowProgress = true;
+            this.timeControl.Size = new System.Drawing.Size(601, 38);
+            this.timeControl.TabIndex = 60;
+            this.timeControl.ValueChanged += new System.EventHandler(this.TimeControl_ValueChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -340,6 +356,7 @@
         private System.Windows.Forms.Label lblTime;
         private NBagOfTricks.UI.Meter volL;
         private NBagOfTricks.UI.Meter volR;
+        private NBagOfTricks.UI.TimeControl timeControl;
     }
 }
 
