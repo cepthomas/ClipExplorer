@@ -38,25 +38,22 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfTricks.UI.FilTree();
+            this.timeControl = new NBagOfTricks.UI.TimeControl();
             this.volR = new NBagOfTricks.UI.Meter();
             this.volL = new NBagOfTricks.UI.Meter();
-            this.lblTime = new System.Windows.Forms.Label();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.waveformPainter2 = new NAudio.Gui.WaveformPainter();
             this.waveformPainter1 = new NAudio.Gui.WaveformPainter();
-            this.trackBarPosition = new System.Windows.Forms.TrackBar();
             this.sldVolume = new NBagOfTricks.UI.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.timeControl = new NBagOfTricks.UI.TimeControl();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarPosition)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -127,12 +124,10 @@
             this.splitContainer1.Panel2.Controls.Add(this.timeControl);
             this.splitContainer1.Panel2.Controls.Add(this.volR);
             this.splitContainer1.Panel2.Controls.Add(this.volL);
-            this.splitContainer1.Panel2.Controls.Add(this.lblTime);
             this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.waveformPainter2);
             this.splitContainer1.Panel2.Controls.Add(this.waveformPainter1);
-            this.splitContainer1.Panel2.Controls.Add(this.trackBarPosition);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
@@ -153,6 +148,15 @@
             this.ftree.TabIndex = 0;
             this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
+            // 
+            // timeControl
+            // 
+            this.timeControl.ControlColor = System.Drawing.Color.Orange;
+            this.timeControl.Location = new System.Drawing.Point(21, 384);
+            this.timeControl.Name = "timeControl";
+            this.timeControl.Size = new System.Drawing.Size(601, 38);
+            this.timeControl.TabIndex = 60;
+            this.timeControl.ValueChanged += new System.EventHandler(this.TimeControl_ValueChanged);
             // 
             // volR
             // 
@@ -179,15 +183,6 @@
             this.volL.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.volL.Size = new System.Drawing.Size(32, 150);
             this.volL.TabIndex = 58;
-            // 
-            // lblTime
-            // 
-            this.lblTime.AutoSize = true;
-            this.lblTime.Location = new System.Drawing.Point(19, 159);
-            this.lblTime.Name = "lblTime";
-            this.lblTime.Size = new System.Drawing.Size(46, 17);
-            this.lblTime.TabIndex = 57;
-            this.lblTime.Text = "label1";
             // 
             // rtbInfo
             // 
@@ -237,20 +232,6 @@
             this.waveformPainter1.TabIndex = 52;
             this.waveformPainter1.Text = "waveformPainter1";
             // 
-            // trackBarPosition
-            // 
-            this.trackBarPosition.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBarPosition.LargeChange = 10;
-            this.trackBarPosition.Location = new System.Drawing.Point(21, 397);
-            this.trackBarPosition.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBarPosition.Maximum = 100;
-            this.trackBarPosition.Name = "trackBarPosition";
-            this.trackBarPosition.Size = new System.Drawing.Size(602, 56);
-            this.trackBarPosition.TabIndex = 46;
-            this.trackBarPosition.TickFrequency = 5;
-            this.trackBarPosition.Scroll += new System.EventHandler(this.TrackBarPosition_Scroll);
-            // 
             // sldVolume
             // 
             this.sldVolume.ControlColor = System.Drawing.Color.Orange;
@@ -299,16 +280,6 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
-            // timeControl
-            // 
-            this.timeControl.ControlColor = System.Drawing.Color.Orange;
-            this.timeControl.Location = new System.Drawing.Point(22, 180);
-            this.timeControl.Name = "timeControl";
-            this.timeControl.ShowProgress = true;
-            this.timeControl.Size = new System.Drawing.Size(601, 38);
-            this.timeControl.TabIndex = 60;
-            this.timeControl.ValueChanged += new System.EventHandler(this.TimeControl_ValueChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -325,10 +296,8 @@
             this.toolStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
-            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarPosition)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -346,14 +315,12 @@
         private System.Windows.Forms.CheckBox chkPlay;
         private NAudio.Gui.WaveformPainter waveformPainter2;
         private NAudio.Gui.WaveformPainter waveformPainter1;
-        private System.Windows.Forms.TrackBar trackBarPosition;
         private NBagOfTricks.UI.FilTree ftree;
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox rtbInfo;
-        private System.Windows.Forms.Label lblTime;
         private NBagOfTricks.UI.Meter volL;
         private NBagOfTricks.UI.Meter volR;
         private NBagOfTricks.UI.TimeControl timeControl;

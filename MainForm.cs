@@ -381,7 +381,6 @@ namespace ClipExplorer
                 if (chkPlay.Checked)
                 {
                     // Start.
-                    lblTime.Text = string.Format("{0:00}:{1:00}", (int)_audioFileReader.TotalTime.TotalMinutes, _audioFileReader.TotalTime.Seconds);
                     _waveOut?.Play();
                 }
                 else
@@ -440,11 +439,11 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void TrackBarPosition_Scroll(object sender, EventArgs e)
+        private void TimeControl_ValueChanged(object sender, EventArgs e)
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                _audioFileReader.CurrentTime = TimeSpan.FromSeconds(_audioFileReader.TotalTime.TotalSeconds * trackBarPosition.Value / 100.0);
+                _audioFileReader.CurrentTime = timeControl.CurrentTime;
             }
         }
         #endregion
@@ -564,14 +563,12 @@ namespace ClipExplorer
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                TimeSpan currentTime = (_waveOut.PlaybackState == PlaybackState.Stopped) ? TimeSpan.Zero : _audioFileReader.CurrentTime;
-                trackBarPosition.Value = Math.Min(trackBarPosition.Maximum, (int)(100 * currentTime.TotalSeconds / _audioFileReader.TotalTime.TotalSeconds));
-                lblTime.Text = string.Format("{0:00}:{1:00}", (int)currentTime.TotalMinutes, currentTime.Seconds);
+                TimeSpan currentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
+                timeControl.CurrentTime = currentTime;
             }
             else
             {
-                trackBarPosition.Value = 0;
-                lblTime.Text = "boing";
+                timeControl.CurrentTime = new TimeSpan();
             }
         }
 
@@ -582,11 +579,6 @@ namespace ClipExplorer
         {
             volL.AddValue(0);
             volR.AddValue(0);
-        }
-
-        private void TimeControl_ValueChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }
