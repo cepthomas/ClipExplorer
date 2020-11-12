@@ -94,7 +94,7 @@ namespace ClipExplorer
             CloseDevices();
 
             // Save user settings.
-            ftree.Cleanup();
+            ftree.FlushChanges();
             SaveSettings();
         }
         #endregion
@@ -291,8 +291,8 @@ namespace ClipExplorer
                         {
                             _audioFileReader = new AudioFileReader(_fn);
 
-                            timeControl.CurrentTime = new TimeSpan();
-                            timeControl.Length = _audioFileReader.TotalTime;
+                            timeBar.CurrentTime = new TimeSpan();
+                            timeBar.Length = _audioFileReader.TotalTime;
 
                             // Create reader.
                             ISampleProvider sampleProvider;
@@ -434,11 +434,11 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TimeControl_CurrentTimeChanged(object sender, EventArgs e)
+        private void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                _audioFileReader.CurrentTime = timeControl.CurrentTime;
+                _audioFileReader.CurrentTime = timeBar.CurrentTime;
             }
         }
         #endregion
@@ -558,12 +558,12 @@ namespace ClipExplorer
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                timeControl.CurrentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
+                timeBar.CurrentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
             }
             else
             {
                 // Reset.
-                timeControl.CurrentTime = new TimeSpan();
+                timeBar.CurrentTime = new TimeSpan();
             }
         }
 

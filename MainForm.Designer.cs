@@ -38,7 +38,7 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfTricks.UI.FilTree();
-            this.timeControl = new NBagOfTricks.UI.TimeControl();
+            this.timeBar = new NBagOfTricks.UI.TimeBar();
             this.volR = new NBagOfTricks.UI.Meter();
             this.volL = new NBagOfTricks.UI.Meter();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
@@ -121,7 +121,7 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.timeControl);
+            this.splitContainer1.Panel2.Controls.Add(this.timeBar);
             this.splitContainer1.Panel2.Controls.Add(this.volR);
             this.splitContainer1.Panel2.Controls.Add(this.volL);
             this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
@@ -149,14 +149,14 @@
             this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
-            // timeControl
+            // timeBar
             // 
-            this.timeControl.ProgressColor = System.Drawing.Color.Orange;
-            this.timeControl.Location = new System.Drawing.Point(21, 384);
-            this.timeControl.Name = "timeControl";
-            this.timeControl.Size = new System.Drawing.Size(601, 38);
-            this.timeControl.TabIndex = 60;
-            this.timeControl.CurrentTimeChanged += new System.EventHandler(this.TimeControl_CurrentTimeChanged);
+            this.timeBar.ProgressColor = System.Drawing.Color.Orange;
+            this.timeBar.Location = new System.Drawing.Point(21, 384);
+            this.timeBar.Name = "timeBar";
+            this.timeBar.Size = new System.Drawing.Size(601, 38);
+            this.timeBar.TabIndex = 60;
+            this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
             // 
             // volR
             // 
@@ -323,7 +323,7 @@
         private System.Windows.Forms.RichTextBox rtbInfo;
         private NBagOfTricks.UI.Meter volL;
         private NBagOfTricks.UI.Meter volR;
-        private NBagOfTricks.UI.TimeControl timeControl;
+        private NBagOfTricks.UI.TimeBar timeBar;
     }
 }
 
