@@ -19,14 +19,6 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-
-//load from file, save to file
-//ftree.Cleanup();
-//// Inspect.
-//var at = ftree.AllTags;
-//var tp = ftree.TaggedPaths;
-
-
 namespace ClipExplorer
 {
     public partial class MainForm : Form
@@ -299,6 +291,9 @@ namespace ClipExplorer
                         {
                             _audioFileReader = new AudioFileReader(_fn);
 
+                            timeControl.CurrentTime = new TimeSpan();
+                            timeControl.Length = _audioFileReader.TotalTime;
+
                             // Create reader.
                             ISampleProvider sampleProvider;
 
@@ -439,7 +434,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TimeControl_ValueChanged(object sender, EventArgs e)
+        private void TimeControl_CurrentTimeChanged(object sender, EventArgs e)
         {
             if (_waveOut != null && _audioFileReader != null)
             {
@@ -563,11 +558,11 @@ namespace ClipExplorer
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                TimeSpan currentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
-                timeControl.CurrentTime = currentTime;
+                timeControl.CurrentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
             }
             else
             {
+                // Reset.
                 timeControl.CurrentTime = new TimeSpan();
             }
         }

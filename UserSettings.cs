@@ -18,7 +18,7 @@ namespace ClipExplorer
     public class UserSettings
     {
         #region Persisted editable properties
-        [DisplayName("Root Directory")]
+        [DisplayName("Root Directories")]
         [Description("Where to start.")]
         [Category("Navigator")]
         [Browsable(true)]
@@ -36,7 +36,7 @@ namespace ClipExplorer
         [Category("Navigator")]
         [Browsable(true)]
         [Editor(typeof(ListEditor), typeof(UITypeEditor))]
-        public List<string> AllTags { get; set; } = new List<string>(); //TODOC fancy editor maybe
+        public List<string> AllTags { get; set; } = new List<string>();
 
         [DisplayName("Output Device")]
         [Description("Where to go.")]

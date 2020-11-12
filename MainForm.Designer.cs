@@ -151,12 +151,12 @@
             // 
             // timeControl
             // 
-            this.timeControl.ControlColor = System.Drawing.Color.Orange;
+            this.timeControl.ProgressColor = System.Drawing.Color.Orange;
             this.timeControl.Location = new System.Drawing.Point(21, 384);
             this.timeControl.Name = "timeControl";
             this.timeControl.Size = new System.Drawing.Size(601, 38);
             this.timeControl.TabIndex = 60;
-            this.timeControl.ValueChanged += new System.EventHandler(this.TimeControl_ValueChanged);
+            this.timeControl.CurrentTimeChanged += new System.EventHandler(this.TimeControl_CurrentTimeChanged);
             // 
             // volR
             // 
