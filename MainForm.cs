@@ -84,7 +84,15 @@ namespace ClipExplorer
 
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
             timer1.Enabled = true;
+
+            MidiPlayer player = new MidiPlayer();
+            player.LoadFile(@"C:\Dev\repos\ClipExplorer\_stuff\WICKGAME.MID");
+
+            var v = player.mevts;
+
+            DumpMidi(v, "dump.txt");
         }
+
 
         /// <summary>
         /// Clean up on shutdown. Dispose() will get the rest.
@@ -269,6 +277,8 @@ namespace ClipExplorer
 
                         // Clean up first.
                         CloseDevices();
+
+                        ShowClip();
 
                         // Create output device.
                         for (int id = 0; id < WaveOut.DeviceCount; id++)
@@ -458,6 +468,37 @@ namespace ClipExplorer
         }
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        void ShowClip()
+        {
+            using (AudioFileReader afrdr = new AudioFileReader(_fn))
+            {
+                var sampleChannel = new SampleChannel(afrdr, true);
+
+                long len = afrdr.Length / sizeof(float);
+                var data = new float[len];
+
+                int offset = 0;
+                int num = -1;
+                while (num != 0)
+                {
+                    num = afrdr.Read(data, offset, 20000);
+                    offset += num;
+                }
+
+                //List<string> samples = new List<string>();
+                //for(int i = 0; i < data.Length; i++)
+                //{
+                //    samples.Add($"{i+1}, {data[i]}");
+                //}
+                //File.WriteAllLines("samples.csv", samples);
+
+                waveViewer1.Init(data, 1.0f);
+            }
+        }
+
         #region Meters
         /// <summary>
         /// 
@@ -477,10 +518,47 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
+            // TODOC add some damping to meter control?
             volL.AddValue(e.MaxSampleValues[0]);
             volR.AddValue(e.MaxSampleValues[1]);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        void ResetMeters()
+        {
+            volL.AddValue(0);
+            volR.AddValue(0);
+        }
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="events"></param>
+        /// <param name="fn"></param>
+        void DumpMidi(MidiEventCollection events, string fn)
+        {
+            List<string> st = new List<string>();
+            st.Add($"MidiFileType:{events.MidiFileType}");
+            st.Add($"DeltaTicksPerQuarterNote:{events.DeltaTicksPerQuarterNote}");
+            st.Add($"StartAbsoluteTime:{events.StartAbsoluteTime}");
+            st.Add($"Tracks:{events.Tracks}");
+
+            for (int trk = 0; trk < events.Tracks; trk++)
+            {
+                st.Add($"  Track:{trk}");
+
+                var trackEvents = events.GetTrackEvents(trk);
+                for (int te = 0; te < trackEvents.Count; te++)
+                {
+                    st.Add($"    {trackEvents[te]}");
+                }
+            }
+
+            File.WriteAllLines(fn, st.ToArray());
+        }
 
         /// <summary>
         /// 
@@ -567,13 +645,5 @@ namespace ClipExplorer
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        void ResetMeters()
-        {
-            volL.AddValue(0);
-            volR.AddValue(0);
-        }
     }
 }

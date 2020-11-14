@@ -37,18 +37,19 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.ftree = new NBagOfTricks.UI.FilTree();
-            this.timeBar = new NBagOfTricks.UI.TimeBar();
-            this.volR = new NBagOfTricks.UI.Meter();
-            this.volL = new NBagOfTricks.UI.Meter();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.waveformPainter2 = new NAudio.Gui.WaveformPainter();
             this.waveformPainter1 = new NAudio.Gui.WaveformPainter();
-            this.sldVolume = new NBagOfTricks.UI.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.ftree = new NBagOfTricks.UI.FilTree();
+            this.timeBar = new NBagOfTricks.UI.TimeBar();
+            this.volR = new NBagOfTricks.UI.Meter();
+            this.volL = new NBagOfTricks.UI.Meter();
+            this.sldVolume = new NBagOfTricks.UI.Slider();
+            this.waveViewer1 = new NBagOfTricks.UI.WaveViewer();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -63,7 +64,7 @@
             this.fileDropDownButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1284, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1284, 31);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -77,7 +78,7 @@
             this.aboutToolStripMenuItem});
             this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDownButton.Name = "fileDropDownButton";
-            this.fileDropDownButton.Size = new System.Drawing.Size(46, 24);
+            this.fileDropDownButton.Size = new System.Drawing.Size(46, 28);
             this.fileDropDownButton.Text = "File";
             this.fileDropDownButton.ToolTipText = "File operations";
             // 
@@ -112,7 +113,7 @@
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 27);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 31);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -121,6 +122,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.waveViewer1);
             this.splitContainer1.Panel2.Controls.Add(this.timeBar);
             this.splitContainer1.Panel2.Controls.Add(this.volR);
             this.splitContainer1.Panel2.Controls.Add(this.volL);
@@ -131,58 +133,9 @@
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
-            this.splitContainer1.Size = new System.Drawing.Size(1284, 608);
+            this.splitContainer1.Size = new System.Drawing.Size(1284, 604);
             this.splitContainer1.SplitterDistance = 625;
             this.splitContainer1.TabIndex = 1;
-            // 
-            // ftree
-            // 
-            this.ftree.AllTags = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.AllTags")));
-            this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ftree.DoubleClickSelect = false;
-            this.ftree.FilterExts = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.FilterExts")));
-            this.ftree.Location = new System.Drawing.Point(0, 0);
-            this.ftree.Name = "ftree";
-            this.ftree.RootPaths = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.RootPaths")));
-            this.ftree.Size = new System.Drawing.Size(625, 608);
-            this.ftree.TabIndex = 0;
-            this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
-            this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
-            // 
-            // timeBar
-            // 
-            this.timeBar.ProgressColor = System.Drawing.Color.Orange;
-            this.timeBar.Location = new System.Drawing.Point(21, 384);
-            this.timeBar.Name = "timeBar";
-            this.timeBar.Size = new System.Drawing.Size(601, 38);
-            this.timeBar.TabIndex = 60;
-            this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
-            // 
-            // volR
-            // 
-            this.volR.ControlColor = System.Drawing.Color.Orange;
-            this.volR.Label = "R";
-            this.volR.Location = new System.Drawing.Point(312, 16);
-            this.volR.Maximum = 3D;
-            this.volR.MeterType = NBagOfTricks.UI.MeterType.Log;
-            this.volR.Minimum = -60D;
-            this.volR.Name = "volR";
-            this.volR.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.volR.Size = new System.Drawing.Size(32, 150);
-            this.volR.TabIndex = 59;
-            // 
-            // volL
-            // 
-            this.volL.ControlColor = System.Drawing.Color.Orange;
-            this.volL.Label = "L";
-            this.volL.Location = new System.Drawing.Point(274, 16);
-            this.volL.Maximum = 3D;
-            this.volL.MeterType = NBagOfTricks.UI.MeterType.Log;
-            this.volL.Minimum = -60D;
-            this.volL.Name = "volL";
-            this.volL.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.volL.Size = new System.Drawing.Size(32, 150);
-            this.volL.TabIndex = 58;
             // 
             // rtbInfo
             // 
@@ -212,10 +165,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveformPainter2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.waveformPainter2.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.waveformPainter2.Location = new System.Drawing.Point(21, 303);
+            this.waveformPainter2.Location = new System.Drawing.Point(21, 329);
             this.waveformPainter2.Margin = new System.Windows.Forms.Padding(4);
             this.waveformPainter2.Name = "waveformPainter2";
-            this.waveformPainter2.Size = new System.Drawing.Size(602, 74);
+            this.waveformPainter2.Size = new System.Drawing.Size(602, 48);
             this.waveformPainter2.TabIndex = 51;
             this.waveformPainter2.Text = "waveformPainter1";
             // 
@@ -225,29 +178,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveformPainter1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.waveformPainter1.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.waveformPainter1.Location = new System.Drawing.Point(21, 225);
+            this.waveformPainter1.Location = new System.Drawing.Point(21, 269);
             this.waveformPainter1.Margin = new System.Windows.Forms.Padding(4);
             this.waveformPainter1.Name = "waveformPainter1";
-            this.waveformPainter1.Size = new System.Drawing.Size(602, 74);
+            this.waveformPainter1.Size = new System.Drawing.Size(602, 52);
             this.waveformPainter1.TabIndex = 52;
             this.waveformPainter1.Text = "waveformPainter1";
-            // 
-            // sldVolume
-            // 
-            this.sldVolume.ControlColor = System.Drawing.Color.Orange;
-            this.sldVolume.DecPlaces = 1;
-            this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(219, 16);
-            this.sldVolume.Margin = new System.Windows.Forms.Padding(4);
-            this.sldVolume.Maximum = 1D;
-            this.sldVolume.Minimum = 0D;
-            this.sldVolume.Name = "sldVolume";
-            this.sldVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.sldVolume.ResetValue = 0D;
-            this.sldVolume.Size = new System.Drawing.Size(33, 109);
-            this.sldVolume.TabIndex = 42;
-            this.sldVolume.Value = 1D;
-            this.sldVolume.ValueChanged += new System.EventHandler(this.Volume_ValueChanged);
             // 
             // btnRewind
             // 
@@ -279,6 +215,82 @@
             // timer1
             // 
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
+            // 
+            // ftree
+            // 
+            this.ftree.AllTags = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.AllTags")));
+            this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ftree.DoubleClickSelect = false;
+            this.ftree.FilterExts = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.FilterExts")));
+            this.ftree.Location = new System.Drawing.Point(0, 0);
+            this.ftree.Name = "ftree";
+            this.ftree.RootPaths = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.RootPaths")));
+            this.ftree.Size = new System.Drawing.Size(625, 604);
+            this.ftree.TabIndex = 0;
+            this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
+            this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
+            // 
+            // timeBar
+            // 
+            this.timeBar.CurrentTime = System.TimeSpan.Parse("00:00:00");
+            this.timeBar.Length = System.TimeSpan.Parse("00:00:00");
+            this.timeBar.Location = new System.Drawing.Point(21, 384);
+            this.timeBar.Name = "timeBar";
+            this.timeBar.ProgressColor = System.Drawing.Color.Orange;
+            this.timeBar.Size = new System.Drawing.Size(601, 38);
+            this.timeBar.TabIndex = 60;
+            this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
+            // 
+            // volR
+            // 
+            this.volR.ControlColor = System.Drawing.Color.Orange;
+            this.volR.Label = "R";
+            this.volR.Location = new System.Drawing.Point(312, 16);
+            this.volR.Maximum = 3D;
+            this.volR.MeterType = NBagOfTricks.UI.MeterType.Log;
+            this.volR.Minimum = -60D;
+            this.volR.Name = "volR";
+            this.volR.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.volR.Size = new System.Drawing.Size(32, 150);
+            this.volR.TabIndex = 59;
+            // 
+            // volL
+            // 
+            this.volL.ControlColor = System.Drawing.Color.Orange;
+            this.volL.Label = "L";
+            this.volL.Location = new System.Drawing.Point(274, 16);
+            this.volL.Maximum = 3D;
+            this.volL.MeterType = NBagOfTricks.UI.MeterType.Log;
+            this.volL.Minimum = -60D;
+            this.volL.Name = "volL";
+            this.volL.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.volL.Size = new System.Drawing.Size(32, 150);
+            this.volL.TabIndex = 58;
+            // 
+            // sldVolume
+            // 
+            this.sldVolume.ControlColor = System.Drawing.Color.Orange;
+            this.sldVolume.DecPlaces = 1;
+            this.sldVolume.Label = "vol";
+            this.sldVolume.Location = new System.Drawing.Point(219, 16);
+            this.sldVolume.Margin = new System.Windows.Forms.Padding(4);
+            this.sldVolume.Maximum = 1D;
+            this.sldVolume.Minimum = 0D;
+            this.sldVolume.Name = "sldVolume";
+            this.sldVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.sldVolume.ResetValue = 0D;
+            this.sldVolume.Size = new System.Drawing.Size(33, 109);
+            this.sldVolume.TabIndex = 42;
+            this.sldVolume.Value = 1D;
+            this.sldVolume.ValueChanged += new System.EventHandler(this.Volume_ValueChanged);
+            // 
+            // waveViewer1
+            // 
+            this.waveViewer1.ControlColor = System.Drawing.Color.Orange;
+            this.waveViewer1.Location = new System.Drawing.Point(21, 201);
+            this.waveViewer1.Name = "waveViewer1";
+            this.waveViewer1.Size = new System.Drawing.Size(601, 47);
+            this.waveViewer1.TabIndex = 61;
             // 
             // MainForm
             // 
@@ -324,6 +336,7 @@
         private NBagOfTricks.UI.Meter volL;
         private NBagOfTricks.UI.Meter volR;
         private NBagOfTricks.UI.TimeBar timeBar;
+        private NBagOfTricks.UI.WaveViewer waveViewer1;
     }
 }
 
