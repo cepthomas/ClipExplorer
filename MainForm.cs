@@ -13,10 +13,12 @@ using NAudio.Wave;
 using NAudio.CoreAudioApi;
 using NAudio.Wave.SampleProviders;
 using NAudio.Midi;
-//using NAudio.Gui;
 using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
+
+
+// TODOC midi needs tempo control, timebar displays alt bars/beats.
 
 
 namespace ClipExplorer
@@ -29,24 +31,16 @@ namespace ClipExplorer
         #endregion
 
         #region Fields
-        /// <summary>
-        /// Supported file types.
-        /// </summary>
+        /// <summary>Supported file types.</summary>
         string _fileExts = ".wav;.mp3;";
 
-        /// <summary>
-        /// Current file name.
-        /// </summary>
+        /// <summary>Current file name.</summary>
         string _fn = "???";
 
-        /// <summary>
-        /// Output play device.
-        /// </summary>
+        /// <summary>Output play device.</summary>
         WaveOut _waveOut = null;
 
-        /// <summary>
-        /// Input device for file.
-        /// </summary>
+        /// <summary>Input device for file.</summary>
         AudioFileReader _audioFileReader = null;
         #endregion
 
@@ -85,12 +79,11 @@ namespace ClipExplorer
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
             timer1.Enabled = true;
 
+            ///// TODOC testing
             MidiPlayer player = new MidiPlayer();
-            player.LoadFile(@"C:\Dev\repos\ClipExplorer\_stuff\WICKGAME.MID");
-
-            var v = player.mevts;
-
-            DumpMidi(v, "dump.txt");
+            player.LoadFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
+            var v = player._mevts;
+            //DumpMidi(v, "dump.txt");
         }
 
 
@@ -159,6 +152,7 @@ namespace ClipExplorer
 
                 f.Controls.Add(pg);
                 f.ShowDialog();
+                f.Dispose();
 
                 // Figure out what changed - each handled differently.
                 if (restart)
@@ -253,6 +247,8 @@ namespace ClipExplorer
             {
                 OpenFile(openDlg.FileName);
             }
+
+            openDlg.Dispose();
         }
 
         /// <summary>
@@ -284,7 +280,7 @@ namespace ClipExplorer
                         for (int id = 0; id < WaveOut.DeviceCount; id++)
                         {
                             var cap = WaveOut.GetCapabilities(id);
-                            if (UserSettings.TheSettings.OutputDevice == cap.ProductName)
+                            if (UserSettings.TheSettings.WavOutDevice == cap.ProductName)
                             {
                                 _waveOut = new WaveOut
                                 {
@@ -319,7 +315,7 @@ namespace ClipExplorer
                         }
                         else
                         {
-                            ErrorMessage($"Failed to create output device: {UserSettings.TheSettings.OutputDevice}");
+                            ErrorMessage($"Failed to create output device: {UserSettings.TheSettings.WavOutDevice}");
                             ret = false;
                         }
 
@@ -403,7 +399,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MainForm_KeyDown(object sender, KeyEventArgs e) //TODOC consolidate with above + time display.
+        void MainForm_KeyDown(object sender, KeyEventArgs e) // TODOC coordinate with above + time display.
         {
             if (e.KeyCode == Keys.Space)
             {
@@ -469,7 +465,7 @@ namespace ClipExplorer
         #endregion
 
         /// <summary>
-        /// 
+        /// Show a clip waveform.
         /// </summary>
         void ShowClip()
         {
@@ -487,13 +483,6 @@ namespace ClipExplorer
                     num = afrdr.Read(data, offset, 20000);
                     offset += num;
                 }
-
-                //List<string> samples = new List<string>();
-                //for(int i = 0; i < data.Length; i++)
-                //{
-                //    samples.Add($"{i+1}, {data[i]}");
-                //}
-                //File.WriteAllLines("samples.csv", samples);
 
                 waveViewer1.Init(data, 1.0f);
             }
@@ -518,7 +507,6 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
-            // TODOC add some damping to meter control?
             volL.AddValue(e.MaxSampleValues[0]);
             volR.AddValue(e.MaxSampleValues[1]);
         }
@@ -534,7 +522,7 @@ namespace ClipExplorer
         #endregion
 
         /// <summary>
-        /// 
+        /// Make a human readable version of midi data.
         /// </summary>
         /// <param name="events"></param>
         /// <param name="fn"></param>
@@ -558,6 +546,21 @@ namespace ClipExplorer
             }
 
             File.WriteAllLines(fn, st.ToArray());
+        }
+
+        /// <summary>
+        /// Make a csv file of data for external processing.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="fn"></param>
+        void DumpWave(float[] data, string fn)
+        {
+            List<string> samples = new List<string>();
+            for (int i = 0; i < data.Length; i++)
+            {
+                samples.Add($"{i + 1}, {data[i]}");
+            }
+            File.WriteAllLines(fn, samples);
         }
 
         /// <summary>
@@ -645,5 +648,9 @@ namespace ClipExplorer
             }
         }
 
+        void Tempo_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

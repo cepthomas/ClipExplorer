@@ -8,19 +8,17 @@ using System.Windows.Forms;
 using NAudio.Midi;
 using NBagOfTricks.Utils;
 
+// TODOC Channel mute/solo.
 
 namespace ClipExplorer
 {
     public class MidiPlayer : IDisposable
     {
-        // TODOC Mute/solo.
-
-
         public const int MAX_MIDI = 127;
         public const int MAX_CHANNELS = 16;
         public const int MAX_PITCH = 16383;
 
-        TimeSpan _stepTime = new TimeSpan();
+        //TimeSpan _stepTime = new TimeSpan();
 
         /// <summary>Midi output device.</summary>
         MidiOut _midiOut = null;
@@ -30,19 +28,72 @@ namespace ClipExplorer
 
         //public string DeviceName { get; private set; } = "???";
 
-        public MidiEventCollection mevts = null;
+        public MidiEventCollection _mevts = null;
 
         /// <summary>Human readable midi file contents.</summary>
-        public List<string> Contents { get; private set; } = new List<string>();
+        //    public List<string> Contents { get; private set; } = new List<string>();
 
-        //MidiFile.Export(fileName, mevts);
+        // TODOC MidiFile.Export(fileName, mevts);
+
+
+        public int Tempo { get; set; }
+
+
+        // WICKGAME.MID is 3:45
+        // 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec
+        // 144000 ticks = 3.75 min = 3:45
+        // smallest tick is 4 
+
+        //
+
+        //MidiFileType:1
+        //DeltaTicksPerQuarterNote:384
+        //StartAbsoluteTime:0
+        //Tracks:10
+        //Track:0
+        //  0 SequencerSpecific 00 00 41
+        //  0 TimeSignature 4/4 TicksInClick:24 32ndsInQuarterNote:8
+        //  0 KeySignature 0 0
+        //  0 SetTempo 100bpm(600000)
+        //  0 EndTrack
+        //Track:1
+        //  0 MidiPort 00
+        //  0 SequenceTrackName BASS
+        //  0 PatchChange Ch: 1 Electric Bass(finger)
+        //  0 ControlChange Ch: 1 Controller MainVolume Value 127
+        //  0 ControlChange Ch: 1 Controller BankSelect Value 0
+        //  0 ControlChange Ch: 1 Controller 91 Value 127
+        //  0 ControlChange Ch: 1 Controller 93 Value 127
+        //  1536 NoteOn Ch: 1 B2 Vel:75 Len: 448
+        //  1984 NoteOn Ch: 1 B2 Vel:0 (Note Off)
+        //  2112 NoteOn Ch: 1 B2 Vel:75 Len: 76
+        //  2188 NoteOn Ch: 1 B2 Vel:0 (Note Off)
+        //  2304 NoteOn Ch: 1 B2 Vel:75 Len: 744
+        //...
+        //Track:5
+        //  0 MidiPort 00
+        //  0 SequenceTrackName DRUMS
+        //  0 PatchChange Ch: 10 Viola
+        //  0 ControlChange Ch: 10 Controller MainVolume Value 127
+        //  0 ControlChange Ch: 10 Controller BankSelect Value 0
+        //  1536 NoteOn Ch: 10 Acoustic Bass Drum Vel:58 Len: 384
+        //  1536 NoteOn Ch: 10 Ride Cymbal 1 Vel:58 Len: 60
+        //  1596 NoteOn Ch: 10 Ride Cymbal 1 Vel:0 (Note Off)
+        //  1728 NoteOn Ch: 10 Ride Cymbal 1 Vel:58 Len: 72
+        //  1800 NoteOn Ch: 10 Ride Cymbal 1 Vel:0 (Note Off)
+        //  1920 NoteOn Ch: 10 Acoustic Bass Drum Vel:0 (Note Off)
+        //  1920 NoteOn Ch: 10 Side Stick Vel:58 Len: 156
+        //...
+        // 136704 NoteOn Ch: 10 Side Stick Vel:58 Len: 288
+        // 136780 NoteOn Ch: 10 Open Hi-Hat Vel:0 (Note Off)
+        // 136992 NoteOn Ch: 10 Side Stick Vel:0 (Note Off)
+        // 136992 EndTrack
+
 
 
         public bool Init(string devName)
         {
-            bool inited = false;
-
-            //DeviceName = "Invalid"; // default
+            bool ok = false;
 
             try
             {
@@ -53,25 +104,22 @@ namespace ClipExplorer
                 }
 
                 // Figure out which device.
-                for (int device = 0; device < MidiOut.NumberOfDevices; device++)
+                for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
                 {
-                    if (devName == MidiOut.DeviceInfo(device).ProductName)
+                    if (devName == MidiOut.DeviceInfo(devindex).ProductName)
                     {
-                        _midiOut = new MidiOut(device);
-                        inited = true;
-                        //DeviceName = devName;
-                        inited = true;
+                        _midiOut = new MidiOut(devindex);
+                        ok = true;
                         break;
                     }
                 }
             }
             catch (Exception ex)
             {
-                //LogMsg(DeviceLogCategory.Error, $"Init midi out failed: {ex.Message}");
-                inited = false;
+                ok = false;
             }
 
-            return inited;
+            return ok;
         }
 
         public void Dispose()
@@ -80,27 +128,21 @@ namespace ClipExplorer
             _midiOut = null;
         }
 
-        public void Housekeep()
-        {
-            // Send any stops due.
-            //           _stops.ForEach(s => { s.Expiry--; if (s.Expiry < 0) SendXXX(s); });
-
-            // Reset.
-            //           _stops.RemoveAll(s => s.Expiry < 0);
-        }
+        //public void Housekeep()
+        //{
+        //    // Send any stops due.
+        //    _stops.ForEach(s => { s.Expiry--; if (s.Expiry < 0) SendXXX(s); });
+        //    // Reset.
+        //    _stops.RemoveAll(s => s.Expiry < 0);
+        //}
 
 
         public void LoadFile(string fileName)
         {
-            var mfile = new NAudio.Midi.MidiFile(fileName, true);
+            var mfile = new MidiFile(fileName, true);
 
-            mevts = mfile.Events;
-
+            _mevts = mfile.Events;
         }
-
-
-
-
 
         /// <summary>
         /// Output next time/step.
@@ -328,6 +370,8 @@ namespace ClipExplorer
         /// <summary>Fast timer.</summary>
         MmTimerEx _timer = new MmTimerEx();
 
+        double _speed = 100.0;
+
         TimeSpan _stepTime = new TimeSpan();
 
         MidiPlayer _player = new MidiPlayer();
@@ -361,6 +405,13 @@ namespace ClipExplorer
             //    }
             //});
         }
+
+        void SetTempo()
+        {
+            double secPerBeat = 60 / _speed; // aka beat
+            double msecPerBeat = 1000 * secPerBeat / 4;// Time.TICKS_PER_BEAT;
+            _timer.SetTimer("NEB", (int)msecPerBeat);
+        }
     }
 
 
@@ -375,10 +426,15 @@ namespace ClipExplorer
         {
             // Fast mm timer.
             _timer = new MmTimerEx();
-//            SetSpeedTimerPeriod();
+            SetSpeedTimerPeriod();
             _timer.TimerElapsedEvent += TimerElapsedEvent;
             _timer.Start();
         }
+
+
+
+
+
 
         /// <summary>
         /// Resource clean up.

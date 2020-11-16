@@ -10,7 +10,7 @@ using System.Windows.Forms.Design;
 using Newtonsoft.Json;
 using NAudio.Wave;
 using NBagOfTricks.UI;
-
+using NAudio.Midi;
 
 namespace ClipExplorer
 {
@@ -38,18 +38,25 @@ namespace ClipExplorer
         [Editor(typeof(ListEditor), typeof(UITypeEditor))]
         public List<string> AllTags { get; set; } = new List<string>();
 
-        [DisplayName("Output Device")]
+        [DisplayName("Midi Output Device")]
         [Description("Where to go.")]
         [Category("Audio")]
         [Browsable(true)]
-        [TypeConverter(typeof(OutputDeviceTypeConverter))]
-        public string OutputDevice { get; set; } = "";
+        [TypeConverter(typeof(FixedListTypeConverter))]
+        public string MidiOutDevice { get; set; } = "";
+
+        [DisplayName("Wave Output Device")]
+        [Description("Where to go.")]
+        [Category("Audio")]
+        [Browsable(true)]
+        [TypeConverter(typeof(FixedListTypeConverter))]
+        public string WavOutDevice { get; set; } = "";
 
         [DisplayName("Latency")]
         [Description("What's the hurry?")]
         [Category("Audio")]
         [Browsable(true)]
-        [TypeConverter(typeof(LatencyTypeConverter))]
+        [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
         #endregion
 
@@ -112,34 +119,40 @@ namespace ClipExplorer
     }
 
     /// <summary>Converter for selecting property value from known lists.</summary>
-    public class LatencyTypeConverter : TypeConverter
+    public class FixedListTypeConverter : TypeConverter
     {
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
 
-        /// Get the list using the property name as key.
+        // Get the specific list based on the property name.
         public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
         {
-            return new StandardValuesCollection(new List<string>() { "25", "50", "100", "150", "200", "300", "400", "500" });
-        }
-    }
+            List<string> rec = null;
 
-    /// <summary>Converter for selecting property value from known lists.</summary>
-    public class OutputDeviceTypeConverter : TypeConverter
-    {
-        public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
-        public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
-
-        /// Get the list using the property name as key.
-        public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
-        {
-            List<string> rec = new List<string>();
-            // –1 indicates the default output device, while 0 is the first output device
-            for (int id = 0; id < WaveOut.DeviceCount; id++)
+            switch (context.PropertyDescriptor.Name)
             {
-                var cap = WaveOut.GetCapabilities(id);
-                rec.Add(cap.ProductName);
+                case "Latency":
+                    rec = new List<string>() { "25", "50", "100", "150", "200", "300", "400", "500" };
+                    break;
+
+                case "WavOutDevice":
+                    rec = new List<string>();
+                    for (int id = 0; id < WaveOut.DeviceCount; id++) // –1 indicates the default output device, while 0 is the first output device
+                    {
+                        var cap = WaveOut.GetCapabilities(id);
+                        rec.Add(cap.ProductName);
+                    }
+                    break;
+
+                case "MidiOutDevice":
+                    rec = new List<string>();
+                    for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
+                    {
+                        rec.Add(MidiOut.DeviceInfo(devindex).ProductName);
+                    }
+                    break;
             }
+
             return new StandardValuesCollection(rec);
         }
     }
