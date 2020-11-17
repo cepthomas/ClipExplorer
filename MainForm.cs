@@ -80,9 +80,9 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// TODOC testing
-            MidiPlayer player = new MidiPlayer();
+            MidiPlayer player = new MidiPlayer(UserSettings.TheSettings.MidiOutDevice);
             player.LoadFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
-            var v = player._mevts;
+            //var v = player._sourceEvents;
             //DumpMidi(v, "dump.txt");
         }
 
@@ -399,7 +399,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MainForm_KeyDown(object sender, KeyEventArgs e) // TODOC coordinate with above + time display.
+        void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space)
             {

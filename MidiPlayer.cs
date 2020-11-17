@@ -2,724 +2,279 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NAudio.Midi;
 using NBagOfTricks.Utils;
 
-// TODOC Channel mute/solo.
 
 namespace ClipExplorer
 {
+    /// <summary>Channel events and other aspects.</summary>
+    public class PlayChannel
+    {
+        /// <summary>For muting/soloing.</summary>
+        public bool Enabled { get; set; } = false;
+
+        /// <summary>Channel midi events, sorted by AbsoluteTime.</summary>
+        public List<MidiEvent> Events { get; set; } = new List<MidiEvent>();
+
+        /// <summary>Where we are now in Events aka next event to send.</summary>
+        public int CurrentIndex { get; set; } = 0;
+    }
+
     public class MidiPlayer : IDisposable
     {
-        public const int MAX_MIDI = 127;
-        public const int MAX_CHANNELS = 16;
-        public const int MAX_PITCH = 16383;
+        #region Fields
+        /// <summary>Midi caps.</summary>
+        const int MAX_MIDI = 127;
 
-        //TimeSpan _stepTime = new TimeSpan();
+        /// <summary>Midi caps.</summary>
+        const int MAX_CHANNELS = 16;
+
+        /// <summary>Midi caps.</summary>
+        const int MAX_PITCH = 16383;
+
+       /// <summary>Indicates whether or not the timer is running.</summary>
+        bool _running = false;
+
+        /// <summary>Msec for mm timer tick.</summary>
+        const int MMTIMER_PERIOD = 3;
+
+        /// <summary>Where we are now.</summary>
+        double _currentMidiTime = 0;
+
+        /// <summary>How many steps to execute per mmtimer tick.</summary>
+        double _ticksPerTimerPeriod = 0;
+
+        /// <summary>Multimedia timer identifier.</summary>
+        int _timerID = -1;
 
         /// <summary>Midi output device.</summary>
         MidiOut _midiOut = null;
 
-        /// <summary>Notes to stop later.</summary>
- //       List<StepNoteOff> _stops = new List<StepNoteOff>();
+        /// <summary>BPM.</summary>
+        int _bpm = 100;
 
-        //public string DeviceName { get; private set; } = "???";
+        /// <summary>From the input file.</summary>
+        MidiEventCollection _sourceEvents = null;
 
-        public MidiEventCollection _mevts = null;
+        /// <summary>All the channels.</summary>
+        PlayChannel[] _playChannels = new PlayChannel[MAX_CHANNELS];
 
-        /// <summary>Human readable midi file contents.</summary>
-        //    public List<string> Contents { get; private set; } = new List<string>();
+        /// <summary>Delegate for Windows mmtimer callback.</summary>
+        delegate void TimeProc(int id, int msg, int user, int param1, int param2);
 
-        // TODOC MidiFile.Export(fileName, mevts);
+        /// <summary>Called by Windows when a mmtimer event occurs.</summary>
+        TimeProc _timeProc;
+        #endregion
 
+        #region Interop Multimedia Timer Functions
+        [DllImport("winmm.dll")]
+        private static extern int timeGetDevCaps(ref TimerCaps caps, int sizeOfTimerCaps);
 
-        public int Tempo { get; set; }
+        /// <summary>Start her up.</summary>
+        [DllImport("winmm.dll")]
+        private static extern int timeSetEvent(int delay, int resolution, TimeProc proc, IntPtr user, int mode);
 
+        [DllImport("winmm.dll")]
+        private static extern int timeKillEvent(int id);
 
-        // WICKGAME.MID is 3:45
-        // 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec
-        // 144000 ticks = 3.75 min = 3:45
-        // smallest tick is 4 
+        /// <summary>Represents information about the multimedia timer capabilities.</summary>
+        [StructLayout(LayoutKind.Sequential)]
+        struct TimerCaps
+        {
+            /// <summary>Minimum supported period in milliseconds.</summary>
+            public int periodMin;
 
-        //
+            /// <summary>Maximum supported period in milliseconds.</summary>
+            public int periodMax;
+        }
+        #endregion
 
-        //MidiFileType:1
-        //DeltaTicksPerQuarterNote:384
-        //StartAbsoluteTime:0
-        //Tracks:10
-        //Track:0
-        //  0 SequencerSpecific 00 00 41
-        //  0 TimeSignature 4/4 TicksInClick:24 32ndsInQuarterNote:8
-        //  0 KeySignature 0 0
-        //  0 SetTempo 100bpm(600000)
-        //  0 EndTrack
-        //Track:1
-        //  0 MidiPort 00
-        //  0 SequenceTrackName BASS
-        //  0 PatchChange Ch: 1 Electric Bass(finger)
-        //  0 ControlChange Ch: 1 Controller MainVolume Value 127
-        //  0 ControlChange Ch: 1 Controller BankSelect Value 0
-        //  0 ControlChange Ch: 1 Controller 91 Value 127
-        //  0 ControlChange Ch: 1 Controller 93 Value 127
-        //  1536 NoteOn Ch: 1 B2 Vel:75 Len: 448
-        //  1984 NoteOn Ch: 1 B2 Vel:0 (Note Off)
-        //  2112 NoteOn Ch: 1 B2 Vel:75 Len: 76
-        //  2188 NoteOn Ch: 1 B2 Vel:0 (Note Off)
-        //  2304 NoteOn Ch: 1 B2 Vel:75 Len: 744
-        //...
-        //Track:5
-        //  0 MidiPort 00
-        //  0 SequenceTrackName DRUMS
-        //  0 PatchChange Ch: 10 Viola
-        //  0 ControlChange Ch: 10 Controller MainVolume Value 127
-        //  0 ControlChange Ch: 10 Controller BankSelect Value 0
-        //  1536 NoteOn Ch: 10 Acoustic Bass Drum Vel:58 Len: 384
-        //  1536 NoteOn Ch: 10 Ride Cymbal 1 Vel:58 Len: 60
-        //  1596 NoteOn Ch: 10 Ride Cymbal 1 Vel:0 (Note Off)
-        //  1728 NoteOn Ch: 10 Ride Cymbal 1 Vel:58 Len: 72
-        //  1800 NoteOn Ch: 10 Ride Cymbal 1 Vel:0 (Note Off)
-        //  1920 NoteOn Ch: 10 Acoustic Bass Drum Vel:0 (Note Off)
-        //  1920 NoteOn Ch: 10 Side Stick Vel:58 Len: 156
-        //...
-        // 136704 NoteOn Ch: 10 Side Stick Vel:58 Len: 288
-        // 136780 NoteOn Ch: 10 Open Hi-Hat Vel:0 (Note Off)
-        // 136992 NoteOn Ch: 10 Side Stick Vel:0 (Note Off)
-        // 136992 EndTrack
+        #region Properties
+        /// <summary>Master volume.</summary>
+        public float Volume { get; set; } = 0.5f;
 
+        /// <summary>Current beat. Make it a double?</summary>
+        public int CurrentBeat { get; set; }
+        #endregion
 
-
-        public bool Init(string devName)
+        #region Lifecycle
+        /// <summary>
+        /// Normal constructor.
+        /// </summary>
+        /// <param name="devName"></param>
+        public MidiPlayer(string devName)
         {
             bool ok = false;
 
-            try
+            // Figure out which device.
+            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
             {
-                if (_midiOut != null)
+                if (devName == MidiOut.DeviceInfo(devindex).ProductName)
                 {
-                    _midiOut.Dispose();
-                    _midiOut = null;
-                }
-
-                // Figure out which device.
-                for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
-                {
-                    if (devName == MidiOut.DeviceInfo(devindex).ProductName)
-                    {
-                        _midiOut = new MidiOut(devindex);
-                        ok = true;
-                        break;
-                    }
+                    _midiOut = new MidiOut(devindex);
+                    ok = true;
+                    break;
                 }
             }
-            catch (Exception ex)
+
+            if(!ok)
             {
-                ok = false;
+                throw new ArgumentException($"Invalid midi device: {devName}");
             }
 
-            return ok;
-        }
-
-        public void Dispose()
-        {
-            _midiOut?.Dispose();
-            _midiOut = null;
-        }
-
-        //public void Housekeep()
-        //{
-        //    // Send any stops due.
-        //    _stops.ForEach(s => { s.Expiry--; if (s.Expiry < 0) SendXXX(s); });
-        //    // Reset.
-        //    _stops.RemoveAll(s => s.Expiry < 0);
-        //}
-
-
-        public void LoadFile(string fileName)
-        {
-            var mfile = new MidiFile(fileName, true);
-
-            _mevts = mfile.Events;
+            // Initialize timer with default values.
+            _timeProc = new TimeProc(MmTimerCallback);
         }
 
         /// <summary>
-        /// Output next time/step.
+        /// 
         /// </summary>
-        /// <param name="e">Information about updates required.</param>
-        public void NextStep(MmTimerEx.TimerEventArgs e)
+        public void Dispose()
         {
-            bool running = true;
+            Stop();
+            // Stop and destroy timer.
+            timeKillEvent(_timerID);
 
-            //if (running && e.ElapsedTimers.Contains("TODOC"))
-            //{
-            //    // get neb steps
-            //    GetSteps(_stepTime).ForEach(s => PlayStep(s));
+            _midiOut?.Dispose();
+            _midiOut = null;
+        }
+        #endregion
 
-            //    ///// Bump time.
-            //    _stepTime.Advance();
+        #region Public Functions
+        /// <summary>
+        /// Load the midi file and convert to internal use.
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void LoadFile(string fileName)
+        {
+            Stop();
 
-            //}
+            // Default in case not specified in file.
+            int tempo = 100;
+
+            // Get events.
+            var mfile = new MidiFile(fileName, true);
+            _sourceEvents = mfile.Events;
+
+            // Init internal structure.
+            for (int i = 0; i < _playChannels.Count(); i++)
+            {
+                _playChannels[i] = new PlayChannel();
+            }
+
+            // Bin events by channel.
+            for(int track = 0; track < _sourceEvents.Tracks; track++)
+            {
+                _sourceEvents.GetTrackEvents(track).ForEach(te =>
+                {
+                    if (te.Channel < MAX_CHANNELS)
+                    {
+                        _playChannels[te.Channel].Events.Add(te);
+
+                        if(te is TempoEvent) // dig out tempo
+                        {
+                            tempo = (int)(te as TempoEvent).Tempo;
+                        }
+                    }
+                });
+            }
+
+            SetTempo(tempo);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="enable"></param>
+        public void EnableChannel(int channel, bool enable)
+        {
+            if (channel < MAX_CHANNELS)
+            {
+                _playChannels[channel].Enabled = enable;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bpm"></param>
+        public void SetTempo(int bpm)
+        {
+            _bpm = bpm;
+
+            // Figure out number of ticks per mmtimer period.
+            _ticksPerTimerPeriod = (double)bpm * _sourceEvents.DeltaTicksPerQuarterNote * MMTIMER_PERIOD / 60 / 1000;
+        }
+
+        /// <summary>
+        /// Starts periodic timer.
+        /// </summary>
+        public void Start()
+        {
+            // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
+            _timerID = timeSetEvent(MMTIMER_PERIOD, 1, _timeProc, IntPtr.Zero, 1);
+
+            // If the timer was created successfully.
+            if (_timerID != 0)
+            {
+                _running = true;
+            }
+            else
+            {
+                _running = false;
+                throw new Exception("Unable to start periodic multimedia Timer.");
+            }
+        }
+
+        /// <summary>
+        /// Stops periodic timer.
+        /// </summary>
+        public void Stop()
+        {
+            timeKillEvent(_timerID);
+            _running = false;
+        }
+        #endregion
+
+        #region Private Functions
+        /// <summary>Multimedia timer callback. Just calls the</summary>
+        void MmTimerCallback(int id, int msg, int user, int param1, int param2)
+        {
+            if (_running)
+            {
+                NextStep();
+            }
+        }
+
+        /// <summary>
+        /// Output next time/steps.
+        /// </summary>
+        void NextStep()
+        {
+            double newTime = _currentMidiTime + _ticksPerTimerPeriod;
+
+            //MidiEvent
+            //public MidiCommandCode CommandCode { get; }
+            //public int DeltaTime { get; }
+            //public virtual int Channel { get; set; }
+            //public long AbsoluteTime { get; set; }
+
+            // Output any midi events between last and now. TODOC
+            // Check for solo/mute/enabled.
+            // Adjust volume.
 
             //// Process any lingering noteoffs etc.
             //_outputs.ForEach(o => o.Value?.Housekeep());
             //_inputs.ForEach(i => i.Value?.Housekeep());
 
-            /////// Local common function /////
-            //void PlayStep(Step step)
-            //{
-            //    if (_script.Channels.Count > 0)
-            //    {
-            //        NChannel channel = _script.Channels.Where(t => t.ChannelNumber == step.ChannelNumber).First();
-
-            //        // Is it ok to play now?
-            //        bool _anySolo = _script.Channels.Where(t => t.State == ChannelState.Solo).Count() > 0;
-            //        bool play = channel != null && (channel.State == ChannelState.Solo || (channel.State == ChannelState.Normal && !_anySolo));
-
-            //        if (play)
-            //        {
-            //            (step.Device as NOutput).SendXXX(step);
-            //        }
-            //    }
-            //}
+            _currentMidiTime = newTime;
         }
-
-        /// <summary>
-        /// User has changed a channel value. Interested in solo/mute and volume.
-        /// </summary>
-        void ChannelChange_Event(object sender, EventArgs e)
-        {
-            //ChannelControl ch = sender as ChannelControl;
-            //_nppVals.SetValue(ch.BoundChannel.Name, "volume", ch.BoundChannel.Volume);
-
-            //// Check for solos.
-            //bool _anySolo = _script.Channels.Where(c => c.State == ChannelState.Solo).Count() > 0;
-
-            //if (_anySolo)
-            //{
-            //    // Kill any not solo.
-            //    _script.Channels.ForEach(c =>
-            //    {
-            //        if (c.State != ChannelState.Solo && c.Device != null)
-            //        {
-            //            c.Device.Kill(c.ChannelNumber);
-            //        }
-            //    });
-            //}
-        }
-
-
-        /////////////////////////////////////////////////////////////////
-
-        // converts from neb to midi
-        //public bool SendXXX(Step step)
-        //{
-        //    bool ret = true;
-
-        //    if (_midiOut != null)
-        //    {
-        //        List<int> msgs = new List<int>();
-        //        int msg = 0;
-
-        //        switch (step)
-        //        {
-        //            case StepNoteOn stt:
-        //                {
-        //                    NoteEvent evt = new NoteEvent(0,
-        //                        stt.ChannelNumber,
-        //                        MidiCommandCode.NoteOn,
-        //                        (int)MathUtils.Constrain(stt.NoteNumber, 0, MAX_MIDI),
-        //                        (int)(MathUtils.Constrain(stt.VelocityToPlay, 0, 1.0) * MAX_MIDI));
-        //                    msg = evt.GetAsShortMessage();
-
-        //                    if (stt.Duration.TotalTicks > 0) // specific duration
-        //                    {
-        //                        // Remove any lingering note offs and add a fresh one.
-        //                        _stops.RemoveAll(s => s.NoteNumber == stt.NoteNumber && s.ChannelNumber == stt.ChannelNumber);
-
-        //                        _stops.Add(new StepNoteOff()
-        //                        {
-        //                            ChannelNumber = stt.ChannelNumber,
-        //                            NoteNumber = MathUtils.Constrain(stt.NoteNumber, 0, MAX_MIDI),
-        //                            Expiry = stt.Duration.TotalTicks
-        //                        });
-        //                    }
-        //                }
-        //                break;
-
-        //            case StepNoteOff stt:
-        //                {
-        //                    NoteEvent evt = new NoteEvent(0,
-        //                        stt.ChannelNumber,
-        //                        MidiCommandCode.NoteOff,
-        //                        (int)MathUtils.Constrain(stt.NoteNumber, 0, MAX_MIDI),
-        //                        0);
-        //                    msg = evt.GetAsShortMessage();
-        //                }
-        //                break;
-
-        //            case StepControllerChange stt:
-        //                {
-        //                    //if (stt.ControllerId == ScriptDefinitions.TheDefinitions.NoteControl)
-        //                    //{
-        //                    //    // Shouldn't happen, ignore.
-        //                    //}
-        //                    //else if (stt.ControllerId == ScriptDefinitions.TheDefinitions.PitchControl)
-        //                    //{
-        //                    //    PitchWheelChangeEvent pevt = new PitchWheelChangeEvent(0,
-        //                    //        stt.ChannelNumber,
-        //                    //        (int)MathUtils.Constrain(stt.Value, 0, MidiUtils.MAX_PITCH));
-        //                    //    msg = pevt.GetAsShortMessage();
-        //                    //}
-        //                    //else // CC
-        //                    {
-        //                        ControlChangeEvent nevt = new ControlChangeEvent(0,
-        //                            stt.ChannelNumber,
-        //                            (MidiController)stt.ControllerId,
-        //                            (int)MathUtils.Constrain(stt.Value, 0, MAX_MIDI));
-        //                        msg = nevt.GetAsShortMessage();
-        //                    }
-        //                }
-        //                break;
-
-        //            case StepPatch stt:
-        //                {
-        //                    PatchChangeEvent evt = new PatchChangeEvent(0,
-        //                        stt.ChannelNumber,
-        //                        stt.PatchNumber);
-        //                    msg = evt.GetAsShortMessage();
-        //                }
-        //                break;
-
-        //            default:
-        //                break;
-        //        }
-
-        //        if (msg != 0)
-        //        {
-        //            _midiOut.Send(msg);
-        //        }
-        //    }
-
-        //    return ret;
-        //}
-
-        public void Kill(int? channel)
-        {
-            //if (channel is null)
-            //{
-            //    for (int i = 0; i < MAX_CHANNELS; i++)
-            //    {
-            //        SendXXX(new StepControllerChange()
-            //        {
-            //            ChannelNumber = i + 1,
-            //            ControllerId = (int)MidiController.AllNotesOff
-            //        });
-            //    }
-            //}
-            //else
-            //{
-            //    SendXXX(new StepControllerChange()
-            //    {
-            //        ChannelNumber = channel.Value,
-            //        ControllerId = (int)MidiController.AllNotesOff
-            //    });
-            //}
-        }
-
-
-        ///////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////
-
-        // if (MidiOut.NumberOfDevices > 0)
-        // {
-        //     for (int device = 0; device < MidiOut.NumberOfDevices; device++)
-        //     {
-        //         mdText.Add($"- {MidiOut.DeviceInfo(device).ProductName}");
-        //     }
-        // }
-
-
-        /// <summary>
-        /// Common func.
-        /// </summary>
-        // void SetSpeedTimerPeriod()
-        // {
-        //     double secPerBeat = 60 / potSpeed.Value; // aka beat
-        //     double msecPerBeat = 1000 * secPerBeat / Time.TICKS_PER_BEAT;
-        //     _timer.SetTimer("NEB", (int)msecPerBeat);
-        // }
-
-
-        // Dictionary<int, string> channels = new Dictionary<int, string>();
-        // _script.Channels.ForEach(t => channels.Add(t.ChannelNumber, t.Name));
-
-        // // Convert bpm to sec per beat.
-        // double beatsPerSec = potSpeed.Value / 60;
-        // double secPerBeat = 1 / beatsPerSec;
-
-        // MidiUtils.ExportMidi(_script.Steps, fn, channels, secPerBeat, "Converted from " + _fn);
-
+        #endregion
     }
-
-
-    public class Client : IDisposable
-    {
-        /// <summary>Fast timer.</summary>
-        MmTimerEx _timer = new MmTimerEx();
-
-        double _speed = 100.0;
-
-        TimeSpan _stepTime = new TimeSpan();
-
-        MidiPlayer _player = new MidiPlayer();
-
-        public Client()
-        {
-            _timer.TimerElapsedEvent += TimerElapsedEvent;
-            _timer.Start();
-        }
-
-        public void Dispose()
-        {
-            _timer?.Stop();
-            _timer?.Dispose();
-            _timer = null;
-        }
-
-        /// <summary>
-        /// Multimedia timer tick handler.
-        /// </summary>
-        void TimerElapsedEvent(object sender, MmTimerEx.TimerEventArgs e)
-        {
-            _player.NextStep(e);
-
-            //// Kick over to main UI thread.
-            //BeginInvoke((MethodInvoker)delegate ()
-            //{
-            //    if (_script != null)
-            //    {
-            //        NextStep(e);
-            //    }
-            //});
-        }
-
-        void SetTempo()
-        {
-            double secPerBeat = 60 / _speed; // aka beat
-            double msecPerBeat = 1000 * secPerBeat / 4;// Time.TICKS_PER_BEAT;
-            _timer.SetTimer("NEB", (int)msecPerBeat);
-        }
-    }
-
-
-#if TODOC_MAIN_STUFF
-
-    public class MainFormXXX : Form
-    {
-        /// <summary>Fast timer.</summary>
-        MmTimerEx _timer = new MmTimerEx();
-
-        void MainFormXXX_Load(object sender, EventArgs e)
-        {
-            // Fast mm timer.
-            _timer = new MmTimerEx();
-            SetSpeedTimerPeriod();
-            _timer.TimerElapsedEvent += TimerElapsedEvent;
-            _timer.Start();
-        }
-
-
-
-
-
-
-        /// <summary>
-        /// Resource clean up.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _timer?.Stop();
-                _timer?.Dispose();
-                _timer = null;
-            }
-
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Multimedia timer tick handler.
-        /// </summary>
-        void TimerElapsedEvent(object sender, MmTimerEx.TimerEventArgs e)
-        {
-            // Kick over to main UI thread.
-            BeginInvoke((MethodInvoker)delegate ()
-            {
-                //if (_script != null)
-                {
-                    NextStep(e);
-                }
-            });
-        }
-
-        /// <summary>
-        /// Output next time/step.
-        /// </summary>
-        /// <param name="e">Information about updates required.</param>
-        void NextStep(MmTimerEx.TimerEventArgs e)
-        {
-            if (chkPlay.Checked && e.ElapsedTimers.Contains("NEB") && !_needCompile)
-            {
-                // Kick the script. Note: Need exception handling here to protect from user script errors.
-                try
-                {
-                    _script.Step();
-                }
-                catch (Exception ex)
-                {
-                    ProcessScriptRuntimeError(ex);
-                }
-
-                // Process any sequence steps.
-                _script.Steps.GetSteps(_stepTime).ForEach(s => PlayStep(s));
-
-                ///// Bump time.
-                _stepTime.Advance();
-
-            }
-
-            // Process any lingering noteoffs etc.
-            _outputs.ForEach(o => o.Value?.Housekeep());
-            _inputs.ForEach(i => i.Value?.Housekeep());
-
-            ///// Local common function /////
-            void PlayStep(Step step)
-            {
-                if(_script.Channels.Count > 0)
-                {
-                    NChannel channel = _script.Channels.Where(t => t.ChannelNumber == step.ChannelNumber).First();
-
-                    // Is it ok to play now?
-                    bool _anySolo = _script.Channels.Where(t => t.State == ChannelState.Solo).Count() > 0;
-                    bool play = channel != null && (channel.State == ChannelState.Solo || (channel.State == ChannelState.Normal && !_anySolo));
-
-                    if (play)
-                    {
-                        if (step is StepInternal)
-                        {
-                            // Note: Need exception handling here to protect from user script errors.
-                            try
-                            {
-                                (step as StepInternal).ScriptFunction();
-                            }
-                            catch (Exception ex)
-                            {
-                                ProcessScriptRuntimeError(ex);
-                            }
-                        }
-                        else
-                        {
-                            if (step.Device is NOutput)
-                            {
-                                // Maybe tweak values.
-                                if (step is StepNoteOn)
-                                {
-                                    (step as StepNoteOn).Adjust(sldVolume.Value, channel.Volume);
-                                }
-                                (step.Device as NOutput).Send(step);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// User has changed a channel value. Interested in solo/mute and volume.
-        /// </summary>
-        void ChannelChange_Event(object sender, EventArgs e)
-        {
-            ChannelControl ch = sender as ChannelControl;
-            _nppVals.SetValue(ch.BoundChannel.Name, "volume", ch.BoundChannel.Volume);
-
-            // Check for solos.
-            bool _anySolo = _script.Channels.Where(c => c.State == ChannelState.Solo).Count() > 0;
-
-            if (_anySolo)
-            {
-                // Kill any not solo.
-                _script.Channels.ForEach(c =>
-                {
-                    if (c.State != ChannelState.Solo && c.Device != null)
-                    {
-                        c.Device.Kill(c.ChannelNumber);
-                    }
-                });
-            }
-        }
-
-
-        // if (MidiOut.NumberOfDevices > 0)
-        // {
-        //     for (int device = 0; device < MidiOut.NumberOfDevices; device++)
-        //     {
-        //         mdText.Add($"- {MidiOut.DeviceInfo(device).ProductName}");
-        //     }
-        // }
-
-
-        /// <summary>
-        /// Common func.
-        /// </summary>
-        // void SetSpeedTimerPeriod()
-        // {
-        //     double secPerBeat = 60 / potSpeed.Value; // aka beat
-        //     double msecPerBeat = 1000 * secPerBeat / Time.TICKS_PER_BEAT;
-        //     _timer.SetTimer("NEB", (int)msecPerBeat);
-        // }
-
-
-        // Dictionary<int, string> channels = new Dictionary<int, string>();
-        // _script.Channels.ForEach(t => channels.Add(t.ChannelNumber, t.Name));
-
-        // // Convert bpm to sec per beat.
-        // double beatsPerSec = potSpeed.Value / 60;
-        // double secPerBeat = 1 / beatsPerSec;
-
-        // MidiUtils.ExportMidi(_script.Steps, fn, channels, secPerBeat, "Converted from " + _fn);
-
-    }
-#endif
-
-#if TODOC_ORIGINAL
-        public bool Send(Step step)
-        {
-            bool ret = true;
-
-            // Critical code section.
-            lock (_lock)
-            {
-                if(_midiOut != null)
-                {
-                    List<int> msgs = new List<int>();
-                    int msg = 0;
-
-                    switch (step)
-                    {
-                        case StepNoteOn stt:
-                            {
-                                NoteEvent evt = new NoteEvent(0,
-                                    stt.ChannelNumber,
-                                    MidiCommandCode.NoteOn,
-                                    (int)MathUtils.Constrain(stt.NoteNumber, 0, MidiUtils.MAX_MIDI),
-                                    (int)(MathUtils.Constrain(stt.VelocityToPlay, 0, 1.0) * MidiUtils.MAX_MIDI));
-                                msg = evt.GetAsShortMessage();
-
-                                if (stt.Duration.TotalTicks > 0) // specific duration
-                                {
-                                    // Remove any lingering note offs and add a fresh one.
-                                    _stops.RemoveAll(s => s.NoteNumber == stt.NoteNumber && s.ChannelNumber == stt.ChannelNumber);
-
-                                    _stops.Add(new StepNoteOff()
-                                    {
-                                        Device = stt.Device,
-                                        ChannelNumber = stt.ChannelNumber,
-                                        NoteNumber = MathUtils.Constrain(stt.NoteNumber, 0, MidiUtils.MAX_MIDI),
-                                        Expiry = stt.Duration.TotalTicks
-                                    });
-                                }
-                            }
-                            break;
-
-                        case StepNoteOff stt:
-                            {
-                                NoteEvent evt = new NoteEvent(0,
-                                    stt.ChannelNumber,
-                                    MidiCommandCode.NoteOff,
-                                    (int)MathUtils.Constrain(stt.NoteNumber, 0, MidiUtils.MAX_MIDI),
-                                    0);
-                                msg = evt.GetAsShortMessage();
-                            }
-                            break;
-
-                        case StepControllerChange stt:
-                            {
-                                if (stt.ControllerId == ScriptDefinitions.TheDefinitions.NoteControl)
-                                {
-                                    // Shouldn't happen, ignore.
-                                }
-                                else if (stt.ControllerId == ScriptDefinitions.TheDefinitions.PitchControl)
-                                {
-                                    PitchWheelChangeEvent pevt = new PitchWheelChangeEvent(0,
-                                        stt.ChannelNumber,
-                                        (int)MathUtils.Constrain(stt.Value, 0, MidiUtils.MAX_PITCH));
-                                    msg = pevt.GetAsShortMessage();
-                                }
-                                else // CC
-                                {
-                                    ControlChangeEvent nevt = new ControlChangeEvent(0,
-                                        stt.ChannelNumber,
-                                        (MidiController)stt.ControllerId,
-                                        (int)MathUtils.Constrain(stt.Value, 0, MidiUtils.MAX_MIDI));
-                                    msg = nevt.GetAsShortMessage();
-                                }
-                            }
-                            break;
-
-                        case StepPatch stt:
-                            {
-                                PatchChangeEvent evt = new PatchChangeEvent(0,
-                                    stt.ChannelNumber,
-                                    stt.PatchNumber);
-                                msg = evt.GetAsShortMessage();
-                            }
-                            break;
-
-                        default:
-                            break;
-                    }
-
-                    if(msg != 0)
-                    {
-                        _midiOut.Send(msg);
-                        LogMsg(DeviceLogCategory.Send, step.ToString());
-                    }
-                }
-            }
-
-            return ret;
-        }
-
-        public void Kill(int? channel)
-        {
-            if(channel is null)
-            {
-                for (int i = 0; i < MidiUtils.MAX_CHANNELS; i++)
-                {
-                    Send(new StepControllerChange()
-                    {
-                        Device = this,
-                        ChannelNumber = i + 1,
-                        ControllerId = (int)MidiController.AllNotesOff
-                    });
-                }
-            }
-            else
-            {
-                Send(new StepControllerChange()
-                {
-                    Device = this,
-                    ChannelNumber = channel.Value,
-                    ControllerId = (int)MidiController.AllNotesOff
-                });
-            }
-        }
-#endif
-
-
 }
