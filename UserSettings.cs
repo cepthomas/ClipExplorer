@@ -79,9 +79,6 @@ namespace ClipExplorer
         string _fn = "???";
         #endregion
 
-        /// <summary>Current global user settings.</summary>
-        public static UserSettings TheSettings { get; set; } = new UserSettings();
-
         #region Persistence
         /// <summary>Save object to file.</summary>
         public void Save()

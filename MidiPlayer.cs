@@ -7,25 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NAudio.Midi;
+using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
 namespace ClipExplorer
 {
-    /// <summary>Channel events and other aspects.</summary>
-    public class PlayChannel
-    {
-        /// <summary>For muting/soloing.</summary>
-        public bool Enabled { get; set; } = true;
-
-        /// <summary>Channel midi events, sorted by AbsoluteTime.</summary>
-        public List<MidiEvent> Events { get; set; } = new List<MidiEvent>();
-
-        /// <summary>Where we are now in Events aka next event to send.</summary>
-        public int CurrentIndex { get; set; } = 0;
-    }
-
-    public class MidiPlayer : IDisposable
+    public partial class MidiPlayer : UserControl, IPlayer
     {
         #region Fields
         /// <summary>Midi caps.</summary>
@@ -108,86 +96,121 @@ namespace ClipExplorer
         /// </summary>
         public MidiPlayer()
         {
+            InitializeComponent();
         }
 
-        /// <summary>
-        /// 
+        /// <summary> 
+        /// Clean up any resources being used.
         /// </summary>
-        public void Dispose()
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
         {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+
+            // My stuff.
             Stop();
             // Stop and destroy timer.
             timeKillEvent(_timerID);
 
             _midiOut?.Dispose();
             _midiOut = null;
+
+            base.Dispose(disposing);
         }
         #endregion
 
-        #region Public Functions
         /// <summary>
         /// Load the midi file and convert to internal use.
         /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="devName"></param>
-        public bool LoadFile(string fileName, string devName)
+        /// <param name="fn">The file to open.</param>
+        /// <returns>Status.</returns>
+        public bool OpenFile(string fn)
         {
-            bool ok = false;
+            bool ok = true;
 
-            Stop();
-
-            // Figure out which device.
-            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
+            using (new WaitCursor())
             {
-                if (devName == MidiOut.DeviceInfo(devindex).ProductName)
+                try
                 {
-                    _midiOut = new MidiOut(devindex);
-                    ok = true;
-                    break;
-                }
-            }
+                    // Clean up first.
+                    CloseDevices();
 
-            if (ok)
-            {
-                // Initialize timer with default values.
-                _timeProc = new TimeProc(MmTimerCallback);
-
-                // Default in case not specified in file.
-                int tempo = 100;
-
-                // Get events.
-                var mfile = new MidiFile(fileName, true);
-                _sourceEvents = mfile.Events;
-
-                // Init internal structure.
-                for (int i = 0; i < _playChannels.Count(); i++)
-                {
-                    _playChannels[i] = new PlayChannel();
-                }
-
-                // Bin events by channel.
-                for (int track = 0; track < _sourceEvents.Tracks; track++)
-                {
-                    _sourceEvents.GetTrackEvents(track).ForEach(te =>
+                    // Figure out which device.
+                    for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
                     {
-                        if (te.Channel < MAX_CHANNELS)
+                        if (Common.Settings.MidiOutDevice == MidiOut.DeviceInfo(devindex).ProductName)
                         {
-                            _playChannels[te.Channel].Events.Add(te);
-
-                            if (te is TempoEvent) // dig out tempo
-                            {
-                                tempo = (int)(te as TempoEvent).Tempo;
-                            }
+                            _midiOut = new MidiOut(devindex);
+                            ok = true;
+                            break;
                         }
-                    });
-                }
+                    }
 
-                SetTempo(tempo);
+                    if (ok)
+                    {
+                        // Initialize timer with default values.
+                        _timeProc = new TimeProc(MmTimerCallback);
+
+                        // Default in case not specified in file.
+                        int tempo = 100;
+
+                        // Get events.
+                        var mfile = new MidiFile(fn, true);
+                        _sourceEvents = mfile.Events;
+
+                        // Init internal structure.
+                        for (int i = 0; i < _playChannels.Count(); i++)
+                        {
+                            _playChannels[i] = new PlayChannel();
+                        }
+
+                        // Bin events by channel.
+                        for (int track = 0; track < _sourceEvents.Tracks; track++)
+                        {
+                            _sourceEvents.GetTrackEvents(track).ForEach(te =>
+                            {
+                                if (te.Channel < MAX_CHANNELS)
+                                {
+                                    _playChannels[te.Channel].Events.Add(te);
+
+                                    if (te is TempoEvent) // dig out tempo
+                                    {
+                                        tempo = (int)(te as TempoEvent).Tempo;
+                                    }
+                                }
+                            });
+                        }
+
+                        SetTempo(tempo);
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //ErrorMessage($"Couldn't open the file: {fn} because: {ex.Message}");
+                    ok = false;
+                    CloseDevices();
+                }
             }
 
             return ok;
         }
 
+        /// <summary>
+        /// Close any open devices.
+        /// </summary>
+        void CloseDevices()
+        {
+            Stop();
+
+            _midiOut?.Dispose();
+            _midiOut = null;
+        }
+
+        #region Public Functions
         /// <summary>
         /// 
         /// </summary>
@@ -272,5 +295,30 @@ namespace ClipExplorer
             }
         }
         #endregion
+
+        public void Rewind()
+        {
+            Stop();
+            CurrentBeat = 0;
+        }
+
+        public void Close()
+        {
+            throw new NotImplementedException();
+        }
     }
+
+    /// <summary>Channel events and other aspects.</summary>
+    public class PlayChannel
+    {
+        /// <summary>For muting/soloing.</summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>Channel midi events, sorted by AbsoluteTime.</summary>
+        public List<MidiEvent> Events { get; set; } = new List<MidiEvent>();
+
+        /// <summary>Where we are now in Events aka next event to send.</summary>
+        public int CurrentIndex { get; set; } = 0;
+    }
+
 }

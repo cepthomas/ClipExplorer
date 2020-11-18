@@ -37,14 +37,8 @@ namespace ClipExplorer
         /// <summary>Current file name.</summary>
         string _fn = "???";
 
-        /// <summary>Wave output play device.</summary>
-        WaveOut _waveOut = null;
-
-        /// <summary>Input device for playing wav file.</summary>
-        AudioFileReader _audioFileReader = null;
-
-        /// <summary>For playing midi file.</summary>
-        MidiPlayer _midiPlayer = null;
+        /// <summary>Play device.</summary>
+        IPlayer _player = null;
         #endregion
 
         #region Lifecycle
@@ -68,12 +62,11 @@ namespace ClipExplorer
             UserSettings.Load(appDir);
 
             // Init UI from settings
-            Location = new Point(UserSettings.TheSettings.MainFormInfo.X, UserSettings.TheSettings.MainFormInfo.Y);
-            Size = new Size(UserSettings.TheSettings.MainFormInfo.Width, UserSettings.TheSettings.MainFormInfo.Height);
+            Location = new Point(Common.Settings.MainFormInfo.X, Common.Settings.MainFormInfo.Y);
+            Size = new Size(Common.Settings.MainFormInfo.Width, Common.Settings.MainFormInfo.Height);
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
-            sldVolume.Value = UserSettings.TheSettings.Volume;
-            ResetMeters();
+            sldVolume.Value = Common.Settings.Volume;
 
             PopulateRecentMenu();
 
@@ -83,7 +76,7 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// TODOC for testing only
-            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
+//>>>            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
             //var v = player._sourceEvents;
             //DumpMidi(v, "dump.txt");
         }
@@ -93,28 +86,11 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            CloseDevices();
+            _player?.Close();
 
             // Save user settings.
             ftree.FlushChanges();
             SaveSettings();
-        }
-
-        /// <summary>
-        /// Close any open devices.
-        /// </summary>
-        void CloseDevices()
-        {
-            _waveOut?.Stop();
-            _waveOut?.Dispose();
-            _waveOut = null;
-
-            _audioFileReader?.Dispose();
-            _audioFileReader = null;
-
-            _midiPlayer?.Stop();
-            _midiPlayer?.Dispose();
-            _midiPlayer = null;
         }
         #endregion
 
@@ -124,16 +100,16 @@ namespace ClipExplorer
         /// </summary>
         void SaveSettings()
         {
-            UserSettings.TheSettings.AllTags = ftree.AllTags.ToList();
-            UserSettings.TheSettings.Autoplay = !ftree.DoubleClickSelect;
+            Common.Settings.AllTags = ftree.AllTags.ToList();
+            Common.Settings.Autoplay = !ftree.DoubleClickSelect;
 
-            UserSettings.TheSettings.TaggedPaths.Clear();
-            ftree.TaggedPaths.ForEach(v => UserSettings.TheSettings.TaggedPaths[v.path] = v.tags);
+            Common.Settings.TaggedPaths.Clear();
+            ftree.TaggedPaths.ForEach(v => Common.Settings.TaggedPaths[v.path] = v.tags);
 
-            UserSettings.TheSettings.Volume = sldVolume.Value;
-            UserSettings.TheSettings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
+            Common.Settings.Volume = sldVolume.Value;
+            Common.Settings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
 
-            UserSettings.TheSettings.Save();
+            Common.Settings.Save();
         }
 
         /// <summary>
@@ -156,7 +132,7 @@ namespace ClipExplorer
                 {
                     Dock = DockStyle.Fill,
                     PropertySort = PropertySort.NoSort,
-                    SelectedObject = UserSettings.TheSettings
+                    SelectedObject = Common.Settings
                 };
 
                 // Detect changes of interest.
@@ -189,7 +165,7 @@ namespace ClipExplorer
 
         #region Info
         /// <summary>
-        /// 
+        /// All about me.
         /// </summary>
         /// <param name="s"></param>
         void ErrorMessage(string s)
@@ -198,7 +174,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// The meaning of life.
+        /// All about me.
         /// </summary>
         void About_Click(object sender, EventArgs e)
         {
@@ -269,6 +245,7 @@ namespace ClipExplorer
             openDlg.Dispose();
         }
 
+
         /// <summary>
         /// Common file opener.
         /// </summary>
@@ -284,14 +261,16 @@ namespace ClipExplorer
                 {
                     if (File.Exists(fn))
                     {
-                        // Clean up first.
-                        CloseDevices();
+                        // TODOC close/open player device dep on file type.
+                        //CloseDevices();
 
                         switch (Path.GetExtension(_fn).ToLower())
                         {
                             case ".wav":
                             case ".mp3":
-                                ok = OpenWav(fn);
+                                _player = new WavePlayer();
+                                _player.PlaybackCompleted += Player_PlaybackCompleted;
+                                _player.OpenFile(fn);
                                 break;
 
                             case ".mid":
@@ -327,94 +306,15 @@ namespace ClipExplorer
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()}";
                 _fn = "???";
-                CloseDevices();
+//>>>>                CloseDevices();
             }
 
             return ok;
         }
 
-        /// <summary>
-        /// Opens an audio wave file. Includes compressed.
-        /// </summary>
-        /// <param name="fn"></param>
-        /// <returns></returns>
-        bool OpenWav(string fn) // TODOC show/hide UI stuff
+        private void Player_PlaybackCompleted(object sender, EventArgs e)
         {
-            bool ok = true;
-
-            ShowClip();
-
-            // Create output device.
-            for (int id = 0; id < WaveOut.DeviceCount; id++)
-            {
-                var cap = WaveOut.GetCapabilities(id);
-                if (UserSettings.TheSettings.WavOutDevice == cap.ProductName)
-                {
-                    _waveOut = new WaveOut
-                    {
-                        DeviceNumber = id,
-                        DesiredLatency = int.Parse(UserSettings.TheSettings.Latency)
-                    };
-                    _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
-                    break;
-                }
-            }
-
-            // Create input device.
-            if (_waveOut != null)
-            {
-                _audioFileReader = new AudioFileReader(_fn);
-
-                timeBar.CurrentTime = new TimeSpan();
-                timeBar.Length = _audioFileReader.TotalTime;
-
-                // Create reader.
-                ISampleProvider sampleProvider;
-
-                var sampleChannel = new SampleChannel(_audioFileReader, true);
-                sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
-
-                var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
-
-                sampleProvider = postVolumeMeter;
-                _waveOut.Init(sampleProvider);
-                _waveOut.Volume = (float)sldVolume.Value;
-            }
-            else
-            {
-                ErrorMessage($"Failed to create output device: {UserSettings.TheSettings.WavOutDevice}");
-                ok = false;
-            }
-
-            return ok;
-        }
-
-        /// <summary>
-        /// Opens a midi file.
-        /// </summary>
-        /// <param name="fn"></param>
-        /// <returns></returns>
-        bool OpenMidi(string fn) // TODOC show/hide UI stuff
-        {
-            bool ok;
-
-            _midiPlayer = new MidiPlayer();
-            ok = _midiPlayer.LoadFile(UserSettings.TheSettings.MidiOutDevice, fn);
-
-            if(ok)
-            {
-
-            }
-            else
-            {
-                ErrorMessage($"Failed to load file for: {UserSettings.TheSettings.MidiOutDevice}");
-            }
-
-
-
-
-            return ok;
+            throw new NotImplementedException();
         }
 
 
@@ -426,7 +326,7 @@ namespace ClipExplorer
             ToolStripItemCollection menuItems = recentToolStripMenuItem.DropDownItems;
             menuItems.Clear();
 
-            UserSettings.TheSettings.RecentFiles.ForEach(f =>
+            Common.Settings.RecentFiles.ForEach(f =>
             {
                 ToolStripMenuItem menuItem = new ToolStripMenuItem(f, null, new EventHandler(Recent_Click));
                 menuItems.Add(menuItem);
@@ -441,7 +341,7 @@ namespace ClipExplorer
         {
             if (File.Exists(fn))
             {
-                UserSettings.TheSettings.RecentFiles.UpdateMru(fn);
+                Common.Settings.RecentFiles.UpdateMru(fn);
                 PopulateRecentMenu();
             }
         }
@@ -457,11 +357,11 @@ namespace ClipExplorer
         {
             if (chkPlay.Checked)
             {
-                DeviceStart();
+                _player?.Start();
             }
             else
             {
-                DeviceStop();
+                _player?.Stop();
             }
         }
 
@@ -477,12 +377,12 @@ namespace ClipExplorer
                 // Toggle.
                 if (chkPlay.Checked)
                 {
-                    DeviceStop();
+                    _player?.Stop();
                     chkPlay.Checked = false;
                 }
                 else
                 {
-                    DeviceStart();
+                    _player?.Start();
                     chkPlay.Checked = true;
                 }
                 e.Handled = true;
@@ -496,7 +396,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Rewind_Click(object sender, EventArgs e)
         {
-            DeviceRewind();
+            _player?.Rewind();
             chkPlay.Checked = false;
         }
 
@@ -507,59 +407,11 @@ namespace ClipExplorer
         /// <param name="e"></param>
         private void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _audioFileReader.CurrentTime = timeBar.CurrentTime;
-            }
+            //if (_waveOut != null && _audioFileReader != null)
+            //{
+            //    _audioFileReader.CurrentTime = timeBar.CurrentTime;
+            //}
             //else TODOC midi
-        }
-
-        /// <summary>
-        /// Common function that hides the device/file type. Poorly.
-        /// </summary>
-        void DeviceStart()
-        {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _waveOut.Play();
-            }
-            else if (_midiPlayer != null)
-            {
-                _midiPlayer.Start();
-            }
-        }
-
-        /// <summary>
-        /// Common function that hides the device/file type. Poorly.
-        /// </summary>
-        void DeviceStop()
-        {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _waveOut.Pause(); // Stop?
-                ResetMeters();
-            }
-            else if (_midiPlayer != null)
-            {
-                _midiPlayer.Stop();
-            }
-        }
-
-        /// <summary>
-        /// Common function that hides the device/file type. Poorly.
-        /// </summary>
-        void DeviceRewind()
-        {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _waveOut.Stop();
-                _audioFileReader.Position = 0;
-            }
-            else if (_midiPlayer != null)
-            {
-                _midiPlayer.Stop();
-                _midiPlayer.CurrentBeat = 0;
-            }
         }
         #endregion
 
@@ -571,96 +423,11 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Volume_ValueChanged(object sender, EventArgs e)
         {
-            if(_waveOut != null)
-            {
-                _waveOut.Volume = (float)sldVolume.Value;
-            }
+            _player.Volume = (float)sldVolume.Value;
         }
         #endregion
 
-        #region Wav Playing
-        /// <summary>
-        /// Show a clip waveform.
-        /// </summary>
-        void ShowClip()
-        {
-            using (AudioFileReader afrdr = new AudioFileReader(_fn))
-            {
-                var sampleChannel = new SampleChannel(afrdr, true);
 
-                long len = afrdr.Length / sizeof(float);
-                var data = new float[len];
-
-                int offset = 0;
-                int num = -1;
-                while (num != 0)
-                {
-                    num = afrdr.Read(data, offset, 20000);
-                    offset += num;
-                }
-
-                waveViewer1.Init(data, 1.0f);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void WaveOut_PlaybackStopped(object sender, StoppedEventArgs e)
-        {
-            if (e.Exception != null)
-            {
-                MessageBox.Show(e.Exception.Message, "Playback Device Error");
-            }
-
-            if (_audioFileReader != null)
-            {
-                _audioFileReader.Position = 0;
-
-                if (chkLoop.Checked)
-                {
-                    _waveOut.Play();
-                }
-                else
-                {
-                    chkPlay.Checked = false;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void SampleChannel_PreVolumeMeter(object sender, StreamVolumeEventArgs e)
-        {
-            waveformPainter1.AddMax(e.MaxSampleValues[0]);
-            waveformPainter2.AddMax(e.MaxSampleValues[1]);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
-        {
-            volL.AddValue(e.MaxSampleValues[0]);
-            volR.AddValue(e.MaxSampleValues[1]);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        void ResetMeters()
-        {
-            volL.AddValue(0);
-            volR.AddValue(0);
-        }
-        #endregion
 
         #region Midi Playing
         /// <summary>
@@ -724,12 +491,12 @@ namespace ClipExplorer
         void InitNavigator()
         {
             ftree.FilterExts = _fileExts.SplitByToken(";");
-            ftree.RootPaths = UserSettings.TheSettings.RootDirs.DeepClone();
-            ftree.AllTags = UserSettings.TheSettings.AllTags.DeepClone();
-            ftree.DoubleClickSelect = !UserSettings.TheSettings.Autoplay;
+            ftree.RootPaths = Common.Settings.RootDirs.DeepClone();
+            ftree.AllTags = Common.Settings.AllTags.DeepClone();
+            ftree.DoubleClickSelect = !Common.Settings.Autoplay;
 
             ftree.TaggedPaths.Clear();
-            UserSettings.TheSettings.TaggedPaths.ForEach(kv => ftree.TaggedPaths.Add((kv.Key, kv.Value)));
+            Common.Settings.TaggedPaths.ForEach(kv => ftree.TaggedPaths.Add((kv.Key, kv.Value)));
 
             ftree.Init();
         }
@@ -752,15 +519,16 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Timer1_Tick(object sender, EventArgs e)
         {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                timeBar.CurrentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
-            }
-            else
-            {
-                // Reset.
-                timeBar.CurrentTime = new TimeSpan();
-            }
+            //TODOC
+            //if (_waveOut != null && _audioFileReader != null)
+            //{
+            //    timeBar.CurrentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
+            //}
+            //else
+            //{
+            //    // Reset.
+            //    timeBar.CurrentTime = new TimeSpan();
+            //}
         }
     }
 }
