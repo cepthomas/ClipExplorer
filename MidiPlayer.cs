@@ -16,7 +16,7 @@ namespace ClipExplorer
     public class PlayChannel
     {
         /// <summary>For muting/soloing.</summary>
-        public bool Enabled { get; set; } = false;
+        public bool Enabled { get; set; } = true;
 
         /// <summary>Channel midi events, sorted by AbsoluteTime.</summary>
         public List<MidiEvent> Events { get; set; } = new List<MidiEvent>();
@@ -106,29 +106,8 @@ namespace ClipExplorer
         /// <summary>
         /// Normal constructor.
         /// </summary>
-        /// <param name="devName"></param>
-        public MidiPlayer(string devName)
+        public MidiPlayer()
         {
-            bool ok = false;
-
-            // Figure out which device.
-            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
-            {
-                if (devName == MidiOut.DeviceInfo(devindex).ProductName)
-                {
-                    _midiOut = new MidiOut(devindex);
-                    ok = true;
-                    break;
-                }
-            }
-
-            if(!ok)
-            {
-                throw new ArgumentException($"Invalid midi device: {devName}");
-            }
-
-            // Initialize timer with default values.
-            _timeProc = new TimeProc(MmTimerCallback);
         }
 
         /// <summary>
@@ -150,41 +129,63 @@ namespace ClipExplorer
         /// Load the midi file and convert to internal use.
         /// </summary>
         /// <param name="fileName"></param>
-        public void LoadFile(string fileName)
+        /// <param name="devName"></param>
+        public bool LoadFile(string fileName, string devName)
         {
+            bool ok = false;
+
             Stop();
 
-            // Default in case not specified in file.
-            int tempo = 100;
-
-            // Get events.
-            var mfile = new MidiFile(fileName, true);
-            _sourceEvents = mfile.Events;
-
-            // Init internal structure.
-            for (int i = 0; i < _playChannels.Count(); i++)
+            // Figure out which device.
+            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
             {
-                _playChannels[i] = new PlayChannel();
-            }
-
-            // Bin events by channel.
-            for(int track = 0; track < _sourceEvents.Tracks; track++)
-            {
-                _sourceEvents.GetTrackEvents(track).ForEach(te =>
+                if (devName == MidiOut.DeviceInfo(devindex).ProductName)
                 {
-                    if (te.Channel < MAX_CHANNELS)
-                    {
-                        _playChannels[te.Channel].Events.Add(te);
-
-                        if(te is TempoEvent) // dig out tempo
-                        {
-                            tempo = (int)(te as TempoEvent).Tempo;
-                        }
-                    }
-                });
+                    _midiOut = new MidiOut(devindex);
+                    ok = true;
+                    break;
+                }
             }
 
-            SetTempo(tempo);
+            if (ok)
+            {
+                // Initialize timer with default values.
+                _timeProc = new TimeProc(MmTimerCallback);
+
+                // Default in case not specified in file.
+                int tempo = 100;
+
+                // Get events.
+                var mfile = new MidiFile(fileName, true);
+                _sourceEvents = mfile.Events;
+
+                // Init internal structure.
+                for (int i = 0; i < _playChannels.Count(); i++)
+                {
+                    _playChannels[i] = new PlayChannel();
+                }
+
+                // Bin events by channel.
+                for (int track = 0; track < _sourceEvents.Tracks; track++)
+                {
+                    _sourceEvents.GetTrackEvents(track).ForEach(te =>
+                    {
+                        if (te.Channel < MAX_CHANNELS)
+                        {
+                            _playChannels[te.Channel].Events.Add(te);
+
+                            if (te is TempoEvent) // dig out tempo
+                            {
+                                tempo = (int)(te as TempoEvent).Tempo;
+                            }
+                        }
+                    });
+                }
+
+                SetTempo(tempo);
+            }
+
+            return ok;
         }
 
         /// <summary>
@@ -248,32 +249,27 @@ namespace ClipExplorer
         {
             if (_running)
             {
-                NextStep();
+                // Output next time/steps. TODOC
+                double newTime = _currentMidiTime + _ticksPerTimerPeriod;
+
+                //MidiEvent
+                //public MidiCommandCode CommandCode { get; }
+                //public int DeltaTime { get; }
+                //public virtual int Channel { get; set; }
+                //public long AbsoluteTime { get; set; }
+
+                // Output any midi events between last and now. TODOC
+                // Check for solo/mute/enabled.
+                // Adjust volume.
+
+                //// Process any lingering noteoffs etc.
+                //_outputs.ForEach(o => o.Value?.Housekeep());
+                //_inputs.ForEach(i => i.Value?.Housekeep());
+
+                _currentMidiTime = newTime;
+
+
             }
-        }
-
-        /// <summary>
-        /// Output next time/steps.
-        /// </summary>
-        void NextStep()
-        {
-            double newTime = _currentMidiTime + _ticksPerTimerPeriod;
-
-            //MidiEvent
-            //public MidiCommandCode CommandCode { get; }
-            //public int DeltaTime { get; }
-            //public virtual int Channel { get; set; }
-            //public long AbsoluteTime { get; set; }
-
-            // Output any midi events between last and now. TODOC
-            // Check for solo/mute/enabled.
-            // Adjust volume.
-
-            //// Process any lingering noteoffs etc.
-            //_outputs.ForEach(o => o.Value?.Housekeep());
-            //_inputs.ForEach(i => i.Value?.Housekeep());
-
-            _currentMidiTime = newTime;
         }
         #endregion
     }
