@@ -38,19 +38,13 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfTricks.UI.FilTree();
-//            this.waveViewer = new NBagOfTricks.UI.WaveViewer();
             this.timeBar = new NBagOfTricks.UI.TimeBar();
-//            this.levelR = new NBagOfTricks.UI.Meter();
-//            this.levelL = new NBagOfTricks.UI.Meter();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.chkLoop = new System.Windows.Forms.CheckBox();
-//            this.waveformPainterR = new NAudio.Gui.WaveformPainter();
-//            this.waveformPainterL = new NAudio.Gui.WaveformPainter();
             this.sldVolume = new NBagOfTricks.UI.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-//            this.sldTempo = new NBagOfTricks.UI.Slider();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -123,15 +117,9 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.sldTempo);
-            this.splitContainer1.Panel2.Controls.Add(this.waveViewer);
             this.splitContainer1.Panel2.Controls.Add(this.timeBar);
-            this.splitContainer1.Panel2.Controls.Add(this.levelR);
-            this.splitContainer1.Panel2.Controls.Add(this.levelL);
             this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
-            this.splitContainer1.Panel2.Controls.Add(this.waveformPainterR);
-            this.splitContainer1.Panel2.Controls.Add(this.waveformPainterL);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
@@ -153,51 +141,17 @@
             this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
-            // waveViewer
-            // 
-            this.waveViewer.DrawColor = System.Drawing.Color.Green;
-            this.waveViewer.Location = new System.Drawing.Point(21, 201);
-            this.waveViewer.Name = "waveViewer";
-            this.waveViewer.Size = new System.Drawing.Size(601, 47);
-            this.waveViewer.TabIndex = 61;
-            // 
             // timeBar
             // 
             this.timeBar.CurrentTime = System.TimeSpan.Parse("00:00:00");
             this.timeBar.ForeColor = System.Drawing.Color.Silver;
             this.timeBar.Length = System.TimeSpan.Parse("00:00:00");
-            this.timeBar.Location = new System.Drawing.Point(21, 386);
+            this.timeBar.Location = new System.Drawing.Point(21, 193);
             this.timeBar.Name = "timeBar";
             this.timeBar.ProgressColor = System.Drawing.Color.Fuchsia;
             this.timeBar.Size = new System.Drawing.Size(601, 47);
             this.timeBar.TabIndex = 60;
             this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
-            // 
-            // levelR
-            // 
-            this.levelR.DrawColor = System.Drawing.Color.Fuchsia;
-            this.levelR.Label = "R";
-            this.levelR.Location = new System.Drawing.Point(123, 77);
-            this.levelR.Maximum = 3D;
-            this.levelR.MeterType = NBagOfTricks.UI.MeterType.Log;
-            this.levelR.Minimum = -60D;
-            this.levelR.Name = "levelR";
-            this.levelR.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.levelR.Size = new System.Drawing.Size(32, 99);
-            this.levelR.TabIndex = 59;
-            // 
-            // levelL
-            // 
-            this.levelL.DrawColor = System.Drawing.Color.Fuchsia;
-            this.levelL.Label = "L";
-            this.levelL.Location = new System.Drawing.Point(84, 77);
-            this.levelL.Maximum = 3D;
-            this.levelL.MeterType = NBagOfTricks.UI.MeterType.Log;
-            this.levelL.Minimum = -60D;
-            this.levelL.Name = "levelL";
-            this.levelL.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.levelL.Size = new System.Drawing.Size(32, 99);
-            this.levelL.TabIndex = 58;
             // 
             // rtbInfo
             // 
@@ -220,32 +174,6 @@
             this.chkLoop.Size = new System.Drawing.Size(43, 39);
             this.chkLoop.TabIndex = 55;
             this.chkLoop.UseVisualStyleBackColor = false;
-            // 
-            // waveformPainterR
-            // 
-            this.waveformPainterR.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.waveformPainterR.BackColor = System.Drawing.Color.LightSkyBlue;
-            this.waveformPainterR.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.waveformPainterR.Location = new System.Drawing.Point(21, 329);
-            this.waveformPainterR.Margin = new System.Windows.Forms.Padding(4);
-            this.waveformPainterR.Name = "waveformPainterR";
-            this.waveformPainterR.Size = new System.Drawing.Size(602, 48);
-            this.waveformPainterR.TabIndex = 51;
-            this.waveformPainterR.Text = "waveformPainterL";
-            // 
-            // waveformPainterL
-            // 
-            this.waveformPainterL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.waveformPainterL.BackColor = System.Drawing.Color.LightSkyBlue;
-            this.waveformPainterL.ForeColor = System.Drawing.Color.SaddleBrown;
-            this.waveformPainterL.Location = new System.Drawing.Point(21, 269);
-            this.waveformPainterL.Margin = new System.Windows.Forms.Padding(4);
-            this.waveformPainterL.Name = "waveformPainterL";
-            this.waveformPainterL.Size = new System.Drawing.Size(602, 52);
-            this.waveformPainterL.TabIndex = 52;
-            this.waveformPainterL.Text = "waveformPainterL";
             // 
             // sldVolume
             // 
@@ -295,22 +223,6 @@
             // 
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
-            // sldTempo
-            // 
-            this.sldTempo.DecPlaces = 0;
-            this.sldTempo.DrawColor = System.Drawing.Color.PaleGreen;
-            this.sldTempo.Label = "BPM";
-            this.sldTempo.Location = new System.Drawing.Point(21, 446);
-            this.sldTempo.Maximum = 250D;
-            this.sldTempo.Minimum = 50D;
-            this.sldTempo.Name = "sldTempo";
-            this.sldTempo.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.sldTempo.ResetValue = 0D;
-            this.sldTempo.Size = new System.Drawing.Size(45, 150);
-            this.sldTempo.TabIndex = 62;
-            this.sldTempo.Value = 100D;
-            this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -344,19 +256,13 @@
         private NBagOfTricks.UI.Slider sldVolume;
         private System.Windows.Forms.Button btnRewind;
         private System.Windows.Forms.CheckBox chkPlay;
-//        private NAudio.Gui.WaveformPainter waveformPainterR;
-//        private NAudio.Gui.WaveformPainter waveformPainterL;
         private NBagOfTricks.UI.FilTree ftree;
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.RichTextBox rtbInfo;
-//        private NBagOfTricks.UI.Meter levelL;
-//        private NBagOfTricks.UI.Meter levelR;
         private NBagOfTricks.UI.TimeBar timeBar;
-//        private NBagOfTricks.UI.WaveViewer waveViewer;
-//        private NBagOfTricks.UI.Slider sldTempo;
     }
 }
 

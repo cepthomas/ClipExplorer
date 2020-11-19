@@ -90,23 +90,23 @@ namespace ClipExplorer
         /// <summary>Create object from file.</summary>
         public static void Load(string appDir)
         {
-            TheSettings = null;
+            Common.Settings = null;
             string fn = Path.Combine(appDir, "settings.json");
 
             if (File.Exists(fn))
             {
                 string json = File.ReadAllText(fn);
-                TheSettings = JsonConvert.DeserializeObject<UserSettings>(json);
+                Common.Settings = JsonConvert.DeserializeObject<UserSettings>(json);
 
                 // Clean up any bad file names.
-                TheSettings.RecentFiles.RemoveAll(f => !File.Exists(f));
+                Common.Settings.RecentFiles.RemoveAll(f => !File.Exists(f));
 
-                TheSettings._fn = fn;
+                Common.Settings._fn = fn;
             }
             else
             {
                 // Doesn't exist, create a new one.
-                TheSettings = new UserSettings
+                Common.Settings = new UserSettings
                 {
                     _fn = fn
                 };

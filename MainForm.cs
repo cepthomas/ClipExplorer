@@ -18,24 +18,16 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODOC midi needs tempo control, timebar displays alt bars/beats.
+// TODOC Timebar displays bar.beat like 34.1.909  34.2.123  34.3.456  34.4.777. Time is 00.00:000
 
 
 namespace ClipExplorer
 {
     public partial class MainForm : Form
     {
-        #region Enums
-        /// <summary>Internal status.</summary>
-        enum PlayCommand { Start, Stop, Rewind, StopRewind, UpdateUiTime }
-        #endregion
-
         #region Fields
         /// <summary>Supported file types.</summary>
-        string _fileExts = ".wav;.mp3;.mid;";
-
-        /// <summary>Current file name.</summary>
-        string _fn = "???";
+        readonly string _fileExts = ".wav;.mp3;.mid;";
 
         /// <summary>Play device.</summary>
         IPlayer _player = null;
@@ -75,8 +67,8 @@ namespace ClipExplorer
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
             timer1.Enabled = true;
 
-            ///// TODOC for testing only
-//>>>            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
+            ///// for testing only
+            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
             //var v = player._sourceEvents;
             //DumpMidi(v, "dump.txt");
         }
@@ -261,26 +253,49 @@ namespace ClipExplorer
                 {
                     if (File.Exists(fn))
                     {
-                        // TODOC close/open player device dep on file type.
-                        //CloseDevices();
-
-                        switch (Path.GetExtension(_fn).ToLower())
+                        switch (Path.GetExtension(fn).ToLower())
                         {
                             case ".wav":
                             case ".mp3":
-                                _player = new WavePlayer();
-                                _player.PlaybackCompleted += Player_PlaybackCompleted;
+                                if(!(_player is WavePlayer))
+                                {
+                                    if(_player != null)
+                                    {
+                                        _player.Close();
+                                        _player.PlaybackCompleted -= Player_PlaybackCompleted;
+                                        (_player as UserControl).Visible = false;
+                                    }
+                                    _player = new WavePlayer();
+                                }
                                 _player.OpenFile(fn);
                                 break;
 
                             case ".mid":
-                                ok = OpenMidi(fn);
+                                if (!(_player is MidiPlayer))
+                                {
+                                    if (_player != null)
+                                    {
+                                        _player.Close();
+                                        _player.PlaybackCompleted -= Player_PlaybackCompleted;
+                                        (_player as UserControl).Visible = false;
+                                    }
+                                    _player = new MidiPlayer();
+                                }
                                 break;
 
                             default:
                                 ErrorMessage($"Invalid file type: {fn}");
                                 ok = false;
                                 break;
+                        }
+
+                        if(ok)
+                        {
+                            _player.PlaybackCompleted += Player_PlaybackCompleted;
+                            UserControl ctrl = _player as UserControl;
+                            ctrl.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
+                            splitContainer1.Panel2.Controls.Add(ctrl);
+                            _player.OpenFile(fn);
                         }
                     }
                     else
@@ -300,23 +315,38 @@ namespace ClipExplorer
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()} - {fn}";
                 AddToRecentDefs(fn);
-                _fn = fn;
             }
             else
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()}";
-                _fn = "???";
-//>>>>                CloseDevices();
+
+                if (_player != null)
+                {
+                    _player.Close();
+                    _player.PlaybackCompleted -= Player_PlaybackCompleted;
+                }
             }
 
             return ok;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Player_PlaybackCompleted(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            if (chkLoop.Checked)
+            {
+                _player.PlayPosition = 0;
+                _player.Start();
+            }
+            else
+            {
+                chkPlay.Checked = false;
+            }
         }
-
 
         /// <summary>
         /// Create the menu with the recently used files.
@@ -407,11 +437,10 @@ namespace ClipExplorer
         /// <param name="e"></param>
         private void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            //if (_waveOut != null && _audioFileReader != null)
-            //{
-            //    _audioFileReader.CurrentTime = timeBar.CurrentTime;
-            //}
-            //else TODOC midi
+            if(_player != null)
+            {
+                _player.PlayPosition = timeBar.CurrentTime.TotalMilliseconds / 1000;
+            }
         }
         #endregion
 
@@ -423,11 +452,12 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Volume_ValueChanged(object sender, EventArgs e)
         {
-            _player.Volume = (float)sldVolume.Value;
+            if(_player != null)
+            {
+                _player.Volume = (float)sldVolume.Value;
+            }
         }
         #endregion
-
-
 
         #region Midi Playing
         /// <summary>
@@ -519,16 +549,15 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Timer1_Tick(object sender, EventArgs e)
         {
-            //TODOC
-            //if (_waveOut != null && _audioFileReader != null)
-            //{
-            //    timeBar.CurrentTime = _waveOut.PlaybackState == PlaybackState.Stopped ? TimeSpan.Zero : _audioFileReader.CurrentTime;
-            //}
-            //else
-            //{
-            //    // Reset.
-            //    timeBar.CurrentTime = new TimeSpan();
-            //}
+            if(_player != null)
+            {
+                var v = MathUtils.SplitDouble(_player.PlayPosition);
+                timeBar.CurrentTime = new TimeSpan(0, 0, 0, (int)v.integral, (int)(v.fractional * 1000));
+            }
+            else
+            {
+                timeBar.CurrentTime = new TimeSpan();
+            }
         }
     }
 }

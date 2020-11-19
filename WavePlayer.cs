@@ -22,20 +22,42 @@ namespace ClipExplorer
 {
     public partial class WavePlayer : UserControl, IPlayer
     {
+        #region Fields
         /// <summary>Wave output play device.</summary>
         WaveOut _waveOut = null;
 
         /// <summary>Input device for playing wav file.</summary>
         AudioFileReader _audioFileReader = null;
+        #endregion
 
-        public float Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = value; } }
+        #region Properties //TODOC check range etc
+        /// <inheritdoc />
+        public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)value; } }
 
+        /// <inheritdoc />
+        public double PlayPosition
+        { 
+            get { return _audioFileReader == null ? 0 : _audioFileReader.CurrentTime.TotalMilliseconds / 1000; }
+            set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = new TimeSpan(0, 0, 0, 0, (int)value); } }
+        }
 
+        /// <inheritdoc />
+        public double Length { get; private set; }
+        #endregion
+
+        #region Events
+        /// <inheritdoc />
+        public event EventHandler PlaybackCompleted;
+        #endregion
+
+        #region Lifecycle
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public WavePlayer()
         {
             InitializeComponent();
             ResetMeters();
-
         }
 
         /// <summary> 
@@ -49,79 +71,65 @@ namespace ClipExplorer
                 components.Dispose();
             }
 
-            // My stuff.
-
+            // My stuff here....
+            Close();
             
             base.Dispose(disposing);
         }
+        #endregion
 
-
-
-        /// <summary>
-        /// Opens an audio wave file. Includes compressed.
-        /// </summary>
-        /// <param name="fn">The file to open.</param>
-        /// <returns>Status.</returns>
+        #region Public functions
+        /// <inheritdoc />
         public bool OpenFile(string fn)
         {
             bool ok = true;
 
             using (new WaitCursor())
             {
-                try
+                // Clean up first.
+                Close();
+
+                // Create output device.
+                for (int id = 0; id < WaveOut.DeviceCount; id++)
                 {
-
-                    // Clean up first.
-                    Close();
-
-                    // Create output device.
-                    for (int id = 0; id < WaveOut.DeviceCount; id++)
+                    var cap = WaveOut.GetCapabilities(id);
+                    if (Common.Settings.WavOutDevice == cap.ProductName)
                     {
-                        var cap = WaveOut.GetCapabilities(id);
-                        if (Common.Settings.WavOutDevice == cap.ProductName)
+                        _waveOut = new WaveOut
                         {
-                            _waveOut = new WaveOut
-                            {
-                                DeviceNumber = id,
-                                DesiredLatency = int.Parse(Common.Settings.Latency)
-                            };
-                            _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
-                            break;
-                        }
-                    }
-
-                    // Create input device.
-                    if (_waveOut != null)
-                    {
-                        _audioFileReader = new AudioFileReader(fn);
-
-//                        timeBar.CurrentTime = new TimeSpan();
-//                        timeBar.Length = _audioFileReader.TotalTime;
-
-                        // Create reader.
-                        ISampleProvider sampleProvider;
-
-                        var sampleChannel = new SampleChannel(_audioFileReader, true);
-                        sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
-
-                        var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                        postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
-
-                        sampleProvider = postVolumeMeter;
-                        _waveOut.Init(sampleProvider);
-                        _waveOut.Volume = Volume;
-
-                        ShowClip(fn);
-                    }
-                    else
-                    {
-    //                    ErrorMessage($"Failed to create output device: {Common.Settings.WavOutDevice}");
-                        ok = false;
+                            DeviceNumber = id,
+                            DesiredLatency = int.Parse(Common.Settings.Latency)
+                        };
+                        _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
+                        break;
                     }
                 }
-                catch (Exception ex)
+
+                // Create input device.
+                if (_waveOut != null)
                 {
-//                    ErrorMessage($"Couldn't open the file: {fn} because: {ex.Message}");
+                    _audioFileReader = new AudioFileReader(fn);
+
+                    PlayPosition = 0;
+                    Length = _audioFileReader.TotalTime.TotalMilliseconds;
+
+                    // Create reader.
+                    ISampleProvider sampleProvider;
+
+                    var sampleChannel = new SampleChannel(_audioFileReader, true);
+                    sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+
+                    var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
+                    postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+
+                    sampleProvider = postVolumeMeter;
+                    _waveOut.Init(sampleProvider);
+                    _waveOut.Volume = (float)Volume;
+
+                    ShowClip(fn);
+                }
+                else
+                {
                     ok = false;
                 }
             }
@@ -134,6 +142,48 @@ namespace ClipExplorer
             return ok;
         }
 
+        /// <inheritdoc />
+        public void Start()
+        {
+            if (_waveOut != null && _audioFileReader != null)
+            {
+                _waveOut.Play();
+            }
+        }
+
+        /// <inheritdoc />
+        public void Stop()
+        {
+            if (_waveOut != null && _audioFileReader != null)
+            {
+                _waveOut.Pause(); // or Stop?
+                ResetMeters();
+            }
+        }
+
+        /// <inheritdoc />
+        public void Rewind()
+        {
+            if (_waveOut != null && _audioFileReader != null)
+            {
+                _waveOut.Stop();
+                _audioFileReader.Position = 0;
+            }
+        }
+
+        /// <inheritdoc />
+        public void Close()
+        {
+            _waveOut?.Stop();
+            _waveOut?.Dispose();
+            _waveOut = null;
+
+            _audioFileReader?.Dispose();
+            _audioFileReader = null;
+        }
+        #endregion
+
+        #region Private functions
         /// <summary>
         /// Show a clip waveform.
         /// </summary>
@@ -161,27 +211,30 @@ namespace ClipExplorer
         /// <summary>
         /// 
         /// </summary>
+        void ResetMeters()
+        {
+            levelL.AddValue(0);
+            levelR.AddValue(0);
+        }
+        #endregion
+
+        #region Event Handlers
+        /// <summary>
+        /// Usually end of file but could be error.
+        /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void WaveOut_PlaybackStopped(object sender, StoppedEventArgs e)
         {
             if (e.Exception != null)
             {
-                MessageBox.Show(e.Exception.Message, "Playback Device Error");
+                throw e.Exception;
             }
 
             if (_audioFileReader != null)
             {
                 _audioFileReader.Position = 0;
-
-                if (chkLoop.Checked)
-                {
-                    _waveOut.Play();
-                }
-                else
-                {
-                    chkPlay.Checked = false;
-                }
+                PlaybackCompleted?.Invoke(this, new EventArgs());
             }
         }
 
@@ -206,50 +259,6 @@ namespace ClipExplorer
             levelL.AddValue(e.MaxSampleValues[0]);
             levelR.AddValue(e.MaxSampleValues[1]);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        void ResetMeters()
-        {
-            levelL.AddValue(0);
-            levelR.AddValue(0);
-        }
-
-        public void Start()
-        {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _waveOut.Play();
-            }
-        }
-
-        public void Stop()
-        {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _waveOut.Pause(); // or Stop?
-                ResetMeters();
-            }
-        }
-
-        public void Rewind()
-        {
-            if (_waveOut != null && _audioFileReader != null)
-            {
-                _waveOut.Stop();
-                _audioFileReader.Position = 0;
-            }
-        }
-
-        public void Close()
-        {
-            _waveOut?.Stop();
-            _waveOut?.Dispose();
-            _waveOut = null;
-
-            _audioFileReader?.Dispose();
-            _audioFileReader = null;
-        }
+        #endregion
     }
 }
