@@ -30,12 +30,12 @@ namespace ClipExplorer
         AudioFileReader _audioFileReader = null;
         #endregion
 
-        #region Properties //TODOC check range etc
+        #region Properties
         /// <inheritdoc />
-        public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)value; } }
+        public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)MathUtils.Constrain(value, 0, 1); } }
 
         /// <inheritdoc />
-        public double PlayPosition
+        public double CurrentTime
         { 
             get { return _audioFileReader == null ? 0 : _audioFileReader.CurrentTime.TotalMilliseconds / 1000; }
             set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = new TimeSpan(0, 0, 0, 0, (int)value); } }
@@ -110,7 +110,7 @@ namespace ClipExplorer
                 {
                     _audioFileReader = new AudioFileReader(fn);
 
-                    PlayPosition = 0;
+                    CurrentTime = 0;
                     Length = _audioFileReader.TotalTime.TotalMilliseconds;
 
                     // Create reader.

@@ -12,14 +12,14 @@ namespace ClipExplorer
         public static UserSettings Settings { get; set; } = new UserSettings();
     }
 
-    interface IPlayer
+    interface IPlayer : IDisposable
     {
         #region Properties
         /// <summary>Adjust master volume between 0.0 and 1.0.</summary>
         double Volume { get; set; }
 
-        /// <summary>Current play position in arbitrary units - may be seconds or bars or...</summary>
-        double PlayPosition { get; set; }
+        /// <summary>Current play time/position.</summary>
+        double CurrentTime { get; set; }
 
         /// <summary>Play length in same units as Position.</summary>
         double Length { get; }

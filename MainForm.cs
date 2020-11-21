@@ -18,9 +18,6 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODOC Timebar displays bar.beat like 34.1.909  34.2.123  34.3.456  34.4.777. Time is 00.00:000
-
-
 namespace ClipExplorer
 {
     public partial class MainForm : Form
@@ -78,7 +75,7 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _player?.Close();
+            _player?.Close(); // Dispose()?
 
             // Save user settings.
             ftree.FlushChanges();
@@ -339,7 +336,7 @@ namespace ClipExplorer
         {
             if (chkLoop.Checked)
             {
-                _player.PlayPosition = 0;
+                _player.CurrentTime = 0;
                 _player.Start();
             }
             else
@@ -439,7 +436,7 @@ namespace ClipExplorer
         {
             if(_player != null)
             {
-                _player.PlayPosition = timeBar.CurrentTime.TotalMilliseconds / 1000;
+                _player.CurrentTime = timeBar.CurrentTime.TotalMilliseconds / 1000;
             }
         }
         #endregion
@@ -551,7 +548,7 @@ namespace ClipExplorer
         {
             if(_player != null)
             {
-                var v = MathUtils.SplitDouble(_player.PlayPosition);
+                var v = MathUtils.SplitDouble(_player.CurrentTime);
                 timeBar.CurrentTime = new TimeSpan(0, 0, 0, (int)v.integral, (int)(v.fractional * 1000));
             }
             else

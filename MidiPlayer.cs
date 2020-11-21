@@ -13,13 +13,30 @@ using NBagOfTricks.Utils;
 
 // An example midi file:
 // WICKGAME.MID is 3:45
-// DeltaTicksPerQuarterNote (ppq): 384
-// 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec
+// DeltaTicksPerQuarterNote (ppq): 384 = 
+// 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec = 1.5625 msec/tick
 // Length is 144,000 ticks = 3.75 min = 3:45 (yay)
 // Smallest tick is 4
-// 
+
 // Ableton Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps.
 // All MIDI events are shifted to this grid accordingly when exported.
+// DeltaTicksPerQuarterNote (ppq): 96
+// 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick
+
+
+// Nebulator:
+// <summary>Subdivision setting. 4 means 1/16 notes, 8 means 1/32 notes.</summary>
+// public const int SUBBEATS_PER_BEAT = 4;
+// 100 bpm = 
+//void SetSpeedTimerPeriod()
+//{
+//    double secPerBeat = 60 / potSpeed.Value; 0.6
+//    double msecPerTick = 1000 * secPerBeat / Time.SUBBEATS_PER_BEAT; 150
+//    _timer.SetTimer("NEB", (int)msecPerTick);
+//}
+
+// TODOC (+TimeBar) display bar.beat like 34.1:909  34.2:123  34.3:456  34.4:777  Time is like 00.00:000
+
 
 namespace ClipExplorer
 {
@@ -27,78 +44,47 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Midi caps.</summary>
-        const int MAX_MIDI = 127;
+        const int NUM_CHANNELS = 16;
 
-        /// <summary>Midi caps.</summary>
-        const int MAX_CHANNELS = 16;
-
-        /// <summary>Midi caps.</summary>
-        const int MAX_PITCH = 16383;
-
-        /// <summary>Indicates whether or not the timer is running.</summary>
+        /// <summary>Indicates whether or not the midi is playing.</summary>
         bool _running = false;
 
         /// <summary>Midi output device.</summary>
         MidiOut _midiOut = null;
 
+        /// <summary>Fast timer.</summary>
+        MmTimerEx _timer = new MmTimerEx();
+
+        /// <summary>Current step time.</summary>
+        MidiTime _currentStep = new MidiTime();
+
         /// <summary>Current tempo in bpm.</summary>
         int _tempo = 100;
+
+        /// <summary>Max for whole source file.</summary>
+        int _lastBeat = 0;
+
+        /// <summary>Current volume between 0 and 1.</summary>
+        double _volume = 0.5;
 
         /// <summary>From the input file.</summary>
         MidiEventCollection _sourceEvents = null;
 
         /// <summary>All the channels.</summary>
-        readonly PlayChannel[] _playChannels = new PlayChannel[MAX_CHANNELS];
-
-        /// <summary>How many steps to execute per mmtimer tick.</summary>
-        double _ticksPerTimerPeriod = 0;
-
-        /// <summary>Msec for mm timer tick.</summary>
-        const int MMTIMER_PERIOD = 3;
-
-        /// <summary>Multimedia timer identifier.</summary>
-        int _timerID = -1;
-
-        /// <summary>Delegate for Windows mmtimer callback.</summary>
-        delegate void TimeProc(int id, int msg, int user, int param1, int param2);
-
-        /// <summary>Called by Windows when a mmtimer event occurs.</summary>
-        TimeProc _timeProc;
+        readonly PlayChannel[] _playChannels = new PlayChannel[NUM_CHANNELS];
         #endregion
 
-        #region Interop Multimedia Timer Functions
-#pragma warning disable IDE1006 // Naming Styles
-
-        [DllImport("winmm.dll")]
-        private static extern int timeGetDevCaps(ref TimerCaps caps, int sizeOfTimerCaps);
-
-        /// <summary>Start her up.</summary>
-        [DllImport("winmm.dll")]
-        private static extern int timeSetEvent(int delay, int resolution, TimeProc proc, IntPtr user, int mode);
-
-        [DllImport("winmm.dll")]
-        private static extern int timeKillEvent(int id);
-
-        /// <summary>Represents information about the multimedia timer capabilities.</summary>
-        [StructLayout(LayoutKind.Sequential)]
-        struct TimerCaps
-        {
-            /// <summary>Minimum supported period in milliseconds.</summary>
-            public int periodMin;
-
-            /// <summary>Maximum supported period in milliseconds.</summary>
-            public int periodMax;
-        }
-
-#pragma warning restore IDE1006 // Naming Styles
-        #endregion
-
-        #region Properties //TODOC check range etc
+        #region Properties
         /// <inheritdoc />
-        public double Volume { get; set; } = 0.5;
+        public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
 
         /// <inheritdoc />
-        public double PlayPosition { get; set; }
+        public double CurrentTime { get; set; }
+        //public double CurrentTime //TODOC all these with _stepTime
+        //{
+        //    get { return _midiOut == null ? 0 : TicksToTime(_currentTick); }
+        //    set { if (_midiOut != null) { _currentTick = TimeToTicks(value); } }
+        //}
 
         /// <inheritdoc />
         public double Length { get; private set; }
@@ -118,23 +104,39 @@ namespace ClipExplorer
             InitializeComponent();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MidiPlayer_Load(object sender, EventArgs e)
+        {
+            // Fast mm timer.
+            _timer = new MmTimerEx();
+            SetTempo(100);
+            _timer.TimerElapsedEvent += TimerElapsedEvent;
+            _timer.Start();
+        }
+
         /// <summary> 
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
+            Stop();
+
+            _timer?.Stop();
+            _timer?.Dispose();
+            _timer = null;
+
+            // Resources.
+            Close();
+
             if (disposing && (components != null))
             {
                 components.Dispose();
             }
-
-            // Stop and destroy mmtimer.
-            Stop();
-            timeKillEvent(_timerID);
-
-            // Resources.
-            Close();
 
             base.Dispose(disposing);
         }
@@ -164,11 +166,9 @@ namespace ClipExplorer
 
                 if (ok)
                 {
-                    // Initialize timer with default values.
-                    _timeProc = new TimeProc(MmTimerCallback);
-
                     // Default in case not specified in file.
                     int tempo = 100;
+                    _lastBeat = 0;
 
                     // Get events.
                     var mfile = new MidiFile(fn, true);
@@ -180,20 +180,25 @@ namespace ClipExplorer
                         _playChannels[i] = new PlayChannel();
                     }
 
-                    // Bin events by channel.
+                    // Bin events by channel. Scale times to 96 
                     for (int track = 0; track < _sourceEvents.Tracks; track++)
                     {
                         _sourceEvents.GetTrackEvents(track).ForEach(te =>
                         {
-                            if (te.Channel < MAX_CHANNELS)
+                            if (te.Channel < NUM_CHANNELS)
                             {
-                                _playChannels[te.Channel].Events.Add(te);
+                                MidiStep step = new MidiStep() { RawEvent = te, VelocityToPlay = 101 };
+                                MidiTime mtime = new MidiTime(); // TODOC from source event
+
+                                _playChannels[te.Channel].Steps.AddStep(mtime, step);
 
                                 if (te is TempoEvent) // dig out tempo
                                 {
                                     tempo = (int)(te as TempoEvent).Tempo;
                                 }
                             }
+                            
+                            _maxTick = Math.Max(_maxTick, te.AbsoluteTime);
                         });
                     }
 
@@ -207,33 +212,23 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Start()
         {
-            // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
-            _timerID = timeSetEvent(MMTIMER_PERIOD, 1, _timeProc, IntPtr.Zero, 1);
-
-            // If the timer was created successfully.
-            if (_timerID != 0)
-            {
-                _running = true;
-            }
-            else
-            {
-                _running = false;
-                throw new Exception("Unable to start periodic multimedia Timer.");
-            }
+            _running = true;
         }
 
         /// <inheritdoc />
         public void Stop()
         {
-            timeKillEvent(_timerID);
             _running = false;
+
+            //// Send midi stop all notes just in case.
+            //_outputs.ForEach(o => o.Value?.Kill());
         }
 
         /// <inheritdoc />
         public void Rewind()
         {
             Stop();
-            PlayPosition = 0;
+            _currentStep.Reset();
         }
 
         /// <inheritdoc />
@@ -248,13 +243,13 @@ namespace ClipExplorer
 
         #region Private Functions
         /// <summary>
-        /// 
+        /// From UI for solo/mute.
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="enable"></param>
         void EnableChannel(int channel, bool enable)
         {
-            if (channel < MAX_CHANNELS)
+            if (channel < NUM_CHANNELS)
             {
                 _playChannels[channel].Enabled = enable;
             }
@@ -269,35 +264,99 @@ namespace ClipExplorer
             _tempo = tempo;
 
             // Figure out number of ticks per mmtimer period.
-            _ticksPerTimerPeriod = (double)tempo * _sourceEvents.DeltaTicksPerQuarterNote * MMTIMER_PERIOD / 60 / 1000;
+//            _ticksPerTimerPeriod = TimeToTicks(MMTIMER_PERIOD);
+
+            double secPerBeat = 60 / sldTempo.Value;
+            double msecPerTick = 1000 * secPerBeat / MidiTime.SUBBEATS_PER_BEAT;
+            _timer.SetTimer("NEB", (int)msecPerTick);
         }
 
         /// <summary>
-        /// Multimedia timer callback. Synchronously outputs the next midi events.
+        /// Multimedia timer tick handler. Synchronously outputs the next midi events.
         /// </summary>
-        void MmTimerCallback(int id, int msg, int user, int param1, int param2)
+        void TimerElapsedEvent(object sender, MmTimerEx.TimerEventArgs e)
+        {
+            // Kick over to main UI thread. TODOC needed?
+            BeginInvoke((MethodInvoker)delegate ()
+            {
+                NextStep(e);
+            });
+        }
+
+        /// <summary>
+        /// Output next time/step.
+        /// </summary>
+        /// <param name="e">Information about updates required.</param>
+        void NextStep(MmTimerEx.TimerEventArgs e)
         {
             if (_running)
             {
-                // Output next time/steps.
-                double newTime = PlayPosition + _ticksPerTimerPeriod;
+                // Process each channel.
+                foreach (var ch in _playChannels)
+                {
+                    // Look for events to send.
 
-                //MidiEvent
-                //public MidiCommandCode CommandCode { get; }
-                //public int DeltaTime { get; }
-                //public virtual int Channel { get; set; }
-                //public long AbsoluteTime { get; set; }
+                    if (ch.Enabled)
+                    {
+                        // Process any sequence steps.
+                        var steps = ch.Steps.GetSteps(_currentStep);
 
-                // Output any midi events between last and now. TODOC
-                // Check for solo/mute/enabled.
-                // Adjust volume.
+                        foreach (var step in steps)
+                        {
+                            var mevt = step.RawEvent;
+
+                            // Maybe adjust volume.
+                            if (mevt is NoteEvent)
+                            {
+                                double vel = (mevt as NoteEvent).Velocity;
+                                (mevt as NoteEvent).Velocity = (int)(vel * Volume);
+                                _midiOut.Send(mevt.GetAsShortMessage());
+                                // Need to restore.
+                                (mevt as NoteEvent).Velocity = (int)vel;
+                            }
+                            else // not pertinent
+                            {
+                                _midiOut.Send(mevt.GetAsShortMessage());
+                            }
+                        }
+                    }
+                }
+
+                // Bump time.
+                _currentStep.Advance();
+
+                // Check for end of play. Client will take care of looping.
+                if (_currentStep.Beat > _lastBeat)
+                {
+                    Stop();
+                    PlaybackCompleted?.Invoke(this, new EventArgs());
+                }
 
                 //// Process any lingering noteoffs etc.
                 //_outputs.ForEach(o => o.Value?.Housekeep());
                 //_inputs.ForEach(i => i.Value?.Housekeep());
-
-                PlayPosition = newTime;
             }
+        }
+
+        /// <summary>
+        /// Convert time to ticks in msec.
+        /// </summary>
+        /// <param name="msec"></param>
+        /// <returns></returns>
+        double TimeToTicks(double msec)
+        {
+            double ticks = (double)_tempo * _sourceEvents.DeltaTicksPerQuarterNote * msec / 60 / 1000;
+            return ticks;
+        }
+
+        /// <summary>
+        /// Convert ticks to time in msec.
+        /// </summary>
+        /// <returns></returns>
+        double TicksToTime(double ticks)
+        {
+            double msec = ticks / (double)_tempo / _sourceEvents.DeltaTicksPerQuarterNote * 60 * 1000;
+            return msec;
         }
         #endregion
     }
@@ -308,10 +367,7 @@ namespace ClipExplorer
         /// <summary>For muting/soloing.</summary>
         public bool Enabled { get; set; } = true;
 
-        /// <summary>Channel midi events, sorted by AbsoluteTime.</summary>
-        public List<MidiEvent> Events { get; set; } = new List<MidiEvent>();
-
-        /// <summary>Where we are now in Events aka next event to send.</summary>
-        public int CurrentIndex { get; set; } = 0;
+        /// <summary>Channel midi events.</summary>
+        public MidiStepCollection Steps { get; set; } = new MidiStepCollection();
     }
 }
