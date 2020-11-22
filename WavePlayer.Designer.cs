@@ -91,8 +91,9 @@ namespace ClipExplorer
             this.Controls.Add(this.waveformPainterR);
             this.Controls.Add(this.waveformPainterL);
             this.Name = "WavePlayer";
-            this.Size = new System.Drawing.Size(619, 233);
+            this.Size = new System.Drawing.Size(619, 231);
             this.ResumeLayout(false);
+
         }
 
         #endregion

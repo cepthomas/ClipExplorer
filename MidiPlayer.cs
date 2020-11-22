@@ -36,6 +36,9 @@ using NBagOfTricks.Utils;
 //}
 
 // TODOC (+TimeBar) display bar.beat like 34.1:909  34.2:123  34.3:456  34.4:777  Time is like 00.00:000
+// new slders.
+
+// <summary>Subdivision setting aka resolution. 4 means 1/16 notes, 8 means 1/32 notes.</summary>
 
 
 namespace ClipExplorer
@@ -56,7 +59,8 @@ namespace ClipExplorer
         MmTimerEx _timer = new MmTimerEx();
 
         /// <summary>Current step time.</summary>
-        MidiTime _currentStep = new MidiTime();
+        //MidiTime _currentStep = new MidiTime();
+        int _currentSubBeat = 0;
 
         /// <summary>Current tempo in bpm.</summary>
         int _tempo = 100;
@@ -67,7 +71,7 @@ namespace ClipExplorer
         /// <summary>Current volume between 0 and 1.</summary>
         double _volume = 0.5;
 
-        /// <summary>From the input file.</summary>
+        /// <summary>Midi events from the input file.</summary>
         MidiEventCollection _sourceEvents = null;
 
         /// <summary>All the channels.</summary>
@@ -79,12 +83,11 @@ namespace ClipExplorer
         public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
 
         /// <inheritdoc />
-        public double CurrentTime { get; set; }
-        //public double CurrentTime //TODOC all these with _stepTime
-        //{
-        //    get { return _midiOut == null ? 0 : TicksToTime(_currentTick); }
-        //    set { if (_midiOut != null) { _currentTick = TimeToTicks(value); } }
-        //}
+        public double CurrentTime //TODOC all these with _stepTime
+        {
+           get { return _midiOut == null ? 0 : TicksToTime(_currentTick); }
+           set { if (_midiOut != null) { _currentTick = TimeToTicks(value); } }
+        }
 
         /// <inheritdoc />
         public double Length { get; private set; }
@@ -188,17 +191,15 @@ namespace ClipExplorer
                             if (te.Channel < NUM_CHANNELS)
                             {
                                 MidiStep step = new MidiStep() { RawEvent = te, VelocityToPlay = 101 };
-                                MidiTime mtime = new MidiTime(); // TODOC from source event
+                                MidiTime mtime = new MidiTime(); // TODOC from source event w/scaling
 
-                                _playChannels[te.Channel].Steps.AddStep(mtime, step);
+                                _playChannels[te.Channel].AddStep(mtime, step);
 
                                 if (te is TempoEvent) // dig out tempo
                                 {
                                     tempo = (int)(te as TempoEvent).Tempo;
                                 }
                             }
-                            
-                            _maxTick = Math.Max(_maxTick, te.AbsoluteTime);
                         });
                     }
 
@@ -228,7 +229,8 @@ namespace ClipExplorer
         public void Rewind()
         {
             Stop();
-            _currentStep.Reset();
+            //_currentStep.Reset();
+            _currentSubBeat = 0;
         }
 
         /// <inheritdoc />
@@ -299,34 +301,40 @@ namespace ClipExplorer
                     if (ch.Enabled)
                     {
                         // Process any sequence steps.
-                        var steps = ch.Steps.GetSteps(_currentStep);
+                        //var steps = ch.Steps.GetSteps(_currentStep);
 
-                        foreach (var step in steps)
+                        if(ch.Steps.ContainsKey(_currentSubBeat))
                         {
-                            var mevt = step.RawEvent;
+                            foreach (var step in ch.Steps[_currentSubBeat])
+                            {
+                                var mevt = step.RawEvent;
 
-                            // Maybe adjust volume.
-                            if (mevt is NoteEvent)
-                            {
-                                double vel = (mevt as NoteEvent).Velocity;
-                                (mevt as NoteEvent).Velocity = (int)(vel * Volume);
-                                _midiOut.Send(mevt.GetAsShortMessage());
-                                // Need to restore.
-                                (mevt as NoteEvent).Velocity = (int)vel;
-                            }
-                            else // not pertinent
-                            {
-                                _midiOut.Send(mevt.GetAsShortMessage());
+                                // Maybe adjust volume.
+                                if (mevt is NoteEvent)
+                                {
+                                    double vel = (mevt as NoteEvent).Velocity;
+                                    (mevt as NoteEvent).Velocity = (int)(vel * Volume);
+                                    _midiOut.Send(mevt.GetAsShortMessage());
+                                    // Need to restore.
+                                    (mevt as NoteEvent).Velocity = (int)vel;
+                                }
+                                else // not pertinent
+                                {
+                                    _midiOut.Send(mevt.GetAsShortMessage());
+                                }
                             }
                         }
                     }
                 }
 
                 // Bump time.
-                _currentStep.Advance();
+                //_currentStep.Advance();
+                _currentSubBeat++;
 
                 // Check for end of play. Client will take care of looping.
-                if (_currentStep.Beat > _lastBeat)
+                //if (_currentStep.Beat > _lastBeat)
+
+                if (_currentSubBeat > _lastBeat)
                 {
                     Stop();
                     PlaybackCompleted?.Invoke(this, new EventArgs());
@@ -368,6 +376,31 @@ namespace ClipExplorer
         public bool Enabled { get; set; } = true;
 
         /// <summary>Channel midi events.</summary>
-        public MidiStepCollection Steps { get; set; } = new MidiStepCollection();
+  //      public MidiStepCollection Steps { get; set; } = new MidiStepCollection();
+
+        ///<summary>The main collection of Steps. The key is the subbeat/tick to send the list.</summary>
+        public Dictionary<int, List<MidiStep>> Steps { get; set; } = new Dictionary<int, List<MidiStep>>();
+
+        ///<summary>The duration of the whole thing.</summary>
+        public int MaxBeat { get; private set; } = 0;
+
+
+        /// <summary>
+        /// Add a step at the given time.
+        /// </summary>
+        /// <param name="time"></param>
+        /// <param name="step"></param>
+        public void AddStep(MidiTime time, MidiStep step)
+        {
+            int subbeat = time.TotalSubBeats;
+            if (!Steps.ContainsKey(subbeat))
+            {
+                Steps.Add(subbeat, new List<MidiStep>());
+            }
+            Steps[subbeat].Add(step);
+
+            MaxBeat = Math.Max(MaxBeat, time.Beat);
+        }
+
     }
 }
