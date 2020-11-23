@@ -58,9 +58,6 @@ namespace ClipExplorer
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
-
-        // [Editor(typeof(MonospaceFontEditor), typeof(UITypeEditor))]
-        // public Font FontLarge { get; set; } = new Font("Consolas", 24, FontStyle.Regular, GraphicsUnit.Point, 0);
         #endregion
 
         #region Persisted Non-editable Properties

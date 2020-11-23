@@ -47,6 +47,7 @@ namespace ClipExplorer
             this.sldTempo.Size = new System.Drawing.Size(45, 150);
             this.sldTempo.TabIndex = 63;
             this.sldTempo.Value = 100D;
+            this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
             // 
             // label1
             // 
@@ -107,7 +108,7 @@ namespace ClipExplorer
             this.sldBeat.Minimum = 1D;
             this.sldBeat.Name = "sldBeat";
             this.sldBeat.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.sldBeat.ResetValue = 0D;
+            this.sldBeat.ResetValue = 1D;
             this.sldBeat.Size = new System.Drawing.Size(68, 114);
             this.sldBeat.TabIndex = 67;
             this.sldBeat.Value = 2D;
@@ -122,7 +123,7 @@ namespace ClipExplorer
             this.sldSubBeat.Minimum = 1D;
             this.sldSubBeat.Name = "sldSubBeat";
             this.sldSubBeat.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.sldSubBeat.ResetValue = 0D;
+            this.sldSubBeat.ResetValue = 1D;
             this.sldSubBeat.Size = new System.Drawing.Size(68, 114);
             this.sldSubBeat.TabIndex = 68;
             this.sldSubBeat.Value = 48D;

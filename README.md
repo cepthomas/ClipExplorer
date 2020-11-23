@@ -1,7 +1,9 @@
 # ClipExplorer
-Tool for managing audio clips.
+Tool for playing audio and midi clips.
 
-Uses plain wave out.
+- Midi timing has reduced accuracy as this is mainly intended for auditioning parts to be included in a proper DAW.
+- Windows only - uses plain wave out.
+- Midi default is Windows GM unless you have something else installed.
 
 # Third Party
 This application uses these FOSS components:

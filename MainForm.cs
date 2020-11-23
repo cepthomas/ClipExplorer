@@ -178,7 +178,6 @@ namespace ClipExplorer
             {
                 // Boilerplate
                 $"<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
-                // CSS
                 $"<style>body {{ background-color: white; font-family: \"Arial\", Helvetica, sans-serif; }}",
                 $"</style></head><body>"
             };
@@ -264,7 +263,6 @@ namespace ClipExplorer
                                     }
                                     _player = new WavePlayer();
                                 }
-                                _player.OpenFile(fn);
                                 break;
 
                             case ".mid":
@@ -292,7 +290,7 @@ namespace ClipExplorer
                             UserControl ctrl = _player as UserControl;
                             ctrl.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
                             splitContainer1.Panel2.Controls.Add(ctrl);
-                            _player.OpenFile(fn);
+                            ok = _player.OpenFile(fn);
                         }
                     }
                     else
@@ -315,7 +313,7 @@ namespace ClipExplorer
             }
             else
             {
-                Text = $"ClipExplorer {MiscUtils.GetVersionString()}";
+                Text = $"ClipExplorer {MiscUtils.GetVersionString()} - No file loaded";
 
                 if (_player != null)
                 {
@@ -453,18 +451,6 @@ namespace ClipExplorer
             {
                 _player.Volume = (float)sldVolume.Value;
             }
-        }
-        #endregion
-
-        #region Midi Playing
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Tempo_ValueChanged(object sender, EventArgs e)
-        {
-
         }
         #endregion
 

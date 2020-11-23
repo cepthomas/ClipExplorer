@@ -157,6 +157,9 @@
     <None Include="Resources\glyphicons-440-wrench.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\gm_defs.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\README.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

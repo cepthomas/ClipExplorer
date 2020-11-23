@@ -78,7 +78,7 @@ namespace ClipExplorer
         }
         #endregion
 
-        #region Public functions
+        #region Public Functions - interface implementation
         /// <inheritdoc />
         public bool OpenFile(string fn)
         {
