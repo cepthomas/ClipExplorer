@@ -66,8 +66,6 @@
     <Compile Include="MidiPlayer.Designer.cs">
       <DependentUpon>MidiPlayer.cs</DependentUpon>
     </Compile>
-    <Compile Include="MidiStep.cs" />
-    <Compile Include="MidiTime.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
