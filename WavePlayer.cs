@@ -30,7 +30,7 @@ namespace ClipExplorer
         AudioFileReader _audioFileReader = null;
         #endregion
 
-        #region Properties
+        #region Properties - interface implementation
         /// <inheritdoc />
         public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)MathUtils.Constrain(value, 0, 1); } }
 

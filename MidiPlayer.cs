@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -12,7 +13,7 @@ using NBagOfTricks.Utils;
 
 
 // TODOC Display bar.beat like 34.1:909  34.2:123  34.3:456  34.4:777
-// TODOC Hook up solo/mute for channels with events.
+// TODOC Mute/solo individual drums.
 
 
 // An example midi file:
@@ -58,11 +59,11 @@ namespace ClipExplorer
         /// <summary>Current tick.</summary>
         int _currentTick = 0;
 
-        /// <summary>Current tempo in bpm.</summary>
-        int _tempo = 100;
-
         /// <summary>Max for whole piece.</summary>
         int _lastTick = 0;
+
+        /// <summary>Period.</summary>
+        double _msecPerTick = 0;
 
         /// <summary>Current volume between 0 and 1.</summary>
         double _volume = 0.5;
@@ -115,7 +116,7 @@ namespace ClipExplorer
         #pragma warning restore IDE1006 // Naming Styles
         #endregion
 
-        #region Properties
+        #region Properties - interface implementation
         /// <inheritdoc />
         public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
 
@@ -152,7 +153,11 @@ namespace ClipExplorer
         void MidiPlayer_Load(object sender, EventArgs e)
         {
             LoadMidiDefs();
-            
+
+            clickGrid.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
+            clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.Salmon);
+            clickGrid.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.LightGreen);
+
             // Initialize timer with default values.
             _timeProc = new TimeProc(MmTimerCallback);
         }
@@ -169,6 +174,7 @@ namespace ClipExplorer
 
             // Resources.
             Close();
+            //RemoveAllChannelButtons();
 
             if (disposing && (components != null))
             {
@@ -178,6 +184,143 @@ namespace ClipExplorer
             base.Dispose(disposing);
         }
         #endregion
+
+        #region Channel UI
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ClickGrid_IndicatorEvent(object sender, IndicatorEventArgs e)
+        {
+            int channel = e.Id;
+            PlayChannel pch = _playChannels[channel];
+
+            switch (pch.Mode)
+            {
+                case PlayChannel.PlayMode.Normal:
+                    pch.Mode = PlayChannel.PlayMode.Solo;
+                    // Mute any other non-solo channels.
+                    for (int i = 0; i < NUM_CHANNELS; i++)
+                    {
+                        if (i != channel)
+                        {
+                            if (_playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
+                            {
+                                Kill(i);
+                            }
+                        }
+                    }
+                    break;
+
+                case PlayChannel.PlayMode.Solo:
+                    pch.Mode = PlayChannel.PlayMode.Mute;
+                    // Mute this channel.
+                    Kill(channel);
+                    break;
+
+                case PlayChannel.PlayMode.Mute:
+                    pch.Mode = PlayChannel.PlayMode.Normal;
+                    break;
+            }
+
+            clickGrid.SetIndicator(channel, (int)pch.Mode);
+        }
+
+
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="channel"></param>
+        //void AddChannelButton(int channel)
+        //{
+        //    int height = 30;
+        //    int width = 125;
+
+        //    int x = sldTempo.Right + 10;
+        //    int y = sldTempo.Top + height * _channelButtons.Count();
+
+        //    Button btn = new Button()
+        //    {
+        //        FlatStyle = FlatStyle.Flat,
+        //        BackColor = Color.AliceBlue,
+        //        Left = x,
+        //        Top = y,
+        //        Height = height,
+        //        Width = width,
+        //        Text = _playChannels[channel].Name,
+        //        Tag = channel
+        //    };
+
+        //    btn.MouseClick += Button_MouseClick;
+        //    btn.Visible = true;
+        //    _channelButtons.Add(btn);
+        //    Controls.Add(btn);
+        //}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        //void RemoveAllChannelButtons()
+        //{
+        //    foreach(Button btn in _channelButtons)
+        //    {
+        //        btn.MouseClick -= Button_MouseClick;
+        //        btn.Dispose();
+        //        Controls.Remove(btn);
+        //    }
+        //    _channelButtons.Clear();
+        //}
+
+        /// <summary>
+        /// Cycle through possible states. Muting is done here too.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        //void Button_MouseClick(object sender, MouseEventArgs e)
+        //{
+        //    Button btn = sender as Button;
+        //    int channel = (int)btn.Tag;
+        //    PlayChannel pch = _playChannels[channel];
+
+        //    switch(pch.Mode)
+        //    {
+        //        case PlayChannel.PlayMode.Normal:
+        //            pch.Mode = PlayChannel.PlayMode.Solo;
+        //            btn.BackColor = Color.Salmon;
+        //            // Mute any other non-solo channels.
+        //            for(int i = 0; i < NUM_CHANNELS; i ++)
+        //            {
+        //                if(i != channel)
+        //                {
+        //                    if(_playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
+        //                    {
+        //                        Kill(i);
+        //                    }
+        //                }
+        //            }
+
+        //            break;
+
+        //        case PlayChannel.PlayMode.Solo:
+        //            pch.Mode = PlayChannel.PlayMode.Mute;
+        //            btn.BackColor = Color.LightGreen;
+        //            // Mute this channel.
+        //            Kill(channel);
+        //            break;
+
+        //        case PlayChannel.PlayMode.Mute:
+        //            pch.Mode = PlayChannel.PlayMode.Normal;
+        //            btn.BackColor = Color.AliceBlue;
+        //            break;
+        //    }
+        //}
+        #endregion
+
+
+
+
 
         #region Public Functions - interface implementation
         /// <inheritdoc />
@@ -189,6 +332,8 @@ namespace ClipExplorer
             {
                 // Clean up first.
                 Close();
+                clickGrid.Clear();
+                //RemoveAllChannelButtons();
 
                 // Figure out which output device.
                 for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
@@ -243,10 +388,17 @@ namespace ClipExplorer
                     for (int i = 0; i < _playChannels.Count(); i++)
                     {
                         var pc = _playChannels[i];
-                        pc.Name = pc.Patch != -1 && _instrumentDefs.ContainsKey(pc.Patch) ? _instrumentDefs[pc.Patch] : $"Channel{i + 1}";
+                        pc.Name = pc.Patch != -1 && _instrumentDefs.ContainsKey(pc.Patch) ? $"{_instrumentDefs[pc.Patch]} ({i + 1})" : $"Channel{i + 1}";
                         _lastTick = Math.Max(_lastTick, pc.MaxTick);
+                        if(pc.Valid)
+                        {
+                            clickGrid.AddIndicator(pc.Name, i);
+                        }
                     }
 
+                    clickGrid.Show(2, clickGrid.Width / 2, 20);
+
+                    Length = TicksToTime(_lastTick);
                     sldTempo.Value = tempo;
                 }
             }
@@ -259,9 +411,9 @@ namespace ClipExplorer
         {
             // Figure out mmtimer period.
             double secPerBeat = 60 / sldTempo.Value;
-            double msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
+            _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
             // Since this is not perfect calculate the actual period.
-            int period = msecPerTick > 1.0 ? (int)Math.Round(msecPerTick) : 1;
+            int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
 
             // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
             _timerID = timeSetEvent(period, 1, _timeProc, IntPtr.Zero, 1);
@@ -281,11 +433,15 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Stop()
         {
-            timeKillEvent(_timerID);
             _running = false;
+            timeKillEvent(_timerID);
+            _timerID = -1;
 
-            //// Send midi stop all notes just in case.
-            //_outputs.ForEach(o => o.Value?.Kill());
+            // Send midi stop all notes just in case.
+            for (int i = 0; i < NUM_CHANNELS; i++)
+            {
+                Kill(i);
+            }
         }
 
         /// <inheritdoc />
@@ -313,32 +469,34 @@ namespace ClipExplorer
             if (_running)
             {
                 // Any soloes?
-                int xx = _playChannels.Where(c => c.Mode == PlayChannel.PlayMode.Solo).Count();
                 bool solo = _playChannels.Where(c => c.Mode == PlayChannel.PlayMode.Solo).Count() > 0;
 
                 // Process each channel.
                 foreach (var ch in _playChannels)
                 {
-                    // Look for events to send.
-                    if (ch.Mode == PlayChannel.PlayMode.Solo || (!solo && ch.Mode == PlayChannel.PlayMode.Normal))
+                    if(ch.Valid)
                     {
-                        // Process any sequence steps.
-                        if(ch.Events.ContainsKey(_currentTick))
+                        // Look for events to send. TODOC check for changes
+                        if (ch.Mode == PlayChannel.PlayMode.Solo || (!solo && ch.Mode == PlayChannel.PlayMode.Normal))
                         {
-                            foreach (var mevt in ch.Events[_currentTick])
+                            // Process any sequence steps.
+                            if (ch.Events.ContainsKey(_currentTick))
                             {
-                                // Maybe adjust volume.
-                                if (mevt is NoteEvent)
+                                foreach (var mevt in ch.Events[_currentTick])
                                 {
-                                    double vel = (mevt as NoteEvent).Velocity;
-                                    (mevt as NoteEvent).Velocity = (int)(vel * Volume);
-                                    _midiOut.Send(mevt.GetAsShortMessage());
-                                    // Need to restore.
-                                    (mevt as NoteEvent).Velocity = (int)vel;
-                                }
-                                else // not pertinent
-                                {
-                                    _midiOut.Send(mevt.GetAsShortMessage());
+                                    // Maybe adjust volume.
+                                    if (mevt is NoteEvent)
+                                    {
+                                        double vel = (mevt as NoteEvent).Velocity;
+                                        (mevt as NoteEvent).Velocity = (int)(vel * Volume);
+                                        _midiOut.Send(mevt.GetAsShortMessage());
+                                        // Need to restore.
+                                        (mevt as NoteEvent).Velocity = (int)vel;
+                                    }
+                                    else // not pertinent
+                                    {
+                                        _midiOut.Send(mevt.GetAsShortMessage());
+                                    }
                                 }
                             }
                         }
@@ -358,13 +516,23 @@ namespace ClipExplorer
         }
 
         /// <summary>
+        /// Send all notes off.
+        /// </summary>
+        /// <param name="channel"></param>
+        void Kill(int channel)
+        {
+            ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
+            _midiOut?.Send(nevt.GetAsShortMessage());
+        }
+
+        /// <summary>
         /// Convert time in seconds to ticks.
         /// </summary>
         /// <param name="msec"></param>
         /// <returns></returns>
         int TimeToTicks(double sec)
         {
-            int ticks = (int)(_tempo * _sourceEvents.DeltaTicksPerQuarterNote * sec / 60);
+            int ticks = (int)(sec * 1000 / _msecPerTick);
             return ticks;
         }
 
@@ -374,7 +542,7 @@ namespace ClipExplorer
         /// <returns></returns>
         double TicksToTime(int ticks)
         {
-            double sec = ticks / (double)_tempo / _sourceEvents.DeltaTicksPerQuarterNote * 60;
+            double sec = ticks * _msecPerTick / 1000;
             return sec;
         }
 
@@ -385,8 +553,11 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Tempo_ValueChanged(object sender, EventArgs e)
         {
-            Stop();
-            Start();
+            if(_running)
+            {
+                Stop();
+                Start();
+            }
         }
 
         /// <summary>
@@ -439,9 +610,12 @@ namespace ClipExplorer
         /// <summary>For UI.</summary>
         public string Name { get; set; } = "";
 
+        /// <summary>Channel used.</summary>
+        public bool Valid { get { return Events.Count > 0; } }
+
         /// <summary>For muting/soloing.</summary>
         public PlayMode Mode { get; set; } = PlayMode.Normal;
-        public enum PlayMode { Normal, Solo, Mute }
+        public enum PlayMode { Normal = 0, Solo = 1, Mute = 2 }
 
         /// <summary>For UI.</summary>
         public int Patch { get; set; } = -1;
