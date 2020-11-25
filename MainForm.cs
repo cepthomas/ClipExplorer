@@ -65,7 +65,7 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// for testing only
-            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
+//            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
             //var v = player._sourceEvents;
             //DumpMidi(v, "dump.txt");
         }
@@ -498,6 +498,7 @@ namespace ClipExplorer
         }
         #endregion
 
+        #region Private functions
         /// <summary>
         /// Initialize ftree from user settings.
         /// </summary>
@@ -542,5 +543,6 @@ namespace ClipExplorer
                 timeBar.CurrentTime = new TimeSpan();
             }
         }
+        #endregion
     }
 }

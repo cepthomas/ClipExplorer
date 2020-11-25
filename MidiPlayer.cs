@@ -13,25 +13,23 @@ using NBagOfTricks.Utils;
 
 
 // TODOC Display bar.beat like 34.1:909  34.2:123  34.3:456  34.4:777
-// TODOC Mute/solo individual drums.
+
+// TODOC Mute/solo individual drums?
 
 
-// An example midi file:
-// WICKGAME.MID is 3:45
-// DeltaTicksPerQuarterNote (ppq): 384 = 
-// 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec = 1.5625 msec/tick
-// Length is 144,000 ticks = 3.75 min = 3:45 (yay)
-// Smallest tick is 4
+// An example midi file: WICKGAME.MID is 3:45 long.
+// DeltaTicksPerQuarterNote (ppq): 384.
+// 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec = 1.5625 msec/tick.
+// Length is 144,000 ticks = 3.75 min = 3:45.
+// Smallest event is 4 ticks.
 
 // Ableton Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps.
-// All MIDI events are shifted to this grid accordingly when exported.
-// DeltaTicksPerQuarterNote (ppq): 96
-// 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick
+// DeltaTicksPerQuarterNote (ppq): 96.
+// 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
 
 // If we use ppq of 8 for 32nd notes:
 // 100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
 //  99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
-
 
 
 namespace ClipExplorer
@@ -45,7 +43,7 @@ namespace ClipExplorer
         /// <summary>Only 4/4 time supported.</summary>
         const int BEATS_PER_BAR = 4;
 
-        /// <summary>Subdivision setting aka resolution. 4 means 1/16 notes, 8 means 1/32 notes, etc.</summary>
+        /// <summary>Our ppq aka resolution. 4 gives 16th note, 8 gives 32nd note, etc.</summary>
         const int TICKS_PER_BEAT = 8;
         #endregion
 
@@ -118,7 +116,11 @@ namespace ClipExplorer
 
         #region Properties - interface implementation
         /// <inheritdoc />
-        public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
+        public double Volume
+        {
+            get { return _volume; }
+            set { _volume = MathUtils.Constrain(value, 0, 1); }
+        }
 
         /// <inheritdoc />
         public double CurrentTime
@@ -154,6 +156,7 @@ namespace ClipExplorer
         {
             LoadMidiDefs();
 
+            // Set up the channel/mute/solo grid.
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.Salmon);
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.LightGreen);
@@ -174,7 +177,6 @@ namespace ClipExplorer
 
             // Resources.
             Close();
-            //RemoveAllChannelButtons();
 
             if (disposing && (components != null))
             {
@@ -203,12 +205,9 @@ namespace ClipExplorer
                     // Mute any other non-solo channels.
                     for (int i = 0; i < NUM_CHANNELS; i++)
                     {
-                        if (i != channel)
+                        if (i != channel && _playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
                         {
-                            if (_playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
-                            {
-                                Kill(i);
-                            }
+                            Kill(i);
                         }
                     }
                     break;
@@ -226,101 +225,7 @@ namespace ClipExplorer
 
             clickGrid.SetIndicator(channel, (int)pch.Mode);
         }
-
-
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="channel"></param>
-        //void AddChannelButton(int channel)
-        //{
-        //    int height = 30;
-        //    int width = 125;
-
-        //    int x = sldTempo.Right + 10;
-        //    int y = sldTempo.Top + height * _channelButtons.Count();
-
-        //    Button btn = new Button()
-        //    {
-        //        FlatStyle = FlatStyle.Flat,
-        //        BackColor = Color.AliceBlue,
-        //        Left = x,
-        //        Top = y,
-        //        Height = height,
-        //        Width = width,
-        //        Text = _playChannels[channel].Name,
-        //        Tag = channel
-        //    };
-
-        //    btn.MouseClick += Button_MouseClick;
-        //    btn.Visible = true;
-        //    _channelButtons.Add(btn);
-        //    Controls.Add(btn);
-        //}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        //void RemoveAllChannelButtons()
-        //{
-        //    foreach(Button btn in _channelButtons)
-        //    {
-        //        btn.MouseClick -= Button_MouseClick;
-        //        btn.Dispose();
-        //        Controls.Remove(btn);
-        //    }
-        //    _channelButtons.Clear();
-        //}
-
-        /// <summary>
-        /// Cycle through possible states. Muting is done here too.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //void Button_MouseClick(object sender, MouseEventArgs e)
-        //{
-        //    Button btn = sender as Button;
-        //    int channel = (int)btn.Tag;
-        //    PlayChannel pch = _playChannels[channel];
-
-        //    switch(pch.Mode)
-        //    {
-        //        case PlayChannel.PlayMode.Normal:
-        //            pch.Mode = PlayChannel.PlayMode.Solo;
-        //            btn.BackColor = Color.Salmon;
-        //            // Mute any other non-solo channels.
-        //            for(int i = 0; i < NUM_CHANNELS; i ++)
-        //            {
-        //                if(i != channel)
-        //                {
-        //                    if(_playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
-        //                    {
-        //                        Kill(i);
-        //                    }
-        //                }
-        //            }
-
-        //            break;
-
-        //        case PlayChannel.PlayMode.Solo:
-        //            pch.Mode = PlayChannel.PlayMode.Mute;
-        //            btn.BackColor = Color.LightGreen;
-        //            // Mute this channel.
-        //            Kill(channel);
-        //            break;
-
-        //        case PlayChannel.PlayMode.Mute:
-        //            pch.Mode = PlayChannel.PlayMode.Normal;
-        //            btn.BackColor = Color.AliceBlue;
-        //            break;
-        //    }
-        //}
         #endregion
-
-
-
-
 
         #region Public Functions - interface implementation
         /// <inheritdoc />
@@ -333,7 +238,6 @@ namespace ClipExplorer
                 // Clean up first.
                 Close();
                 clickGrid.Clear();
-                //RemoveAllChannelButtons();
 
                 // Figure out which output device.
                 for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
@@ -412,7 +316,8 @@ namespace ClipExplorer
             // Figure out mmtimer period.
             double secPerBeat = 60 / sldTempo.Value;
             _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
-            // Since this is not perfect calculate the actual period.
+
+            // Calculate the actual period.
             int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
 
             // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
@@ -476,7 +381,7 @@ namespace ClipExplorer
                 {
                     if(ch.Valid)
                     {
-                        // Look for events to send. TODOC check for changes
+                        // Look for events to send.
                         if (ch.Mode == PlayChannel.PlayMode.Solo || (!solo && ch.Mode == PlayChannel.PlayMode.Normal))
                         {
                             // Process any sequence steps.
@@ -643,7 +548,7 @@ namespace ClipExplorer
         /// <summary>For viewing pleasure.</summary>
         public override string ToString()
         {
-            return $"PlayChannel: Name:{Name} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
+            return $"PlayChannel: Name:{Name} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick} Patch:{Patch}";
         }
     }
 }
