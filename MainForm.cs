@@ -57,6 +57,8 @@ namespace ClipExplorer
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = Common.Settings.Volume;
 
+            timeBar.ProgressColor = Color.LightCyan;
+
             PopulateRecentMenu();
 
             InitNavigator();
@@ -65,7 +67,8 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// for testing only
-//            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
+            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\one-sec.wav");
+            //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
             //var v = player._sourceEvents;
             //DumpMidi(v, "dump.txt");
         }
@@ -75,7 +78,8 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _player?.Close(); // Dispose()?
+            _player?.Close();
+            _player?.Dispose();
 
             // Save user settings.
             ftree.FlushChanges();
@@ -233,7 +237,6 @@ namespace ClipExplorer
             openDlg.Dispose();
         }
 
-
         /// <summary>
         /// Common file opener.
         /// </summary>
@@ -242,6 +245,7 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
+            chkPlay.Checked = false;
 
             using (new WaitCursor())
             {
@@ -259,6 +263,7 @@ namespace ClipExplorer
                                     {
                                         _player.Close();
                                         _player.PlaybackCompleted -= Player_PlaybackCompleted;
+                                        _player.Log -= Player_Log;
                                         (_player as UserControl).Visible = false;
                                     }
                                     _player = new WavePlayer();
@@ -272,6 +277,7 @@ namespace ClipExplorer
                                     {
                                         _player.Close();
                                         _player.PlaybackCompleted -= Player_PlaybackCompleted;
+                                        _player.Log -= Player_Log;
                                         (_player as UserControl).Visible = false;
                                     }
                                     _player = new MidiPlayer();
@@ -287,6 +293,7 @@ namespace ClipExplorer
                         if(ok)
                         {
                             _player.PlaybackCompleted += Player_PlaybackCompleted;
+                            _player.Log += Player_Log;
                             UserControl ctrl = _player as UserControl;
                             ctrl.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
                             splitContainer1.Panel2.Controls.Add(ctrl);
@@ -310,6 +317,7 @@ namespace ClipExplorer
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()} - {fn}";
                 AddToRecentDefs(fn);
+                timeBar.Length = MiscUtils.SecondsToTimeSpan(_player.Length);
             }
             else
             {
@@ -319,10 +327,22 @@ namespace ClipExplorer
                 {
                     _player.Close();
                     _player.PlaybackCompleted -= Player_PlaybackCompleted;
+                    _player.Log -= Player_Log;
+                    _player = null;
                 }
             }
 
             return ok;
+        }
+
+        /// <summary>
+        /// Log helper.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Player_Log(object sender, string e)
+        {
+            rtbInfo.AppendText($"Player:{e}{Environment.NewLine}");
         }
 
         /// <summary>
@@ -434,7 +454,7 @@ namespace ClipExplorer
         {
             if(_player != null)
             {
-                _player.CurrentTime = timeBar.CurrentTime.TotalMilliseconds / 1000;
+                _player.CurrentTime = MiscUtils.TimeSpanToSeconds(timeBar.CurrentTime);
             }
         }
         #endregion
@@ -504,7 +524,7 @@ namespace ClipExplorer
         /// </summary>
         void InitNavigator()
         {
-            ftree.FilterExts = _fileExts.SplitByToken(";");
+            ftree.FilterExts = _fileExts.ToLower().SplitByToken(";");
             ftree.RootPaths = Common.Settings.RootDirs.DeepClone();
             ftree.AllTags = Common.Settings.AllTags.DeepClone();
             ftree.DoubleClickSelect = !Common.Settings.Autoplay;
@@ -535,8 +555,7 @@ namespace ClipExplorer
         {
             if(_player != null)
             {
-                var v = MathUtils.SplitDouble(_player.CurrentTime);
-                timeBar.CurrentTime = new TimeSpan(0, 0, 0, (int)v.integral, (int)(v.fractional * 1000));
+                timeBar.CurrentTime = MiscUtils.SecondsToTimeSpan(_player.CurrentTime);
             }
             else
             {

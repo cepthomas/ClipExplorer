@@ -37,8 +37,8 @@ namespace ClipExplorer
         /// <inheritdoc />
         public double CurrentTime
         { 
-            get { return _audioFileReader == null ? 0 : _audioFileReader.CurrentTime.TotalMilliseconds / 1000; }
-            set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = new TimeSpan(0, 0, 0, 0, (int)value); } }
+            get { return _audioFileReader == null ? 0 : MiscUtils.TimeSpanToSeconds(_audioFileReader.CurrentTime); }
+            set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = MiscUtils.SecondsToTimeSpan(value); } }
         }
 
         /// <inheritdoc />
@@ -48,6 +48,9 @@ namespace ClipExplorer
         #region Events
         /// <inheritdoc />
         public event EventHandler PlaybackCompleted;
+
+        /// <inheritdoc />
+        public event EventHandler<string> Log;
         #endregion
 
         #region Lifecycle
@@ -90,7 +93,7 @@ namespace ClipExplorer
                 Close();
 
                 // Create output device.
-                for (int id = 0; id < WaveOut.DeviceCount; id++)
+                for (int id = -1; id < WaveOut.DeviceCount; id++)
                 {
                     var cap = WaveOut.GetCapabilities(id);
                     if (Common.Settings.WavOutDevice == cap.ProductName)
@@ -111,7 +114,7 @@ namespace ClipExplorer
                     _audioFileReader = new AudioFileReader(fn);
 
                     CurrentTime = 0;
-                    Length = _audioFileReader.TotalTime.TotalMilliseconds;
+                    Length = MiscUtils.TimeSpanToSeconds(_audioFileReader.TotalTime);
 
                     // Create reader.
                     ISampleProvider sampleProvider;
@@ -206,6 +209,15 @@ namespace ClipExplorer
 
                 waveViewer.Init(data, 1.0f);
             }
+        }
+
+        /// <summary>
+        /// Logger.
+        /// </summary>
+        /// <param name="s"></param>
+        void LogMessage(string s)
+        {
+            Log?.Invoke(this, $"WavePlayer:{s}");
         }
 
         /// <summary>

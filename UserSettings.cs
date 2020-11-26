@@ -134,7 +134,7 @@ namespace ClipExplorer
 
                 case "WavOutDevice":
                     rec = new List<string>();
-                    for (int id = 0; id < WaveOut.DeviceCount; id++) // –1 indicates the default output device, while 0 is the first output device
+                    for (int id = -1; id < WaveOut.DeviceCount; id++) // –1 indicates the default output device, while 0 is the first output device
                     {
                         var cap = WaveOut.GetCapabilities(id);
                         rec.Add(cap.ProductName);

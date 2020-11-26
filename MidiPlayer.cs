@@ -12,10 +12,8 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODOC Display bar.beat like 34.1:909  34.2:123  34.3:456  34.4:777
-
-// TODOC Mute/solo individual drums?
-
+// TODO-Feature Mute/solo individual drums?
+// TODO-Feature Select/loop. Make a new clip file from selection.
 
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
@@ -27,7 +25,7 @@ using NBagOfTricks.Utils;
 // DeltaTicksPerQuarterNote (ppq): 96.
 // 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
 
-// If we use ppq of 8 for 32nd notes:
+// If we use ppq of 8 (32nd notes):
 // 100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
 //  99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
 
@@ -91,29 +89,6 @@ namespace ClipExplorer
         readonly Dictionary<int, string> _controllerDefs = new Dictionary<int, string>();
         #endregion
 
-        #region Interop Multimedia Timer Functions
-        #pragma warning disable IDE1006 // Naming Styles
-
-        [DllImport("winmm.dll")]
-        private static extern int timeGetDevCaps(ref TimerCaps caps, int sizeOfTimerCaps);
-
-        /// <summary>Start her up.</summary>
-        [DllImport("winmm.dll")]
-        private static extern int timeSetEvent(int delay, int resolution, TimeProc proc, IntPtr user, int mode);
-
-        [DllImport("winmm.dll")]
-        private static extern int timeKillEvent(int id);
-
-        /// <summary>Represents information about the multimedia timer capabilities.</summary>
-        [StructLayout(LayoutKind.Sequential)]
-        struct TimerCaps
-        {
-            public int periodMin;
-            public int periodMax;
-        }
-        #pragma warning restore IDE1006 // Naming Styles
-        #endregion
-
         #region Properties - interface implementation
         /// <inheritdoc />
         public double Volume
@@ -136,6 +111,9 @@ namespace ClipExplorer
         #region Events
         /// <inheritdoc />
         public event EventHandler PlaybackCompleted;
+
+        /// <inheritdoc />
+        public event EventHandler<string> Log;
         #endregion
 
         #region Lifecycle
@@ -158,11 +136,13 @@ namespace ClipExplorer
 
             // Set up the channel/mute/solo grid.
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
-            clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.Salmon);
-            clickGrid.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.LightGreen);
+            clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.LightGreen);
+            clickGrid.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.Salmon);
 
-            // Initialize timer with default values.
-            _timeProc = new TimeProc(MmTimerCallback);
+            barBar.ProgressColor = Color.PaleVioletRed;
+            barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
+
+             _timeProc = new TimeProc(MmTimerCallback);
         }
 
         /// <summary> 
@@ -184,46 +164,6 @@ namespace ClipExplorer
             }
 
             base.Dispose(disposing);
-        }
-        #endregion
-
-        #region Channel UI
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ClickGrid_IndicatorEvent(object sender, IndicatorEventArgs e)
-        {
-            int channel = e.Id;
-            PlayChannel pch = _playChannels[channel];
-
-            switch (pch.Mode)
-            {
-                case PlayChannel.PlayMode.Normal:
-                    pch.Mode = PlayChannel.PlayMode.Solo;
-                    // Mute any other non-solo channels.
-                    for (int i = 0; i < NUM_CHANNELS; i++)
-                    {
-                        if (i != channel && _playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
-                        {
-                            Kill(i);
-                        }
-                    }
-                    break;
-
-                case PlayChannel.PlayMode.Solo:
-                    pch.Mode = PlayChannel.PlayMode.Mute;
-                    // Mute this channel.
-                    Kill(channel);
-                    break;
-
-                case PlayChannel.PlayMode.Mute:
-                    pch.Mode = PlayChannel.PlayMode.Normal;
-                    break;
-            }
-
-            clickGrid.SetIndicator(channel, (int)pch.Mode);
         }
         #endregion
 
@@ -269,30 +209,59 @@ namespace ClipExplorer
                     // Bin events by channel. Scale ticks to internal ppq.
                     for (int track = 0; track < _sourceEvents.Tracks; track++)
                     {
-                        _sourceEvents.GetTrackEvents(track).ForEach(te =>
+                        foreach(var te in _sourceEvents.GetTrackEvents(track))
                         {
-                            if (te.Channel < NUM_CHANNELS)
+                            if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
                             {
                                 // Scale tick to internal.
                                 long tick = te.AbsoluteTime * TICKS_PER_BEAT / _sourceEvents.DeltaTicksPerQuarterNote;
 
-                                _playChannels[te.Channel].AddEvent((int)tick, te);
+                                _playChannels[te.Channel - 1].AddEvent((int)tick, te);
 
                                 // Dig out special events.
-                                switch(te)
+                                switch (te)
                                 {
-                                    case TempoEvent tem: tempo = (int)tem.Tempo; break;
-                                    case PatchChangeEvent pte: _playChannels[te.Channel].Patch = pte.Patch; break;
+                                    case TempoEvent tem:
+                                        tempo = (int)tem.Tempo;
+                                        break;
+                                    case PatchChangeEvent pte:
+                                        _playChannels[te.Channel - 1].Patch = pte.Patch;
+                                        break;
+                                    //case TextEvent tevt:
+                                    //    if (tevt.MetaEventType == MetaEventType.SequenceTrackName)
+                                    //    {
+                                    //        _playChannels[tevt.Channel - 1].Name = tevt.Text;
+                                    //    }
+                                    //    break;
                                 }
                             }
-                        });
+                        };
                     }
 
                     // Final fixups.
                     for (int i = 0; i < _playChannels.Count(); i++)
                     {
                         var pc = _playChannels[i];
-                        pc.Name = pc.Patch != -1 && _instrumentDefs.ContainsKey(pc.Patch) ? $"{_instrumentDefs[pc.Patch]} ({i + 1})" : $"Channel{i + 1}";
+
+                        pc.Name = $"Ch:({i + 1}) ";
+
+                        if(i == 9)
+                        {
+                            pc.Name += pc.Name = $"Drums";
+                        }
+                        else if (pc.Patch == -1)
+                        {
+                            pc.Name += pc.Name = $"NoPatch";
+                        }
+                        else if(_instrumentDefs.ContainsKey(pc.Patch))
+                        {
+                            pc.Name += $"{_instrumentDefs[pc.Patch]}";
+                        }
+                        else
+                        {
+                            pc.Name += $"Patch:{pc.Patch}";
+                        }
+
                         _lastTick = Math.Max(_lastTick, pc.MaxTick);
                         if(pc.Valid)
                         {
@@ -302,8 +271,13 @@ namespace ClipExplorer
 
                     clickGrid.Show(2, clickGrid.Width / 2, 20);
 
-                    Length = TicksToTime(_lastTick);
+                    // Figure out times.
                     sldTempo.Value = tempo;
+                    double secPerBeat = 60 / sldTempo.Value;
+                    _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
+
+                    Length = TicksToTime(_lastTick);
+                    barBar.Length = _lastTick;
                 }
             }
 
@@ -313,10 +287,6 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Start()
         {
-            // Figure out mmtimer period.
-            double secPerBeat = 60 / sldTempo.Value;
-            _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
-
             // Calculate the actual period.
             int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
 
@@ -353,6 +323,7 @@ namespace ClipExplorer
         public void Rewind()
         {
             _currentTick = 0;
+            barBar.CurrentTick = _currentTick;
         }
 
         /// <inheritdoc />
@@ -360,6 +331,7 @@ namespace ClipExplorer
         {
             Stop();
             _currentTick = 0;
+            barBar.CurrentTick = _currentTick;
             _midiOut?.Dispose();
             _midiOut = null;
         }
@@ -410,6 +382,7 @@ namespace ClipExplorer
 
                 // Bump time.
                 _currentTick++;
+                barBar.CurrentTick = _currentTick;
 
                 // Check for end of play. Client will take care of looping.
                 if (_currentTick > _lastTick)
@@ -421,11 +394,21 @@ namespace ClipExplorer
         }
 
         /// <summary>
+        /// Logger.
+        /// </summary>
+        /// <param name="s"></param>
+        void LogMessage(string s)
+        {
+            Log?.Invoke(this, $"MidiPlayer:{s}");
+        }
+
+        /// <summary>
         /// Send all notes off.
         /// </summary>
         /// <param name="channel"></param>
         void Kill(int channel)
         {
+            LogMessage($"Kill:{channel}");
             ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
             _midiOut?.Send(nevt.GetAsShortMessage());
         }
@@ -449,20 +432,6 @@ namespace ClipExplorer
         {
             double sec = ticks * _msecPerTick / 1000;
             return sec;
-        }
-
-        /// <summary>
-        /// User changed tempo.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Tempo_ValueChanged(object sender, EventArgs e)
-        {
-            if(_running)
-            {
-                Stop();
-                Start();
-            }
         }
 
         /// <summary>
@@ -506,6 +475,94 @@ namespace ClipExplorer
             }
         }
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ClickGrid_IndicatorEvent(object sender, IndicatorEventArgs e)
+        {
+            int channel = e.Id;
+            PlayChannel pch = _playChannels[channel];
+            LogMessage($"Click:{channel}");
+
+            switch (pch.Mode)
+            {
+                case PlayChannel.PlayMode.Normal:
+                    pch.Mode = PlayChannel.PlayMode.Solo;
+                    // Mute any other non-solo channels.
+                    for (int i = 0; i < NUM_CHANNELS; i++)
+                    {
+                        if (i != channel && _playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
+                        {
+                            Kill(i);
+                        }
+                    }
+                    break;
+
+                case PlayChannel.PlayMode.Solo:
+                    pch.Mode = PlayChannel.PlayMode.Mute;
+                    // Mute this channel.
+                    Kill(channel);
+                    break;
+
+                case PlayChannel.PlayMode.Mute:
+                    pch.Mode = PlayChannel.PlayMode.Normal;
+                    break;
+            }
+
+            clickGrid.SetIndicator(channel, (int)pch.Mode);
+        }
+
+        #region Event handlers
+        /// <summary>
+        /// User changed tempo.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Tempo_ValueChanged(object sender, EventArgs e)
+        {
+            if (_running)
+            {
+                Stop();
+                Start();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BarBar_CurrentTimeChanged(object sender, EventArgs e)
+        {
+            CurrentTime = TicksToTime(barBar.CurrentTick);
+        }
+        #endregion
+
+        #region Interop Multimedia Timer Functions
+#pragma warning disable IDE1006 // Naming Styles
+
+        [DllImport("winmm.dll")]
+        private static extern int timeGetDevCaps(ref TimerCaps caps, int sizeOfTimerCaps);
+
+        /// <summary>Start her up.</summary>
+        [DllImport("winmm.dll")]
+        private static extern int timeSetEvent(int delay, int resolution, TimeProc proc, IntPtr user, int mode);
+
+        [DllImport("winmm.dll")]
+        private static extern int timeKillEvent(int id);
+
+        /// <summary>Represents information about the multimedia timer capabilities.</summary>
+        [StructLayout(LayoutKind.Sequential)]
+        struct TimerCaps
+        {
+            public int periodMin;
+            public int periodMax;
+        }
+        #pragma warning restore IDE1006 // Naming Styles
+        #endregion
     }
 
     /// <summary>Channel events and other properties.</summary>
@@ -548,7 +605,7 @@ namespace ClipExplorer
         /// <summary>For viewing pleasure.</summary>
         public override string ToString()
         {
-            return $"PlayChannel: Name:{Name} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick} Patch:{Patch}";
+            return $"PlayChannel: Name:{Name} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
         }
     }
 }
