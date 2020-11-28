@@ -48,11 +48,14 @@ namespace ClipExplorer
         /// <summary>Stop playback and return to beginning.</summary>
         void Rewind();
 
-        /// <summary>Clean up internal resources.</summary>
-        void Close();
-
         /// <summary>Settings have been edited.</summary>
         bool SettingsUpdated();
+
+        /// <summary>Utility.</summary>
+        /// <param name="fn">Filename</param>
+        /// <param name="level">Detail</param>
+        /// <returns>success</returns>
+        bool Dump(string fn, int level);
         #endregion
     }
 }

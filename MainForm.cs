@@ -9,10 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
-using NAudio.Wave;
-using NAudio.CoreAudioApi;
-using NAudio.Wave.SampleProviders;
-using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
@@ -26,7 +22,13 @@ namespace ClipExplorer
         /// <summary>Supported file types.</summary>
         readonly string _fileExts = ".wav;.mp3;.mid;";
 
-        /// <summary>Play device.</summary>
+        /// <summary>Audio device.</summary>
+        WavePlayer _wavePlayer = null;
+
+        /// <summary>Midi device.</summary>
+        MidiPlayer _midiPlayer = null;
+
+        /// <summary>Current play device.</summary>
         IPlayer _player = null;
         #endregion
 
@@ -49,6 +51,25 @@ namespace ClipExplorer
             DirectoryInfo di = new DirectoryInfo(appDir);
             di.Create();
             UserSettings.Load(appDir);
+
+            // Create devices.
+            _wavePlayer = new WavePlayer
+            {
+                Visible = false
+            };
+            _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
+            _wavePlayer.Log += Player_Log;
+            _wavePlayer.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
+            splitContainer1.Panel2.Controls.Add(_wavePlayer);
+
+            _midiPlayer = new MidiPlayer
+            {
+                Visible = false
+            };
+            _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
+            _midiPlayer.Log += Player_Log;
+            _midiPlayer.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
+            splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
             // Init UI from settings
             Location = new Point(Common.Settings.MainFormInfo.X, Common.Settings.MainFormInfo.Y);
@@ -78,10 +99,10 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _player?.Close();
-            _player?.Dispose();
-
             SaveSettings();
+
+            _wavePlayer.Dispose();
+            _midiPlayer.Dispose();
         }
         #endregion
 
@@ -130,19 +151,25 @@ namespace ClipExplorer
                 bool midiChange = false;
                 bool audioChange = false;
                 bool navChange = false;
+                bool restart = false;
 
                 pg.PropertyValueChanged += (sdr, args) =>
                 {
-                    midiChange = args.ChangedItem.PropertyDescriptor.Category == "Midi";
-                    audioChange = args.ChangedItem.PropertyDescriptor.Category == "Audio";
-                    navChange = args.ChangedItem.PropertyDescriptor.Category == "Navigator";
+                    restart |= args.ChangedItem.PropertyDescriptor.Name.EndsWith("Device");
+                    midiChange |= args.ChangedItem.PropertyDescriptor.Category == "Midi";
+                    audioChange |= args.ChangedItem.PropertyDescriptor.Category == "Audio";
+                    navChange |= args.ChangedItem.PropertyDescriptor.Category == "Navigator";
                 };
 
                 f.Controls.Add(pg);
                 f.ShowDialog();
-                f.Dispose();
 
                 // Figure out what changed - each handled differently.
+                if(restart)
+                {
+                    MessageBox.Show("Restart required for device changes to take effect");
+                }
+
                 if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
                 {
                     _player.SettingsUpdated();
@@ -201,6 +228,16 @@ namespace ClipExplorer
             File.WriteAllText(fn, string.Join(Environment.NewLine, htmlText));
             Process.Start(fn);
         }
+
+        /// <summary>
+        /// Log helper.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Player_Log(object sender, string e)
+        {
+            rtbInfo.AppendText($"Player:{e}{Environment.NewLine}");
+        }
         #endregion
 
         #region File handling
@@ -247,7 +284,7 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
-            chkPlay.Checked = false;
+            Stop();
 
             using (new WaitCursor())
             {
@@ -259,31 +296,15 @@ namespace ClipExplorer
                         {
                             case ".wav":
                             case ".mp3":
-                                if(!(_player is WavePlayer))
-                                {
-                                    if(_player != null)
-                                    {
-                                        _player.Close();
-                                        _player.PlaybackCompleted -= Player_PlaybackCompleted;
-                                        _player.Log -= Player_Log;
-                                        (_player as UserControl).Visible = false;
-                                    }
-                                    _player = new WavePlayer();
-                                }
+                                _wavePlayer.Visible = true;
+                                _midiPlayer.Visible = false;
+                                _player = _wavePlayer;
                                 break;
 
                             case ".mid":
-                                if (!(_player is MidiPlayer))
-                                {
-                                    if (_player != null)
-                                    {
-                                        _player.Close();
-                                        _player.PlaybackCompleted -= Player_PlaybackCompleted;
-                                        _player.Log -= Player_Log;
-                                        (_player as UserControl).Visible = false;
-                                    }
-                                    _player = new MidiPlayer();
-                                }
+                                _wavePlayer.Visible = false;
+                                _midiPlayer.Visible = true;
+                                _player = _midiPlayer;
                                 break;
 
                             default:
@@ -294,12 +315,11 @@ namespace ClipExplorer
 
                         if(ok)
                         {
-                            _player.PlaybackCompleted += Player_PlaybackCompleted;
-                            _player.Log += Player_Log;
-                            UserControl ctrl = _player as UserControl;
-                            ctrl.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
-                            splitContainer1.Panel2.Controls.Add(ctrl);
-                            ok = _player.OpenFile(fn);//TODO1 if autoplay...
+                            ok = _player.OpenFile(fn);
+                            if(Common.Settings.Autoplay)
+                            {
+                                Start();
+                            }
                         }
                     }
                     else
@@ -324,45 +344,9 @@ namespace ClipExplorer
             else
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()} - No file loaded";
-
-                if (_player != null)
-                {
-                    _player.Close();
-                    _player.PlaybackCompleted -= Player_PlaybackCompleted;
-                    _player.Log -= Player_Log;
-                    _player = null;
-                }
             }
 
             return ok;
-        }
-
-        /// <summary>
-        /// Log helper.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Player_Log(object sender, string e)
-        {
-            rtbInfo.AppendText($"Player:{e}{Environment.NewLine}");
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Player_PlaybackCompleted(object sender, EventArgs e)
-        {
-            if (chkLoop.Checked)
-            {
-                _player.CurrentTime = 0;
-                _player.Start();
-            }
-            else
-            {
-                chkPlay.Checked = false;
-            }
         }
 
         /// <summary>
@@ -396,20 +380,60 @@ namespace ClipExplorer
 
         #region Transport
         /// <summary>
+        /// Internal handler.
+        /// </summary>
+        /// <returns></returns>
+        bool Stop()
+        {
+            _player?.Stop();
+            SetPlayCheck(false);
+            return true;
+        }
+
+        /// <summary>
+        /// Internal handler.
+        /// </summary>
+        /// <returns></returns>
+        bool Start()
+        {
+            _player?.Start();
+            SetPlayCheck(true);
+            return true;
+        }
+
+        /// <summary>
+        /// Need to temporarily suppress CheckedChanged event.
+        /// </summary>
+        /// <param name="on"></param>
+        void SetPlayCheck(bool on)
+        {
+            chkPlay.CheckedChanged -= Play_CheckedChanged;
+            chkPlay.Checked = on;
+            chkPlay.CheckedChanged += Play_CheckedChanged;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void Play_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkPlay.Checked)
+            bool _ = chkPlay.Checked ? Start() : Stop();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Player_PlaybackCompleted(object sender, EventArgs e)
+        {
+            // Comes from a different thread.
+            this.InvokeIfRequired(o =>
             {
-                _player?.Start();
-            }
-            else
-            {
-                _player?.Stop();
-            }
+                bool _ = chkLoop.Checked ? Start() : Stop();
+            });
         }
 
         /// <summary>
@@ -422,16 +446,7 @@ namespace ClipExplorer
             if (e.KeyCode == Keys.Space)
             {
                 // Toggle.
-                if (chkPlay.Checked)
-                {
-                    _player?.Stop();
-                    chkPlay.Checked = false;
-                }
-                else
-                {
-                    _player?.Start();
-                    chkPlay.Checked = true;
-                }
+                bool _ = chkPlay.Checked ? Stop() : Start();
                 e.Handled = true;
             }
         }
@@ -443,86 +458,14 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Rewind_Click(object sender, EventArgs e)
         {
-            _player?.Rewind();
-            chkPlay.Checked = false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
-        {
-            if(_player != null)
-            {
-                _player.CurrentTime = MiscUtils.TimeSpanToSeconds(timeBar.CurrentTime);
-            }
+            Stop();
+            _player.Rewind();
         }
         #endregion
 
-        #region Volume
+        #region Navigator functions
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Volume_ValueChanged(object sender, EventArgs e)
-        {
-            if(_player != null)
-            {
-                _player.Volume = (float)sldVolume.Value;
-            }
-        }
-        #endregion
-
-        #region Utilities
-        /// <summary>
-        /// Make a human readable version of midi data.
-        /// </summary>
-        /// <param name="events"></param>
-        /// <param name="fn"></param>
-        void DumpMidi(MidiEventCollection events, string fn)
-        {
-            List<string> st = new List<string>();
-            st.Add($"MidiFileType:{events.MidiFileType}");
-            st.Add($"DeltaTicksPerQuarterNote:{events.DeltaTicksPerQuarterNote}");
-            st.Add($"StartAbsoluteTime:{events.StartAbsoluteTime}");
-            st.Add($"Tracks:{events.Tracks}");
-
-            for (int trk = 0; trk < events.Tracks; trk++)
-            {
-                st.Add($"  Track:{trk}");
-
-                var trackEvents = events.GetTrackEvents(trk);
-                for (int te = 0; te < trackEvents.Count; te++)
-                {
-                    st.Add($"    {trackEvents[te]}");
-                }
-            }
-
-            File.WriteAllLines(fn, st.ToArray());
-        }
-
-        /// <summary>
-        /// Make a csv file of data for external processing.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="fn"></param>
-        void DumpWave(float[] data, string fn)
-        {
-            List<string> samples = new List<string>();
-            for (int i = 0; i < data.Length; i++)
-            {
-                samples.Add($"{i + 1}, {data[i]}");
-            }
-            File.WriteAllLines(fn, samples);
-        }
-        #endregion
-
-        #region Private functions
-        /// <summary>
-        /// Initialize ftree from user settings.
+        /// Initialize tree from user settings.
         /// </summary>
         void InitNavigator()
         {
@@ -547,6 +490,21 @@ namespace ClipExplorer
             rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
             OpenFile(fn);
         }
+        #endregion
+
+        #region Misc handlers
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Volume_ValueChanged(object sender, EventArgs e)
+        {
+            if(_player != null)
+            {
+                _player.Volume = (float)sldVolume.Value;
+            }
+        }
 
         /// <summary>
         /// Update realtime clock.
@@ -562,6 +520,19 @@ namespace ClipExplorer
             else
             {
                 timeBar.CurrentTime = new TimeSpan();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
+        {
+            if(_player != null)
+            {
+                _player.CurrentTime = MiscUtils.TimeSpanToSeconds(timeBar.CurrentTime);
             }
         }
         #endregion

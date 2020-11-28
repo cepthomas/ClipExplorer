@@ -28,13 +28,13 @@ namespace ClipExplorer
             this.sldTempo.DecPlaces = 0;
             this.sldTempo.DrawColor = System.Drawing.Color.PaleGreen;
             this.sldTempo.Label = "BPM";
-            this.sldTempo.Location = new System.Drawing.Point(17, 14);
+            this.sldTempo.Location = new System.Drawing.Point(0, 3);
             this.sldTempo.Maximum = 250D;
             this.sldTempo.Minimum = 50D;
             this.sldTempo.Name = "sldTempo";
             this.sldTempo.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.sldTempo.ResetValue = 50D;
-            this.sldTempo.Size = new System.Drawing.Size(164, 43);
+            this.sldTempo.Size = new System.Drawing.Size(140, 43);
             this.sldTempo.TabIndex = 63;
             this.sldTempo.Value = 100D;
             this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
@@ -42,9 +42,9 @@ namespace ClipExplorer
             // clickGrid
             // 
             this.clickGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.clickGrid.Location = new System.Drawing.Point(17, 101);
+            this.clickGrid.Location = new System.Drawing.Point(0, 52);
             this.clickGrid.Name = "clickGrid";
-            this.clickGrid.Size = new System.Drawing.Size(480, 214);
+            this.clickGrid.Size = new System.Drawing.Size(523, 187);
             this.clickGrid.TabIndex = 69;
             this.clickGrid.IndicatorEvent += new System.EventHandler<NBagOfTricks.UI.IndicatorEventArgs>(this.ClickGrid_IndicatorEvent);
             // 
@@ -53,10 +53,10 @@ namespace ClipExplorer
             this.barBar.BeatsPerBar = 4;
             this.barBar.CurrentTick = 0;
             this.barBar.Length = 0;
-            this.barBar.Location = new System.Drawing.Point(202, 14);
+            this.barBar.Location = new System.Drawing.Point(229, 3);
             this.barBar.Name = "barBar";
             this.barBar.ProgressColor = System.Drawing.Color.White;
-            this.barBar.Size = new System.Drawing.Size(295, 43);
+            this.barBar.Size = new System.Drawing.Size(294, 43);
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Tick;
             this.barBar.TabIndex = 70;
             this.barBar.TicksPerBeat = 8;
@@ -65,11 +65,11 @@ namespace ClipExplorer
             // 
             this.chkMapDrums.Appearance = System.Windows.Forms.Appearance.Button;
             this.chkMapDrums.AutoSize = true;
-            this.chkMapDrums.Location = new System.Drawing.Point(17, 68);
+            this.chkMapDrums.Location = new System.Drawing.Point(146, 3);
             this.chkMapDrums.Name = "chkMapDrums";
-            this.chkMapDrums.Size = new System.Drawing.Size(108, 27);
+            this.chkMapDrums.Size = new System.Drawing.Size(57, 27);
             this.chkMapDrums.TabIndex = 71;
-            this.chkMapDrums.Text = "chkMapDrums";
+            this.chkMapDrums.Text = "DMAP";
             this.chkMapDrums.UseVisualStyleBackColor = true;
             this.chkMapDrums.CheckedChanged += new System.EventHandler(this.MapDrums_CheckedChanged);
             // 
@@ -82,7 +82,7 @@ namespace ClipExplorer
             this.Controls.Add(this.clickGrid);
             this.Controls.Add(this.sldTempo);
             this.Name = "MidiPlayer";
-            this.Size = new System.Drawing.Size(523, 434);
+            this.Size = new System.Drawing.Size(523, 255);
             this.Load += new System.EventHandler(this.MidiPlayer_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

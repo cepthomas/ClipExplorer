@@ -28,9 +28,6 @@ namespace ClipExplorer
 
         /// <summary>Input device for playing wav file.</summary>
         AudioFileReader _audioFileReader = null;
-
-        /// <summary>Turn logging on or off.</summary>
-        bool _logEnable = false;
         #endregion
 
         #region Properties - interface implementation
@@ -78,7 +75,7 @@ namespace ClipExplorer
             }
 
             // My stuff here....
-            Close();
+            CloseAudio();
             
             base.Dispose(disposing);
         }
@@ -89,12 +86,12 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
-            LogMessage("OpenFile");
+            LogMessage($"Open:{fn}");
 
             using (new WaitCursor())
             {
                 // Clean up first.
-                Close();
+                CloseAudio();
 
                 // Create output device.
                 for (int id = -1; id < WaveOut.DeviceCount; id++)
@@ -143,7 +140,7 @@ namespace ClipExplorer
 
             if (!ok)
             {
-                Close();
+                CloseAudio();
             }
 
             return ok;
@@ -179,7 +176,42 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public void Close()
+        public bool SettingsUpdated()
+        {
+            // Nothing to do.
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool Dump(string fn, int level)
+        {
+            bool ok = true;
+
+            using (AudioFileReader afrdr = new AudioFileReader(fn))
+            {
+                var sampleChannel = new SampleChannel(afrdr, true);
+
+                long len = afrdr.Length / sizeof(float);
+                var data = new float[len];
+
+                // Make a csv file of data for external processing.
+                List<string> samples = new List<string>();
+                for (int i = 0; i < data.Length; i++)
+                {
+                    samples.Add($"{i + 1}, {data[i]}");
+                }
+                File.WriteAllLines(fn, samples);
+            }
+
+            return ok;
+        }
+        #endregion
+
+        #region Private functions
+        /// <summary>
+        /// 
+        /// </summary>
+        void CloseAudio()
         {
             _waveOut?.Stop();
             _waveOut?.Dispose();
@@ -188,35 +220,6 @@ namespace ClipExplorer
             _audioFileReader?.Dispose();
             _audioFileReader = null;
         }
-
-        /// <inheritdoc />
-        public bool SettingsUpdated() //TODO1 impl, with tidier cleanup
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        #region Private functions
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        //public bool OpenAudio()
-        //{
-        //    bool ok = true;
-        //    // Figure out which output device.
-        //    for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
-        //    {
-        //        if (Common.Settings.MidiOutDevice == MidiOut.DeviceInfo(devindex).ProductName)
-        //        {
-        //            _midiOut = new MidiOut(devindex);
-        //            ok = true;
-        //            break;
-        //        }
-        //    }
-
-        //    return ok;
-        //}
 
         /// <summary>
         /// Show a clip waveform.
@@ -248,10 +251,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void LogMessage(string s)
         {
-            if (_logEnable)
-            {
-                Log?.Invoke(this, $"WavePlayer:{s}");
-            }
+            Log?.Invoke(this, $"WavePlayer:{s}");
         }
 
         /// <summary>

@@ -59,7 +59,7 @@
             this.fileDropDownButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1284, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1330, 27);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -123,8 +123,8 @@
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
-            this.splitContainer1.Size = new System.Drawing.Size(1284, 608);
-            this.splitContainer1.SplitterDistance = 625;
+            this.splitContainer1.Size = new System.Drawing.Size(1330, 608);
+            this.splitContainer1.SplitterDistance = 647;
             this.splitContainer1.TabIndex = 1;
             // 
             // ftree
@@ -136,7 +136,7 @@
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
             this.ftree.RootPaths = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.RootPaths")));
-            this.ftree.Size = new System.Drawing.Size(625, 608);
+            this.ftree.Size = new System.Drawing.Size(647, 608);
             this.ftree.TabIndex = 0;
             this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
@@ -146,19 +146,19 @@
             this.timeBar.CurrentTime = System.TimeSpan.Parse("00:00:00");
             this.timeBar.ForeColor = System.Drawing.Color.Silver;
             this.timeBar.Length = System.TimeSpan.Parse("00:00:00");
-            this.timeBar.Location = new System.Drawing.Point(21, 193);
+            this.timeBar.Location = new System.Drawing.Point(21, 71);
             this.timeBar.Name = "timeBar";
             this.timeBar.ProgressColor = System.Drawing.Color.Fuchsia;
-            this.timeBar.Size = new System.Drawing.Size(601, 47);
+            this.timeBar.Size = new System.Drawing.Size(523, 47);
             this.timeBar.TabIndex = 60;
             this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
             // 
             // rtbInfo
             // 
             this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbInfo.Location = new System.Drawing.Point(182, 16);
+            this.rtbInfo.Location = new System.Drawing.Point(21, 378);
             this.rtbInfo.Name = "rtbInfo";
-            this.rtbInfo.Size = new System.Drawing.Size(440, 160);
+            this.rtbInfo.Size = new System.Drawing.Size(628, 211);
             this.rtbInfo.TabIndex = 56;
             this.rtbInfo.Text = "";
             // 
@@ -180,14 +180,14 @@
             this.sldVolume.DecPlaces = 1;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(21, 77);
+            this.sldVolume.Location = new System.Drawing.Point(185, 16);
             this.sldVolume.Margin = new System.Windows.Forms.Padding(4);
             this.sldVolume.Maximum = 1D;
             this.sldVolume.Minimum = 0D;
             this.sldVolume.Name = "sldVolume";
-            this.sldVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.sldVolume.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.sldVolume.ResetValue = 0D;
-            this.sldVolume.Size = new System.Drawing.Size(45, 99);
+            this.sldVolume.Size = new System.Drawing.Size(93, 39);
             this.sldVolume.TabIndex = 42;
             this.sldVolume.Value = 1D;
             this.sldVolume.ValueChanged += new System.EventHandler(this.Volume_ValueChanged);
@@ -227,7 +227,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1284, 635);
+            this.ClientSize = new System.Drawing.Size(1330, 635);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

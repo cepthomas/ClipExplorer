@@ -12,8 +12,8 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODO Feature Mute/solo individual drums?
-// TODO Feature Select/loop. Make a new clip file from selection.
+// TODOC Mute/solo individual drums?
+// TODOC Select/loop? Make a new clip file from selection.
 
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
@@ -42,10 +42,13 @@ namespace ClipExplorer
         const int BEATS_PER_BAR = 4;
 
         /// <summary>Our ppq aka resolution. 4 gives 16th note, 8 gives 32nd note, etc.</summary>
-        const int TICKS_PER_BEAT = 8;
+        const int TICKS_PER_BEAT = 32;
         #endregion
 
         #region Fields
+        /// <summary>Current file.</summary>
+        string _fn = "";
+
         /// <summary>Indicates whether or not the midi is playing.</summary>
         bool _running = false;
 
@@ -87,25 +90,14 @@ namespace ClipExplorer
 
         /// <summary>The midi controller definitions.</summary>
         readonly Dictionary<int, string> _controllerDefs = new Dictionary<int, string>();
-
-        /// <summary>Turn logging on or off.</summary>
-        bool _logEnable = false;
         #endregion
 
         #region Properties - interface implementation
         /// <inheritdoc />
-        public double Volume
-        {
-            get { return _volume; }
-            set { _volume = MathUtils.Constrain(value, 0, 1); }
-        }
+        public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
 
         /// <inheritdoc />
-        public double CurrentTime
-        {
-           get { return TicksToTime(_currentTick); }
-           set { _currentTick = TimeToTicks(value); }
-        }
+        public double CurrentTime { get { return TicksToTime(_currentTick); } set { _currentTick = TimeToTicks(value); } }
 
         /// <inheritdoc />
         public double Length { get; private set; }
@@ -139,6 +131,21 @@ namespace ClipExplorer
 
             SettingsUpdated();
 
+            // Figure out which midi output device.
+            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
+            {
+                if (Common.Settings.MidiOutDevice == MidiOut.DeviceInfo(devindex).ProductName)
+                {
+                    _midiOut = new MidiOut(devindex);
+                    break;
+                }
+            }
+
+            if(_midiOut == null)
+            {
+                MessageBox.Show($"Invalid midi device: {Common.Settings.MidiOutDevice}");
+            }
+
             // Set up the channel/mute/solo grid.
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.LightGreen);
@@ -161,7 +168,8 @@ namespace ClipExplorer
             timeKillEvent(_timerID);
 
             // Resources.
-            Close();
+            _midiOut?.Dispose();
+            _midiOut = null;
 
             if (disposing && (components != null))
             {
@@ -177,11 +185,13 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
+            _fn = fn;
 
             using (new WaitCursor())
             {
                 // Clean up first.
                 clickGrid.Clear();
+                Rewind();
 
                 if (ok)
                 {
@@ -206,6 +216,12 @@ namespace ClipExplorer
                         {
                             if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
                             {
+                                // Adjust channel for non-compliant drums.
+                                if(Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
+                                {
+                                    te.Channel = 10;
+                                }
+
                                 // Scale tick to internal.
                                 long tick = te.AbsoluteTime * TICKS_PER_BEAT / _sourceEvents.DeltaTicksPerQuarterNote;
 
@@ -266,8 +282,6 @@ namespace ClipExplorer
 
                     // Figure out times.
                     sldTempo.Value = tempo;
-                    double secPerBeat = 60 / sldTempo.Value;
-                    _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
 
                     Length = TicksToTime(_lastTick);
                     barBar.Length = _lastTick;
@@ -280,35 +294,55 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Start()
         {
-            // Calculate the actual period.
-            int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
-
-            // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
-            _timerID = timeSetEvent(period, 1, _timeProc, IntPtr.Zero, 1);
-
-            // If the timer was created successfully.
-            if (_timerID != 0)
+            // Start or restart?
+            if(!_running)
             {
-                _running = true;
+                // Calculate the actual period.
+                double secPerBeat = 60 / sldTempo.Value;
+                _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
+
+                int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
+                int msecPerBeat = period * TICKS_PER_BEAT;
+                int actualBpm = 60 * 1000 / msecPerBeat;
+                LogMessage($"Period:{period} msec Actual BPM:{actualBpm}");
+
+                // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
+                _timerID = timeSetEvent(period, 1, _timeProc, IntPtr.Zero, 1);
+
+                // If the timer was created successfully.
+                if (_timerID != 0)
+                {
+                    _running = true;
+                }
+                else
+                {
+                    _running = false;
+                    throw new Exception("Unable to start periodic multimedia Timer.");
+                }
             }
             else
             {
-                _running = false;
-                throw new Exception("Unable to start periodic multimedia Timer.");
+                Rewind();
             }
         }
 
         /// <inheritdoc />
         public void Stop()
         {
-            _running = false;
-            timeKillEvent(_timerID);
-            _timerID = -1;
-
-            // Send midi stop all notes just in case.
-            for (int i = 0; i < NUM_CHANNELS; i++)
+            if(_running)
             {
-                Kill(i);
+                _running = false;
+                timeKillEvent(_timerID);
+                _timerID = -1;
+
+                // Send midi stop all notes just in case.
+                for (int i = 0; i < _playChannels.Count(); i++)
+                {
+                    if(_playChannels[i].Valid)
+                    {
+                        Kill(i);
+                    }
+                }
             }
         }
 
@@ -320,28 +354,46 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public void Close()
+        public bool SettingsUpdated()
         {
-            Stop();
-            CloseMidi();
-            _currentTick = 0;
-            barBar.CurrentTick = 0;
+            bool ok = true;
+
+            chkMapDrums.Checked = Common.Settings.MapDrumChannel;
+            chkMapDrums.Text = $"Drums\r\nchan {Common.Settings.DrumChannel}";
+
+            barBar.BeatsPerBar = BEATS_PER_BAR;
+            barBar.TicksPerBeat = TICKS_PER_BEAT;
+            barBar.Snap = Common.Settings.Snap;
+
+            return ok;
         }
 
         /// <inheritdoc />
-        public bool SettingsUpdated()
+        public bool Dump(string fn, int level)
         {
-            chkMapDrums.Checked = Common.Settings.MapDrumChannel;
-            chkMapDrums.Text = $"Drums on ch {Common.Settings.DrumChannel}";
+            bool ok = _sourceEvents != null;
 
-   //     public BarBar.SnapType Snap { get { return barBar.Snap; } set { barBar.Snap = value; } }
-   //     barBar.Snap = BarBar.SnapType.Bar;
-   //#endregion
+            if(ok)
+            {
+                List<string> st = new List<string>();
+                st.Add($"MidiFileType:{_sourceEvents.MidiFileType}");
+                st.Add($"DeltaTicksPerQuarterNote:{_sourceEvents.DeltaTicksPerQuarterNote}");
+                st.Add($"StartAbsoluteTime:{_sourceEvents.StartAbsoluteTime}");
+                st.Add($"Tracks:{_sourceEvents.Tracks}");
 
+                for (int trk = 0; trk < _sourceEvents.Tracks; trk++)
+                {
+                    st.Add($"  Track:{trk}");
 
-            // Reopen midi just in case it changed.
-            Close();
-            bool ok = OpenMidi();
+                    var trackEvents = _sourceEvents.GetTrackEvents(trk);
+                    for (int te = 0; te < trackEvents.Count; te++)
+                    {
+                        st.Add($"    {trackEvents[te]}");
+                    }
+                }
+
+                File.WriteAllLines(fn, st.ToArray());
+            }
 
             return ok;
         }
@@ -394,43 +446,15 @@ namespace ClipExplorer
                 _currentTick++;
                 barBar.CurrentTick = _currentTick;
 
-                // Check for end of play. Client will take care of looping.
+                // Check for end of play. Client will take care of transport control.
                 if (_currentTick > _lastTick)
                 {
+                    _currentTick = 0;
+                    barBar.CurrentTick = _currentTick;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
-                    Stop();
+                    //Stop();
                 }
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        void CloseMidi()
-        {
-            _midiOut?.Dispose();
-            _midiOut = null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        bool OpenMidi()
-        {
-            bool ok = true;
-            // Figure out which output device.
-            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
-            {
-                if (Common.Settings.MidiOutDevice == MidiOut.DeviceInfo(devindex).ProductName)
-                {
-                    _midiOut = new MidiOut(devindex);
-                    ok = true;
-                    break;
-                }
-            }
-
-            return ok;
         }
 
         /// <summary>
@@ -439,10 +463,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void LogMessage(string s)
         {
-            if(_logEnable)
-            {
-                Log?.Invoke(this, $"MidiPlayer:{s}");
-            }
+            Log?.Invoke(this, $"MidiPlayer:{s}");
         }
 
         /// <summary>
@@ -451,7 +472,7 @@ namespace ClipExplorer
         /// <param name="channel"></param>
         void Kill(int channel)
         {
-            LogMessage($"Kill:{channel}");
+            //LogMessage($"Kill:{channel}");
             ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
             _midiOut?.Send(nevt.GetAsShortMessage());
         }
@@ -529,7 +550,7 @@ namespace ClipExplorer
         {
             int channel = e.Id;
             PlayChannel pch = _playChannels[channel];
-            LogMessage($"Click:{channel}");
+            //LogMessage($"Click:{channel}");
 
             switch (pch.Mode)
             {
@@ -582,6 +603,21 @@ namespace ClipExplorer
         {
             CurrentTime = TicksToTime(barBar.CurrentTick);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MapDrums_CheckedChanged(object sender, EventArgs e)
+        {
+            Common.Settings.MapDrumChannel = chkMapDrums.Checked;
+            if(_fn != "")
+            {
+                // Reload.
+                OpenFile(_fn);
+            }
+        }
         #endregion
 
         #region Interop Multimedia Timer Functions
@@ -604,18 +640,8 @@ namespace ClipExplorer
             public int periodMin;
             public int periodMax;
         }
-#pragma warning restore IDE1006 // Naming Styles
+        #pragma warning restore IDE1006 // Naming Styles
         #endregion
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void MapDrums_CheckedChanged(object sender, EventArgs e)
-        {
-            Common.Settings.MapDrumChannel = chkMapDrums.Checked;
-        }
     }
 
     /// <summary>Channel events and other properties.</summary>
