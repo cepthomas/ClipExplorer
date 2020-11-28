@@ -20,6 +20,7 @@ namespace ClipExplorer
             this.sldTempo = new NBagOfTricks.UI.Slider();
             this.clickGrid = new NBagOfTricks.UI.ClickGrid();
             this.barBar = new NBagOfTricks.UI.BarBar();
+            this.chkMapDrums = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // sldTempo
@@ -41,7 +42,7 @@ namespace ClipExplorer
             // clickGrid
             // 
             this.clickGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.clickGrid.Location = new System.Drawing.Point(17, 84);
+            this.clickGrid.Location = new System.Drawing.Point(17, 101);
             this.clickGrid.Name = "clickGrid";
             this.clickGrid.Size = new System.Drawing.Size(480, 214);
             this.clickGrid.TabIndex = 69;
@@ -56,14 +57,27 @@ namespace ClipExplorer
             this.barBar.Name = "barBar";
             this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(295, 43);
-            this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.None;
+            this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Tick;
             this.barBar.TabIndex = 70;
             this.barBar.TicksPerBeat = 8;
+            // 
+            // chkMapDrums
+            // 
+            this.chkMapDrums.Appearance = System.Windows.Forms.Appearance.Button;
+            this.chkMapDrums.AutoSize = true;
+            this.chkMapDrums.Location = new System.Drawing.Point(17, 68);
+            this.chkMapDrums.Name = "chkMapDrums";
+            this.chkMapDrums.Size = new System.Drawing.Size(108, 27);
+            this.chkMapDrums.TabIndex = 71;
+            this.chkMapDrums.Text = "chkMapDrums";
+            this.chkMapDrums.UseVisualStyleBackColor = true;
+            this.chkMapDrums.CheckedChanged += new System.EventHandler(this.MapDrums_CheckedChanged);
             // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.chkMapDrums);
             this.Controls.Add(this.barBar);
             this.Controls.Add(this.clickGrid);
             this.Controls.Add(this.sldTempo);
@@ -71,6 +85,7 @@ namespace ClipExplorer
             this.Size = new System.Drawing.Size(523, 434);
             this.Load += new System.EventHandler(this.MidiPlayer_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
         #endregion
@@ -78,5 +93,6 @@ namespace ClipExplorer
         private NBagOfTricks.UI.Slider sldTempo;
         private NBagOfTricks.UI.ClickGrid clickGrid;
         private NBagOfTricks.UI.BarBar barBar;
+        private CheckBox chkMapDrums;
     }
 }

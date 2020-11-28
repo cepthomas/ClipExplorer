@@ -12,8 +12,8 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODO-Feature Mute/solo individual drums?
-// TODO-Feature Select/loop. Make a new clip file from selection.
+// TODO Feature Mute/solo individual drums?
+// TODO Feature Select/loop. Make a new clip file from selection.
 
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
@@ -87,6 +87,9 @@ namespace ClipExplorer
 
         /// <summary>The midi controller definitions.</summary>
         readonly Dictionary<int, string> _controllerDefs = new Dictionary<int, string>();
+
+        /// <summary>Turn logging on or off.</summary>
+        bool _logEnable = false;
         #endregion
 
         #region Properties - interface implementation
@@ -100,8 +103,8 @@ namespace ClipExplorer
         /// <inheritdoc />
         public double CurrentTime
         {
-           get { return _midiOut == null ? 0 : TicksToTime(_currentTick); }
-           set { _currentTick = _midiOut == null? 0 : TimeToTicks(value); }
+           get { return TicksToTime(_currentTick); }
+           set { _currentTick = TimeToTicks(value); }
         }
 
         /// <inheritdoc />
@@ -133,6 +136,8 @@ namespace ClipExplorer
         void MidiPlayer_Load(object sender, EventArgs e)
         {
             LoadMidiDefs();
+
+            SettingsUpdated();
 
             // Set up the channel/mute/solo grid.
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
@@ -176,19 +181,7 @@ namespace ClipExplorer
             using (new WaitCursor())
             {
                 // Clean up first.
-                Close();
                 clickGrid.Clear();
-
-                // Figure out which output device.
-                for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
-                {
-                    if (Common.Settings.MidiOutDevice == MidiOut.DeviceInfo(devindex).ProductName)
-                    {
-                        _midiOut = new MidiOut(devindex);
-                        ok = true;
-                        break;
-                    }
-                }
 
                 if (ok)
                 {
@@ -330,10 +323,27 @@ namespace ClipExplorer
         public void Close()
         {
             Stop();
+            CloseMidi();
             _currentTick = 0;
-            barBar.CurrentTick = _currentTick;
-            _midiOut?.Dispose();
-            _midiOut = null;
+            barBar.CurrentTick = 0;
+        }
+
+        /// <inheritdoc />
+        public bool SettingsUpdated()
+        {
+            chkMapDrums.Checked = Common.Settings.MapDrumChannel;
+            chkMapDrums.Text = $"Drums on ch {Common.Settings.DrumChannel}";
+
+   //     public BarBar.SnapType Snap { get { return barBar.Snap; } set { barBar.Snap = value; } }
+   //     barBar.Snap = BarBar.SnapType.Bar;
+   //#endregion
+
+
+            // Reopen midi just in case it changed.
+            Close();
+            bool ok = OpenMidi();
+
+            return ok;
         }
         #endregion
 
@@ -366,13 +376,13 @@ namespace ClipExplorer
                                     {
                                         double vel = (mevt as NoteEvent).Velocity;
                                         (mevt as NoteEvent).Velocity = (int)(vel * Volume);
-                                        _midiOut.Send(mevt.GetAsShortMessage());
+                                        _midiOut?.Send(mevt.GetAsShortMessage());
                                         // Need to restore.
                                         (mevt as NoteEvent).Velocity = (int)vel;
                                     }
                                     else // not pertinent
                                     {
-                                        _midiOut.Send(mevt.GetAsShortMessage());
+                                        _midiOut?.Send(mevt.GetAsShortMessage());
                                     }
                                 }
                             }
@@ -394,12 +404,45 @@ namespace ClipExplorer
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        void CloseMidi()
+        {
+            _midiOut?.Dispose();
+            _midiOut = null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        bool OpenMidi()
+        {
+            bool ok = true;
+            // Figure out which output device.
+            for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
+            {
+                if (Common.Settings.MidiOutDevice == MidiOut.DeviceInfo(devindex).ProductName)
+                {
+                    _midiOut = new MidiOut(devindex);
+                    ok = true;
+                    break;
+                }
+            }
+
+            return ok;
+        }
+
+        /// <summary>
         /// Logger.
         /// </summary>
         /// <param name="s"></param>
         void LogMessage(string s)
         {
-            Log?.Invoke(this, $"MidiPlayer:{s}");
+            if(_logEnable)
+            {
+                Log?.Invoke(this, $"MidiPlayer:{s}");
+            }
         }
 
         /// <summary>
@@ -476,6 +519,7 @@ namespace ClipExplorer
         }
         #endregion
 
+        #region Event handlers
         /// <summary>
         /// 
         /// </summary>
@@ -515,7 +559,6 @@ namespace ClipExplorer
             clickGrid.SetIndicator(channel, (int)pch.Mode);
         }
 
-        #region Event handlers
         /// <summary>
         /// User changed tempo.
         /// </summary>
@@ -542,7 +585,7 @@ namespace ClipExplorer
         #endregion
 
         #region Interop Multimedia Timer Functions
-#pragma warning disable IDE1006 // Naming Styles
+        #pragma warning disable IDE1006 // Naming Styles
 
         [DllImport("winmm.dll")]
         private static extern int timeGetDevCaps(ref TimerCaps caps, int sizeOfTimerCaps);
@@ -561,8 +604,18 @@ namespace ClipExplorer
             public int periodMin;
             public int periodMax;
         }
-        #pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore IDE1006 // Naming Styles
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MapDrums_CheckedChanged(object sender, EventArgs e)
+        {
+            Common.Settings.MapDrumChannel = chkMapDrums.Checked;
+        }
     }
 
     /// <summary>Channel events and other properties.</summary>

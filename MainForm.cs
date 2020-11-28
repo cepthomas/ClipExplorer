@@ -67,7 +67,7 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// for testing only
-            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\one-sec.wav");
+            //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\one-sec.wav");
             //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
             //var v = player._sourceEvents;
             //DumpMidi(v, "dump.txt");
@@ -81,8 +81,6 @@ namespace ClipExplorer
             _player?.Close();
             _player?.Dispose();
 
-            // Save user settings.
-            ftree.FlushChanges();
             SaveSettings();
         }
         #endregion
@@ -129,12 +127,15 @@ namespace ClipExplorer
                 };
 
                 // Detect changes of interest.
-                bool restart = false;
-                bool reinit = false;
+                bool midiChange = false;
+                bool audioChange = false;
+                bool navChange = false;
+
                 pg.PropertyValueChanged += (sdr, args) =>
                 {
-                    restart = args.ChangedItem.PropertyDescriptor.Category == "Audio";
-                    reinit = args.ChangedItem.PropertyDescriptor.Category == "Navigator";
+                    midiChange = args.ChangedItem.PropertyDescriptor.Category == "Midi";
+                    audioChange = args.ChangedItem.PropertyDescriptor.Category == "Audio";
+                    navChange = args.ChangedItem.PropertyDescriptor.Category == "Navigator";
                 };
 
                 f.Controls.Add(pg);
@@ -142,11 +143,12 @@ namespace ClipExplorer
                 f.Dispose();
 
                 // Figure out what changed - each handled differently.
-                if (restart)
+                if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
                 {
-                    MessageBox.Show("UI changes require a restart to take effect.");
+                    _player.SettingsUpdated();
                 }
-                else if(reinit)
+
+                if(navChange)
                 {
                     InitNavigator();
                 }
@@ -297,7 +299,7 @@ namespace ClipExplorer
                             UserControl ctrl = _player as UserControl;
                             ctrl.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
                             splitContainer1.Panel2.Controls.Add(ctrl);
-                            ok = _player.OpenFile(fn);
+                            ok = _player.OpenFile(fn);//TODO1 if autoplay...
                         }
                     }
                     else

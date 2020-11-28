@@ -50,6 +50,9 @@ namespace ClipExplorer
 
         /// <summary>Clean up internal resources.</summary>
         void Close();
+
+        /// <summary>Settings have been edited.</summary>
+        bool SettingsUpdated();
         #endregion
     }
 }

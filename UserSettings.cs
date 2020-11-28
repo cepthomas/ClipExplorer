@@ -9,8 +9,9 @@ using System.ComponentModel.Design;
 using System.Windows.Forms.Design;
 using Newtonsoft.Json;
 using NAudio.Wave;
-using NBagOfTricks.UI;
 using NAudio.Midi;
+using NBagOfTricks.UI;
+
 
 namespace ClipExplorer
 {
@@ -38,13 +39,6 @@ namespace ClipExplorer
         [Editor(typeof(ListEditor), typeof(UITypeEditor))]
         public List<string> AllTags { get; set; } = new List<string>();
 
-        [DisplayName("Midi Output Device")]
-        [Description("Where to go.")]
-        [Category("Audio")]
-        [Browsable(true)]
-        [TypeConverter(typeof(FixedListTypeConverter))]
-        public string MidiOutDevice { get; set; } = "";
-
         [DisplayName("Wave Output Device")]
         [Description("Where to go.")]
         [Category("Audio")]
@@ -58,6 +52,31 @@ namespace ClipExplorer
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
+
+        [DisplayName("Midi Output Device")]
+        [Description("Where to go.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        [TypeConverter(typeof(FixedListTypeConverter))]
+        public string MidiOutDevice { get; set; } = "";
+
+        [DisplayName("Drum Channel")]
+        [Description("Some files don't use ch10 so map from these.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public int DrumChannel { get; set; } = 1;
+
+        [DisplayName("Enable Mapping Drum Channel")]
+        [Description("See Drum Channel.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public bool MapDrumChannel { get; set; } = false;
+
+        [DisplayName("Snap To Grid")]
+        [Description("Snap to bar/beat/tick.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;
         #endregion
 
         #region Persisted Non-editable Properties
