@@ -80,8 +80,6 @@ namespace ClipExplorer
 
             timeBar.ProgressColor = Color.LightCyan;
 
-            PopulateRecentMenu();
-
             InitNavigator();
 
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
@@ -242,6 +240,26 @@ namespace ClipExplorer
 
         #region File handling
         /// <summary>
+        /// Organize the file drop down.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void File_DropDownOpening(object sender, EventArgs e)
+        {
+            // Take a reference to add back in later.
+            var op = openToolStripMenuItem;
+
+            fileDropDownButton.DropDownItems.Clear();
+            fileDropDownButton.DropDownItems.Add(op);
+
+            Common.Settings.RecentFiles.ForEach(f =>
+            {
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(f, null, new EventHandler(Recent_Click));
+                fileDropDownButton.DropDownItems.Add(menuItem);
+            });
+        }
+
+        /// <summary>
         /// The user has asked to open a recent file.
         /// </summary>
         void Recent_Click(object sender, EventArgs e)
@@ -338,7 +356,7 @@ namespace ClipExplorer
             if (ok)
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()} - {fn}";
-                AddToRecentDefs(fn);
+                Common.Settings.RecentFiles.UpdateMru(fn);
                 timeBar.Length = MiscUtils.SecondsToTimeSpan(_player.Length);
             }
             else
@@ -347,34 +365,6 @@ namespace ClipExplorer
             }
 
             return ok;
-        }
-
-        /// <summary>
-        /// Create the menu with the recently used files.
-        /// </summary>
-        void PopulateRecentMenu()
-        {
-            ToolStripItemCollection menuItems = recentToolStripMenuItem.DropDownItems;
-            menuItems.Clear();
-
-            Common.Settings.RecentFiles.ForEach(f =>
-            {
-                ToolStripMenuItem menuItem = new ToolStripMenuItem(f, null, new EventHandler(Recent_Click));
-                menuItems.Add(menuItem);
-            });
-        }
-
-        /// <summary>
-        /// Update the mru with the user selection.
-        /// </summary>
-        /// <param name="fn">The selected file.</param>
-        void AddToRecentDefs(string fn)
-        {
-            if (File.Exists(fn))
-            {
-                Common.Settings.RecentFiles.UpdateMru(fn);
-                PopulateRecentMenu();
-            }
         }
         #endregion
 

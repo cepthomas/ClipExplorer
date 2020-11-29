@@ -193,6 +193,16 @@ namespace ClipExplorer.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap glyphicons_37_file {
+            get {
+                object obj = ResourceManager.GetObject("glyphicons_37_file", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap glyphicons_440_wrench {
             get {
                 object obj = ResourceManager.GetObject("glyphicons_440_wrench", resourceCulture);
@@ -217,16 +227,6 @@ namespace ClipExplorer.Properties {
             get {
                 object obj = ResourceManager.GetObject("glyphicons_86_repeat", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon zebra {
-            get {
-                object obj = ResourceManager.GetObject("zebra", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
             }
         }
     }
