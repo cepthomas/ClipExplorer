@@ -460,7 +460,7 @@ namespace ClipExplorer
         void InitNavigator()
         {
             ftree.FilterExts = _fileExts.ToLower().SplitByToken(";");
-            ftree.RootPaths = Common.Settings.RootDirs.DeepClone();
+            ftree.RootDirs = Common.Settings.RootDirs.DeepClone();
             ftree.AllTags = Common.Settings.AllTags.DeepClone();
             ftree.DoubleClickSelect = !Common.Settings.Autoplay;
 

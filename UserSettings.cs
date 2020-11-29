@@ -20,7 +20,7 @@ namespace ClipExplorer
     {
         #region Persisted editable properties
         [DisplayName("Root Directories")]
-        [Description("Where to start.")]
+        [Description("Where to look in order as they appear.")]
         [Category("Navigator")]
         [Browsable(true)]
         [Editor(typeof(ListEditor), typeof(UITypeEditor))]

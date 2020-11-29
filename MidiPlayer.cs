@@ -12,8 +12,8 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODOC Mute/solo individual drums?
-// TODOC Select/loop? Make a new clip file from selection.
+// TODO Mute/solo individual drums?
+// TODO Select then loop and/or make a new clip file from selection.
 
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
