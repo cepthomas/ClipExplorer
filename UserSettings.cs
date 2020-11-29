@@ -33,14 +33,14 @@ namespace ClipExplorer
         public bool Autoplay { get; set; } = true;
 
         [DisplayName("All Tags")]
-        [Description("All possible tags.")]
+        [Description("All possible tags for filtering.")]
         [Category("Navigator")]
         [Browsable(true)]
         [Editor(typeof(ListEditor), typeof(UITypeEditor))]
         public List<string> AllTags { get; set; } = new List<string>();
 
         [DisplayName("Wave Output Device")]
-        [Description("Where to go.")]
+        [Description("Where audio to go.")]
         [Category("Audio")]
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
@@ -61,19 +61,19 @@ namespace ClipExplorer
         public string MidiOutDevice { get; set; } = "";
 
         [DisplayName("Drum Channel")]
-        [Description("Some files don't use ch10 so map from these.")]
+        [Description("Some files have drums on other than ch10 so map from that channel.")]
         [Category("Midi")]
         [Browsable(true)]
         public int DrumChannel { get; set; } = 1;
 
         [DisplayName("Enable Mapping Drum Channel")]
-        [Description("See Drum Channel.")]
+        [Description("Turn Drum Channel on or off.")]
         [Category("Midi")]
         [Browsable(true)]
         public bool MapDrumChannel { get; set; } = false;
 
         [DisplayName("Snap To Grid")]
-        [Description("Snap to bar/beat/tick.")]
+        [Description("Snap to bar | beat | tick.")]
         [Category("Midi")]
         [Browsable(true)]
         public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;

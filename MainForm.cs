@@ -110,11 +110,12 @@ namespace ClipExplorer
         /// </summary>
         void SaveSettings()
         {
-            Common.Settings.AllTags = ftree.AllTags.ToList();
+            Common.Settings.AllTags = ftree.AllTags;
+            Common.Settings.TaggedPaths = ftree.TaggedPaths;
             Common.Settings.Autoplay = !ftree.DoubleClickSelect;
 
-            Common.Settings.TaggedPaths.Clear();
-            ftree.TaggedPaths.ForEach(v => Common.Settings.TaggedPaths[v.path] = v.tags);
+            //Common.Settings.TaggedPaths.Clear();
+            //ftree.TaggedPaths.ForEach(v => Common.Settings.TaggedPaths[v.path] = v.tags);
 
             Common.Settings.Volume = sldVolume.Value;
             Common.Settings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
@@ -462,10 +463,11 @@ namespace ClipExplorer
             ftree.FilterExts = _fileExts.ToLower().SplitByToken(";");
             ftree.RootDirs = Common.Settings.RootDirs.DeepClone();
             ftree.AllTags = Common.Settings.AllTags.DeepClone();
+            ftree.TaggedPaths = Common.Settings.TaggedPaths.DeepClone(); ;
             ftree.DoubleClickSelect = !Common.Settings.Autoplay;
 
-            ftree.TaggedPaths.Clear();
-            Common.Settings.TaggedPaths.ForEach(kv => ftree.TaggedPaths.Add((kv.Key, kv.Value)));
+            //ftree.TaggedPaths.Clear();
+            //Common.Settings.TaggedPaths.ForEach(kv => ftree.TaggedPaths.Add((kv.Key, kv.Value)));
 
             ftree.Init();
         }

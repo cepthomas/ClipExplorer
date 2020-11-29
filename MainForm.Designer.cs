@@ -122,16 +122,12 @@
             // 
             // ftree
             // 
-            this.ftree.AllTags = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.AllTags")));
             this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ftree.DoubleClickSelect = false;
-            this.ftree.FilterExts = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.FilterExts")));
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
-            this.ftree.RootDirs = ((System.Collections.Generic.List<string>)(resources.GetObject("ftree.RootPaths")));
             this.ftree.Size = new System.Drawing.Size(647, 608);
             this.ftree.TabIndex = 0;
-            this.ftree.TaggedPaths = ((System.Collections.Generic.List<System.ValueTuple<string, string>>)(resources.GetObject("ftree.TaggedPaths")));
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
             // timeBar
