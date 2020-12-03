@@ -32,13 +32,6 @@ namespace ClipExplorer
         [Browsable(true)]
         public bool Autoplay { get; set; } = true;
 
-        [DisplayName("All Tags")]
-        [Description("All possible tags for filtering.")]
-        [Category("Navigator")]
-        [Browsable(true)]
-        [Editor(typeof(ListEditor), typeof(UITypeEditor))]
-        public List<string> AllTags { get; set; } = new List<string>();
-
         [DisplayName("Wave Output Device")]
         [Description("Where audio to go.")]
         [Category("Audio")]
@@ -88,6 +81,9 @@ namespace ClipExplorer
 
         [Browsable(false)]
         public List<string> RecentFiles { get; set; } = new List<string>();
+
+        [Browsable(false)]
+        public Dictionary<string, bool> AllTags { get; set; } = new Dictionary<string, bool>();
 
         [Browsable(false)]
         public Dictionary<string, string> TaggedPaths { get; set; } = new Dictionary<string, string>();

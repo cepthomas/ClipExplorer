@@ -114,9 +114,6 @@ namespace ClipExplorer
             Common.Settings.TaggedPaths = ftree.TaggedPaths;
             Common.Settings.Autoplay = !ftree.DoubleClickSelect;
 
-            //Common.Settings.TaggedPaths.Clear();
-            //ftree.TaggedPaths.ForEach(v => Common.Settings.TaggedPaths[v.path] = v.tags);
-
             Common.Settings.Volume = sldVolume.Value;
             Common.Settings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
 
@@ -142,7 +139,7 @@ namespace ClipExplorer
                 PropertyGridEx pg = new PropertyGridEx()
                 {
                     Dock = DockStyle.Fill,
-                    PropertySort = PropertySort.NoSort,
+                    PropertySort = PropertySort.Categorized,
                     SelectedObject = Common.Settings
                 };
 
@@ -465,9 +462,6 @@ namespace ClipExplorer
             ftree.AllTags = Common.Settings.AllTags.DeepClone();
             ftree.TaggedPaths = Common.Settings.TaggedPaths.DeepClone(); ;
             ftree.DoubleClickSelect = !Common.Settings.Autoplay;
-
-            //ftree.TaggedPaths.Clear();
-            //Common.Settings.TaggedPaths.ForEach(kv => ftree.TaggedPaths.Add((kv.Key, kv.Value)));
 
             ftree.Init();
         }
