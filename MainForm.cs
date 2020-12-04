@@ -453,14 +453,14 @@ namespace ClipExplorer
 
         #region Navigator functions
         /// <summary>
-        /// Initialize tree from user settings.
+        /// Initialize tree from user settings. Clone so we don't mess up the originals.
         /// </summary>
         void InitNavigator()
         {
             ftree.FilterExts = _fileExts.ToLower().SplitByToken(";");
-            ftree.RootDirs = Common.Settings.RootDirs.DeepClone();
-            ftree.AllTags = Common.Settings.AllTags.DeepClone();
-            ftree.TaggedPaths = Common.Settings.TaggedPaths.DeepClone(); ;
+            ftree.RootDirs = Common.Settings.RootDirs;
+            ftree.AllTags = Common.Settings.AllTags;
+            ftree.TaggedPaths = Common.Settings.TaggedPaths;
             ftree.DoubleClickSelect = !Common.Settings.Autoplay;
 
             ftree.Init();
