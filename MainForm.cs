@@ -13,6 +13,7 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
+// Move into separate nbot project.
 
 namespace ClipExplorer
 {
