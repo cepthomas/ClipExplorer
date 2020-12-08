@@ -27,13 +27,13 @@ namespace ClipExplorer
         public List<string> RootDirs { get; set; } = new List<string>();
 
         [DisplayName("Autoplay Files")]
-        [Description("Single click plays file otherwise double click.")]
+        [Description("Single click plays file otherwise requires double click.")]
         [Category("Navigator")]
         [Browsable(true)]
         public bool Autoplay { get; set; } = true;
 
         [DisplayName("Wave Output Device")]
-        [Description("Where audio to go.")]
+        [Description("How to play the audio files.")]
         [Category("Audio")]
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
@@ -47,20 +47,20 @@ namespace ClipExplorer
         public string Latency { get; set; } = "200";
 
         [DisplayName("Midi Output Device")]
-        [Description("Where to go.")]
+        [Description("How to play the midi files.")]
         [Category("Midi")]
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string MidiOutDevice { get; set; } = "";
 
         [DisplayName("Drum Channel")]
-        [Description("Some files have drums on other than ch10 so map from that channel.")]
+        [Description("Some files have drums on other than channel 10 so map those from that channel.")]
         [Category("Midi")]
         [Browsable(true)]
         public int DrumChannel { get; set; } = 1;
 
         [DisplayName("Enable Mapping Drum Channel")]
-        [Description("Turn Drum Channel on or off.")]
+        [Description("Turn Drum Channel option on or off.")]
         [Category("Midi")]
         [Browsable(true)]
         public bool MapDrumChannel { get; set; } = false;

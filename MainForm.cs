@@ -201,7 +201,7 @@ namespace ClipExplorer
             List<string> mdText = new List<string>();
 
             // Main help file.
-            mdText.Add(File.ReadAllText(@"Resources\README.md"));
+            mdText.Add(File.ReadAllText(@".\README.md")); //TODOC? xxx use github link https://github.com/cepthomas/ClipExplorer/blob/main/README.md
 
             // Put it together.
             List<string> htmlText = new List<string>
@@ -250,6 +250,8 @@ namespace ClipExplorer
 
             fileDropDownButton.DropDownItems.Clear();
             fileDropDownButton.DropDownItems.Add(op);
+
+            fileDropDownButton.DropDownItems.Add(new ToolStripSeparator());
 
             Common.Settings.RecentFiles.ForEach(f =>
             {

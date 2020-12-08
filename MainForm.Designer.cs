@@ -80,7 +80,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(137, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.openToolStripMenuItem.Text = "Open...";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.Open_Click);
             // 
@@ -104,6 +104,7 @@
             this.btnAbout.Size = new System.Drawing.Size(29, 24);
             this.btnAbout.Text = "toolStripButton1";
             this.btnAbout.ToolTipText = "Get some info";
+            this.btnAbout.Click += new System.EventHandler(this.About_Click);
             // 
             // splitContainer1
             // 
