@@ -61,6 +61,7 @@ namespace ClipExplorer
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += Player_Log;
             _wavePlayer.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
+            _wavePlayer.Width = timeBar.Width;
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
             _midiPlayer = new MidiPlayer
@@ -70,6 +71,8 @@ namespace ClipExplorer
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += Player_Log;
             _midiPlayer.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
+            _midiPlayer.Width = timeBar.Width;
+            //_midiPlayer.Height = 200;
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
             // Init UI from settings
@@ -78,8 +81,8 @@ namespace ClipExplorer
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = Common.Settings.Volume;
-
-            timeBar.ProgressColor = Color.LightCyan;
+            sldVolume.DrawColor = Common.Settings.SliderColor;
+            timeBar.ProgressColor = Common.Settings.BarColor;
 
             InitNavigator();
 
@@ -87,10 +90,8 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// for testing only
-            //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\one-sec.wav");
-            //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\WICKGAME.MID");
-            //var v = player._sourceEvents;
-            //DumpMidi(v, "dump.txt");
+            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\ref-stereo.wav");
+            //_player.Dump("Dump.csv");
         }
 
         /// <summary>
@@ -201,7 +202,7 @@ namespace ClipExplorer
             List<string> mdText = new List<string>();
 
             // Main help file.
-            mdText.Add(File.ReadAllText(@".\README.md")); //TODOC? xxx use github link https://github.com/cepthomas/ClipExplorer/blob/main/README.md
+            mdText.Add(File.ReadAllText(@".\README.md"));
 
             // Put it together.
             List<string> htmlText = new List<string>
@@ -387,6 +388,7 @@ namespace ClipExplorer
         /// <returns></returns>
         bool Start()
         {
+            _player?.Rewind();
             _player?.Start();
             SetPlayCheck(true);
             return true;

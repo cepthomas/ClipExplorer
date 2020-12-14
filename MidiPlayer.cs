@@ -151,10 +151,12 @@ namespace ClipExplorer
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.LightGreen);
             clickGrid.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.Salmon);
 
-            barBar.ProgressColor = Color.PaleVioletRed;
+            barBar.ProgressColor = Common.Settings.BarColor;
             barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
 
-             _timeProc = new TimeProc(MmTimerCallback);
+            sldTempo.DrawColor = Common.Settings.SliderColor;
+
+            _timeProc = new TimeProc(MmTimerCallback);
         }
 
         /// <summary> 
@@ -369,11 +371,11 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public bool Dump(string fn, int level)
+        public bool Dump(string fn)
         {
-            bool ok = _sourceEvents != null;
+            bool ok = true;
 
-            if(ok)
+            if(_sourceEvents != null)
             {
                 List<string> st = new List<string>();
                 st.Add($"MidiFileType:{_sourceEvents.MidiFileType}");
@@ -393,6 +395,11 @@ namespace ClipExplorer
                 }
 
                 File.WriteAllLines(fn, st.ToArray());
+            }
+            else
+            {
+                Log?.Invoke(this, "Midi file not open");
+                ok = false;
             }
 
             return ok;

@@ -28,6 +28,9 @@ namespace ClipExplorer
 
         /// <summary>Input device for playing wav file.</summary>
         AudioFileReader _audioFileReader = null;
+
+        /// <summary>Stream read chunk.</summary>
+        const int READ_BUFF_SIZE = 1000000;
         #endregion
 
         #region Properties - interface implementation
@@ -60,7 +63,6 @@ namespace ClipExplorer
         public WavePlayer()
         {
             InitializeComponent();
-            ResetMeters();
         }
 
         /// <summary> 
@@ -78,6 +80,21 @@ namespace ClipExplorer
             CloseAudio();
             
             base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WavePlayer_Load(object sender, EventArgs e)
+        {
+            ResetMeters();
+
+            waveViewerL.DrawColor = Common.Settings.MeterColor;
+            waveViewerR.DrawColor = Common.Settings.MeterColor;
+            levelL.DrawColor = Common.Settings.MeterColor;
+            levelR.DrawColor = Common.Settings.MeterColor;
         }
         #endregion
 
@@ -120,7 +137,7 @@ namespace ClipExplorer
                     // Create reader.
                     ISampleProvider sampleProvider;
 
-                    var sampleChannel = new SampleChannel(_audioFileReader, true);
+                    var sampleChannel = new SampleChannel(_audioFileReader, false);
                     sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
 
                     var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
@@ -130,7 +147,7 @@ namespace ClipExplorer
                     _waveOut.Init(sampleProvider);
                     _waveOut.Volume = (float)Volume;
 
-                    ShowClip(fn);
+                    ShowClip();
                 }
                 else
                 {
@@ -183,24 +200,54 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public bool Dump(string fn, int level)
+        public bool Dump(string fn)
         {
             bool ok = true;
 
-            using (AudioFileReader afrdr = new AudioFileReader(fn))
+            if(_audioFileReader != null)
             {
-                var sampleChannel = new SampleChannel(afrdr, true);
+                _audioFileReader.Position = 0; // rewind
+                var sampleChannel = new SampleChannel(_audioFileReader, false);
 
-                long len = afrdr.Length / sizeof(float);
+                // Read all data.
+                long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
                 var data = new float[len];
+                int offset = 0;
+                int num = -1;
+                while (num != 0)
+                {
+                    num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
+                    offset += num;
+                }
 
                 // Make a csv file of data for external processing.
                 List<string> samples = new List<string>();
-                for (int i = 0; i < data.Length; i++)
+
+                if (sampleChannel.WaveFormat.Channels == 2) // stereo
                 {
-                    samples.Add($"{i + 1}, {data[i]}");
+                    samples.Add($"Index,Left,Right");
+                    long stlen = len / 2;
+
+                    for (long i = 0; i < stlen; i++)
+                    {
+                        samples.Add($"{i + 1}, {data[i * 2]}, {data[i * 2 + 1]}");
+                    }
                 }
+                else // mono
+                {
+                    samples.Add($"Index,Val");
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        samples.Add($"{i + 1}, {data[i]}");
+                    }
+                }
+
                 File.WriteAllLines(fn, samples);
+            }
+            else
+            {
+                Log?.Invoke(this, "Audio file not open");
+                ok = false;
             }
 
             return ok;
@@ -224,24 +271,44 @@ namespace ClipExplorer
         /// <summary>
         /// Show a clip waveform.
         /// </summary>
-        void ShowClip(string fn)
+        void ShowClip()
         {
-            using (AudioFileReader afrdr = new AudioFileReader(fn))
+            if (_audioFileReader != null)
             {
-                var sampleChannel = new SampleChannel(afrdr, true);
+                _audioFileReader.Position = 0; // rewind
+                var sampleChannel = new SampleChannel(_audioFileReader, false);
 
-                long len = afrdr.Length / sizeof(float);
+                // Read all data.
+                long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
                 var data = new float[len];
-
                 int offset = 0;
                 int num = -1;
                 while (num != 0)
                 {
-                    num = afrdr.Read(data, offset, 20000);
+                    num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
                     offset += num;
                 }
 
-                waveViewer.Init(data, 1.0f);
+                if (sampleChannel.WaveFormat.Channels == 2) // stereo
+                {
+                    long stlen = len / 2;
+                    var dataL = new float[stlen];
+                    var dataR = new float[stlen];
+                    
+                    for(long i = 0; i < stlen; i++)
+                    {
+                        dataL[i] = data[i * 2];
+                        dataR[i] = data[i * 2 + 1];
+                    }
+
+                    waveViewerL.Init(dataL, 1.0f);
+                    waveViewerR.Init(dataR, 1.0f);
+                }
+                else // mono
+                {
+                    waveViewerL.Init(data, 1.0f);
+                    waveViewerR.Init(null, 0);
+                }
             }
         }
 
@@ -291,8 +358,8 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void SampleChannel_PreVolumeMeter(object sender, StreamVolumeEventArgs e)
         {
-            waveformPainterL.AddMax(e.MaxSampleValues[0]);
-            waveformPainterR.AddMax(e.MaxSampleValues[1]);
+            //waveformPainterL.AddMax(e.MaxSampleValues[0]);
+            //waveformPainterR.AddMax(e.MaxSampleValues[1]);
         }
 
         /// <summary>
@@ -303,7 +370,7 @@ namespace ClipExplorer
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
             levelL.AddValue(e.MaxSampleValues[0]);
-            levelR.AddValue(e.MaxSampleValues[1]);
+            levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo
         }
         #endregion
     }

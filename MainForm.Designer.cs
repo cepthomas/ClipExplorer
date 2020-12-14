@@ -80,7 +80,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(137, 26);
             this.openToolStripMenuItem.Text = "Open...";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.Open_Click);
             // 
@@ -124,7 +124,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
-            this.splitContainer1.Size = new System.Drawing.Size(1330, 608);
+            this.splitContainer1.Size = new System.Drawing.Size(1330, 656);
             this.splitContainer1.SplitterDistance = 647;
             this.splitContainer1.TabIndex = 1;
             // 
@@ -134,7 +134,7 @@
             this.ftree.DoubleClickSelect = false;
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
-            this.ftree.Size = new System.Drawing.Size(647, 608);
+            this.ftree.Size = new System.Drawing.Size(647, 656);
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
@@ -144,7 +144,7 @@
             this.timeBar.Location = new System.Drawing.Point(21, 71);
             this.timeBar.Name = "timeBar";
             this.timeBar.ProgressColor = System.Drawing.Color.Fuchsia;
-            this.timeBar.Size = new System.Drawing.Size(523, 47);
+            this.timeBar.Size = new System.Drawing.Size(500, 50);
             this.timeBar.TabIndex = 60;
             this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
             // 
@@ -152,9 +152,9 @@
             // 
             this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbInfo.HideSelection = false;
-            this.rtbInfo.Location = new System.Drawing.Point(21, 378);
+            this.rtbInfo.Location = new System.Drawing.Point(21, 537);
             this.rtbInfo.Name = "rtbInfo";
-            this.rtbInfo.Size = new System.Drawing.Size(628, 211);
+            this.rtbInfo.Size = new System.Drawing.Size(628, 107);
             this.rtbInfo.TabIndex = 56;
             this.rtbInfo.Text = "";
             // 
@@ -183,9 +183,9 @@
             this.sldVolume.Name = "sldVolume";
             this.sldVolume.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.sldVolume.ResetValue = 0D;
-            this.sldVolume.Size = new System.Drawing.Size(93, 39);
+            this.sldVolume.Size = new System.Drawing.Size(100, 40);
             this.sldVolume.TabIndex = 42;
-            this.sldVolume.Value = 1D;
+            this.sldVolume.Value = 0.5D;
             this.sldVolume.ValueChanged += new System.EventHandler(this.Volume_ValueChanged);
             // 
             // btnRewind
@@ -223,7 +223,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1330, 635);
+            this.ClientSize = new System.Drawing.Size(1330, 683);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

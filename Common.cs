@@ -52,10 +52,9 @@ namespace ClipExplorer
         bool SettingsUpdated();
 
         /// <summary>Utility.</summary>
-        /// <param name="fn">Filename</param>
-        /// <param name="level">Detail</param>
+        /// <param name="fn">Output filename</param>
         /// <returns>success</returns>
-        bool Dump(string fn, int level);
+        bool Dump(string fn);
         #endregion
     }
 }
