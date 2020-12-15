@@ -37,7 +37,7 @@
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfTricks.UI.FilTree();
-            this.timeBar = new NBagOfTricks.UI.TimeBar();
+            this.lblMark = new System.Windows.Forms.Label();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.sldVolume = new NBagOfTricks.UI.Slider();
@@ -118,7 +118,7 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.timeBar);
+            this.splitContainer1.Panel2.Controls.Add(this.lblMark);
             this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
@@ -138,15 +138,14 @@
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
-            // timeBar
+            // lblMark
             // 
-            this.timeBar.ForeColor = System.Drawing.Color.Silver;
-            this.timeBar.Location = new System.Drawing.Point(21, 71);
-            this.timeBar.Name = "timeBar";
-            this.timeBar.ProgressColor = System.Drawing.Color.Fuchsia;
-            this.timeBar.Size = new System.Drawing.Size(500, 50);
-            this.timeBar.TabIndex = 60;
-            this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
+            this.lblMark.AutoSize = true;
+            this.lblMark.Location = new System.Drawing.Point(21, 67);
+            this.lblMark.Name = "lblMark";
+            this.lblMark.Size = new System.Drawing.Size(46, 17);
+            this.lblMark.TabIndex = 57;
+            this.lblMark.Text = "label1";
             // 
             // rtbInfo
             // 
@@ -217,6 +216,7 @@
             // 
             // timer1
             // 
+            this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
             // MainForm
@@ -236,6 +236,7 @@
             this.toolStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -255,10 +256,10 @@
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.RichTextBox rtbInfo;
-        private NBagOfTricks.UI.TimeBar timeBar;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.Label lblMark;
     }
 }
 

@@ -17,6 +17,7 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
+// TODO Select then loop and/or make a new clip file from selection.
 
 namespace ClipExplorer
 {
@@ -38,14 +39,14 @@ namespace ClipExplorer
         public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)MathUtils.Constrain(value, 0, 1); } }
 
         /// <inheritdoc />
-        public double CurrentTime
-        { 
-            get { return _audioFileReader == null ? 0 : MiscUtils.TimeSpanToSeconds(_audioFileReader.CurrentTime); }
-            set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = MiscUtils.SecondsToTimeSpan(value); } }
+        public TimeSpan CurrentTime
+        {
+            get { return _audioFileReader == null ? new TimeSpan() : _audioFileReader.CurrentTime; }
+            set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = value; } }
         }
-
+        
         /// <inheritdoc />
-        public double Length { get; private set; }
+        public TimeSpan Length { get; private set; }
         #endregion
 
         #region Events
@@ -76,7 +77,7 @@ namespace ClipExplorer
                 components.Dispose();
             }
 
-            // My stuff here....
+            // My stuff here.
             CloseAudio();
             
             base.Dispose(disposing);
@@ -91,10 +92,11 @@ namespace ClipExplorer
         {
             ResetMeters();
 
-            waveViewerL.DrawColor = Common.Settings.MeterColor;
-            waveViewerR.DrawColor = Common.Settings.MeterColor;
+            waveViewerL.DrawColor = Color.Black;
+            waveViewerR.DrawColor = Color.Black;
             levelL.DrawColor = Common.Settings.MeterColor;
             levelR.DrawColor = Common.Settings.MeterColor;
+            timeBar.ProgressColor = Common.Settings.BarColor;
         }
         #endregion
 
@@ -131,8 +133,8 @@ namespace ClipExplorer
                 {
                     _audioFileReader = new AudioFileReader(fn);
 
-                    CurrentTime = 0;
-                    Length = MiscUtils.TimeSpanToSeconds(_audioFileReader.TotalTime);
+                    CurrentTime = new TimeSpan();
+                    Length = _audioFileReader.TotalTime;
 
                     // Create reader.
                     ISampleProvider sampleProvider;
@@ -187,8 +189,9 @@ namespace ClipExplorer
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                _waveOut.Stop();
-                _audioFileReader.Position = 0;
+                //_waveOut.Stop();
+                CurrentTime = new TimeSpan();
+                timeBar.CurrentTime = CurrentTime;
             }
         }
 
@@ -309,6 +312,8 @@ namespace ClipExplorer
                     waveViewerL.Init(data, 1.0f);
                     waveViewerR.Init(null, 0);
                 }
+
+                timeBar.Length = Length;
             }
         }
 
@@ -333,6 +338,16 @@ namespace ClipExplorer
 
         #region Event Handlers
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
+        {
+            CurrentTime = timeBar.CurrentTime;
+        }
+
+        /// <summary>
         /// Usually end of file but could be error.
         /// </summary>
         /// <param name="sender"></param>
@@ -344,11 +359,7 @@ namespace ClipExplorer
                 throw e.Exception;
             }
 
-            if (_audioFileReader != null)
-            {
-                _audioFileReader.Position = 0;
-                PlaybackCompleted?.Invoke(this, new EventArgs());
-            }
+            PlaybackCompleted?.Invoke(this, new EventArgs());
         }
 
         /// <summary>
@@ -370,7 +381,8 @@ namespace ClipExplorer
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
             levelL.AddValue(e.MaxSampleValues[0]);
-            levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo
+            levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
+            timeBar.CurrentTime = CurrentTime;
         }
         #endregion
     }

@@ -22,6 +22,7 @@ namespace ClipExplorer
             this.levelR = new NBagOfTricks.UI.Meter();
             this.levelL = new NBagOfTricks.UI.Meter();
             this.waveViewerR = new NBagOfTricks.UI.WaveViewer();
+            this.timeBar = new NBagOfTricks.UI.TimeBar();
             this.SuspendLayout();
             // 
             // waveViewerL
@@ -29,7 +30,7 @@ namespace ClipExplorer
             this.waveViewerL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveViewerL.DrawColor = System.Drawing.Color.Green;
-            this.waveViewerL.Location = new System.Drawing.Point(0, 0);
+            this.waveViewerL.Location = new System.Drawing.Point(0, 55);
             this.waveViewerL.Name = "waveViewerL";
             this.waveViewerL.Size = new System.Drawing.Size(525, 50);
             this.waveViewerL.TabIndex = 67;
@@ -38,7 +39,7 @@ namespace ClipExplorer
             // 
             this.levelR.DrawColor = System.Drawing.Color.Fuchsia;
             this.levelR.Label = "R";
-            this.levelR.Location = new System.Drawing.Point(119, 122);
+            this.levelR.Location = new System.Drawing.Point(119, 177);
             this.levelR.Maximum = 3D;
             this.levelR.MeterType = NBagOfTricks.UI.MeterType.Log;
             this.levelR.Minimum = -60D;
@@ -51,7 +52,7 @@ namespace ClipExplorer
             // 
             this.levelL.DrawColor = System.Drawing.Color.Fuchsia;
             this.levelL.Label = "L";
-            this.levelL.Location = new System.Drawing.Point(0, 122);
+            this.levelL.Location = new System.Drawing.Point(0, 177);
             this.levelL.Maximum = 3D;
             this.levelL.MeterType = NBagOfTricks.UI.MeterType.Log;
             this.levelL.Minimum = -60D;
@@ -65,21 +66,34 @@ namespace ClipExplorer
             this.waveViewerR.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveViewerR.DrawColor = System.Drawing.Color.Green;
-            this.waveViewerR.Location = new System.Drawing.Point(0, 56);
+            this.waveViewerR.Location = new System.Drawing.Point(0, 111);
             this.waveViewerR.Name = "waveViewerR";
             this.waveViewerR.Size = new System.Drawing.Size(525, 50);
             this.waveViewerR.TabIndex = 68;
+            // 
+            // timeBar
+            // 
+            this.timeBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeBar.ForeColor = System.Drawing.Color.Silver;
+            this.timeBar.Location = new System.Drawing.Point(0, 0);
+            this.timeBar.Name = "timeBar";
+            this.timeBar.ProgressColor = System.Drawing.Color.Fuchsia;
+            this.timeBar.Size = new System.Drawing.Size(525, 50);
+            this.timeBar.TabIndex = 69;
+            this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
             // 
             // WavePlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.timeBar);
             this.Controls.Add(this.waveViewerR);
             this.Controls.Add(this.waveViewerL);
             this.Controls.Add(this.levelR);
             this.Controls.Add(this.levelL);
             this.Name = "WavePlayer";
-            this.Size = new System.Drawing.Size(525, 164);
+            this.Size = new System.Drawing.Size(525, 222);
             this.Load += new System.EventHandler(this.WavePlayer_Load);
             this.ResumeLayout(false);
 
@@ -91,6 +105,7 @@ namespace ClipExplorer
         private WaveViewer waveViewerR;
         private Meter levelR;
         private Meter levelL;
+        private TimeBar timeBar;
         //private NAudio.Gui.WaveformPainter waveformPainterR;
         //private NAudio.Gui.WaveformPainter waveformPainterL;
     }

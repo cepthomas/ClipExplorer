@@ -12,7 +12,8 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODO Mute/solo individual drums?
+// TODO Mute/solo individual drums.
+
 // TODO Select then loop and/or make a new clip file from selection.
 
 // An example midi file: WICKGAME.MID is 3:45 long.
@@ -97,10 +98,10 @@ namespace ClipExplorer
         public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
 
         /// <inheritdoc />
-        public double CurrentTime { get { return TicksToTime(_currentTick); } set { _currentTick = TimeToTicks(value); } }
+        public TimeSpan CurrentTime { get { return TicksToTime(_currentTick); } set { _currentTick = TimeToTicks(value); } }
 
         /// <inheritdoc />
-        public double Length { get; private set; }
+        public TimeSpan Length { get; private set; }
         #endregion
 
         #region Events
@@ -121,7 +122,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// 
+        /// Init UI.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -299,14 +300,14 @@ namespace ClipExplorer
             // Start or restart?
             if(!_running)
             {
-                // Calculate the actual period.
+                // Calculate the actual period to tell the user.
                 double secPerBeat = 60 / sldTempo.Value;
                 _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
 
                 int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
-                int msecPerBeat = period * TICKS_PER_BEAT;
-                int actualBpm = 60 * 1000 / msecPerBeat;
-                LogMessage($"Period:{period} msec Actual BPM:{actualBpm}");
+                float msecPerBeat = period * TICKS_PER_BEAT;
+                float actualBpm = 60.0f * 1000.0f / msecPerBeat;
+                LogMessage($"Period:{period} Goal_BPM:{sldTempo.Value:f2} Actual_BPM:{actualBpm:f2}");
 
                 // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
                 _timerID = timeSetEvent(period, 1, _timeProc, IntPtr.Zero, 1);
@@ -456,10 +457,7 @@ namespace ClipExplorer
                 // Check for end of play. Client will take care of transport control.
                 if (_currentTick > _lastTick)
                 {
-                    _currentTick = 0;
-                    barBar.CurrentTick = _currentTick;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
-                    //Stop();
                 }
             }
         }
@@ -485,24 +483,24 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Convert time in seconds to ticks.
+        /// Convert timespan to ticks.
         /// </summary>
         /// <param name="msec"></param>
         /// <returns></returns>
-        int TimeToTicks(double sec)
+        int TimeToTicks(TimeSpan ts)
         {
-            int ticks = (int)(sec * 1000 / _msecPerTick);
+            int ticks = (int)(ts.TotalMilliseconds / _msecPerTick);
             return ticks;
         }
 
         /// <summary>
-        /// Convert ticks to time in seconds.
+        /// Convert ticks to timespan.
         /// </summary>
         /// <returns></returns>
-        double TicksToTime(int ticks)
+        TimeSpan TicksToTime(int ticks)
         {
-            double sec = ticks * _msecPerTick / 1000;
-            return sec;
+            TimeSpan ts = new TimeSpan(0, 0, 0, 0, (int)(ticks * _msecPerTick));
+            return ts;
         }
 
         /// <summary>

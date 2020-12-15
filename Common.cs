@@ -18,11 +18,11 @@ namespace ClipExplorer
         /// <summary>Adjust master volume between 0.0 and 1.0.</summary>
         double Volume { get; set; }
 
-        /// <summary>Current play time/position in seconds.</summary>
-        double CurrentTime { get; set; }
+        /// <summary>Current play time/position.</summary>
+        TimeSpan CurrentTime { get; set; }
 
         /// <summary>Play length in same units as CurrentTime.</summary>
-        double Length { get; }
+        TimeSpan Length { get; }
         #endregion
 
         #region Events

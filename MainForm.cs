@@ -54,14 +54,15 @@ namespace ClipExplorer
             UserSettings.Load(appDir);
 
             // Create devices.
+            lblMark.Visible = false;
             _wavePlayer = new WavePlayer
             {
                 Visible = false
             };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += Player_Log;
-            _wavePlayer.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
-            _wavePlayer.Width = timeBar.Width;
+            _wavePlayer.Location = new Point(lblMark.Left, lblMark.Top);
+            //_wavePlayer.Width = timeBar.Width;
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
             _midiPlayer = new MidiPlayer
@@ -70,9 +71,8 @@ namespace ClipExplorer
             };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += Player_Log;
-            _midiPlayer.Location = new Point(timeBar.Left, timeBar.Bottom + 5);
-            _midiPlayer.Width = timeBar.Width;
-            //_midiPlayer.Height = 200;
+            _midiPlayer.Location = new Point(lblMark.Left, lblMark.Top);
+            //_midiPlayer.Width = timeBar.Width;
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
             // Init UI from settings
@@ -82,7 +82,6 @@ namespace ClipExplorer
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = Common.Settings.Volume;
             sldVolume.DrawColor = Common.Settings.SliderColor;
-            timeBar.ProgressColor = Common.Settings.BarColor;
 
             InitNavigator();
 
@@ -90,7 +89,7 @@ namespace ClipExplorer
             timer1.Enabled = true;
 
             ///// for testing only
-            OpenFile(@"C:\Dev\repos\ClipExplorer\_files\ref-stereo.wav");
+            //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\ref-stereo.wav");
             //_player.Dump("Dump.csv");
         }
 
@@ -115,7 +114,6 @@ namespace ClipExplorer
             Common.Settings.AllTags = ftree.AllTags;
             Common.Settings.TaggedPaths = ftree.TaggedPaths;
             Common.Settings.Autoplay = !ftree.DoubleClickSelect;
-
             Common.Settings.Volume = sldVolume.Value;
             Common.Settings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
 
@@ -359,7 +357,6 @@ namespace ClipExplorer
             {
                 Text = $"ClipExplorer {MiscUtils.GetVersionString()} - {fn}";
                 Common.Settings.RecentFiles.UpdateMru(fn);
-                timeBar.Length = MiscUtils.SecondsToTimeSpan(_player.Length);
             }
             else
             {
@@ -425,7 +422,15 @@ namespace ClipExplorer
             // Comes from a different thread.
             this.InvokeIfRequired(o =>
             {
-                bool _ = chkLoop.Checked ? Start() : Stop();
+                if (chkLoop.Checked)
+                {
+                    Start();
+                }
+                else
+                {
+                    Stop();
+                    _player.Rewind();
+                }
             });
         }
 
@@ -504,27 +509,6 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Timer1_Tick(object sender, EventArgs e)
         {
-            if(_player != null)
-            {
-                timeBar.CurrentTime = MiscUtils.SecondsToTimeSpan(_player.CurrentTime);
-            }
-            else
-            {
-                timeBar.CurrentTime = new TimeSpan();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
-        {
-            if(_player != null)
-            {
-                _player.CurrentTime = MiscUtils.TimeSpanToSeconds(timeBar.CurrentTime);
-            }
         }
         #endregion
     }
