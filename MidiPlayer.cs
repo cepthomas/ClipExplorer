@@ -14,7 +14,8 @@ using NBagOfTricks.Utils;
 
 // TODO Mute/solo individual drums.
 
-// TODO Select then loop and/or make a new clip file from selection.
+// TODO Select then loop and/or make a new clip file from selection.  >> MidiFile.Export(target, events);
+
 
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
@@ -353,7 +354,7 @@ namespace ClipExplorer
         public void Rewind()
         {
             _currentTick = 0;
-            barBar.CurrentTick = _currentTick;
+            barBar.Current = _currentTick;
         }
 
         /// <inheritdoc />
@@ -452,7 +453,7 @@ namespace ClipExplorer
 
                 // Bump time.
                 _currentTick++;
-                barBar.CurrentTick = _currentTick;
+                barBar.Current = _currentTick;
 
                 // Check for end of play. Client will take care of transport control.
                 if (_currentTick > _lastTick)
@@ -606,7 +607,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         private void BarBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            CurrentTime = TicksToTime(barBar.CurrentTick);
+            CurrentTime = TicksToTime(barBar.Current);
         }
 
         /// <summary>

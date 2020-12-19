@@ -41,7 +41,7 @@ namespace ClipExplorer
             this.barBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.barBar.BeatsPerBar = 4;
-            this.barBar.CurrentTick = 0;
+            this.barBar.Current = 0;
             this.barBar.Length = 0;
             this.barBar.Location = new System.Drawing.Point(0, 0);
             this.barBar.Name = "barBar";

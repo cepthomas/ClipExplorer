@@ -17,7 +17,7 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
-// TODO Select then loop and/or make a new clip file from selection.
+// TODO Select then loop and/or make a new clip file from selection. >> public class WaveFileWriter : Stream
 
 namespace ClipExplorer
 {
@@ -191,7 +191,7 @@ namespace ClipExplorer
             {
                 //_waveOut.Stop();
                 CurrentTime = new TimeSpan();
-                timeBar.CurrentTime = CurrentTime;
+                timeBar.Current = CurrentTime;
             }
         }
 
@@ -344,7 +344,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            CurrentTime = timeBar.CurrentTime;
+            CurrentTime = timeBar.Current;
         }
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace ClipExplorer
         {
             levelL.AddValue(e.MaxSampleValues[0]);
             levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
-            timeBar.CurrentTime = CurrentTime;
+            timeBar.Current = CurrentTime;
         }
         #endregion
     }
