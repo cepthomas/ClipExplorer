@@ -17,7 +17,6 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
-// TODO Select then loop and/or make a new clip file from selection. >> public class WaveFileWriter : Stream
 
 namespace ClipExplorer
 {
@@ -37,16 +36,6 @@ namespace ClipExplorer
         #region Properties - interface implementation
         /// <inheritdoc />
         public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)MathUtils.Constrain(value, 0, 1); } }
-
-        /// <inheritdoc />
-        public TimeSpan CurrentTime
-        {
-            get { return _audioFileReader == null ? new TimeSpan() : _audioFileReader.CurrentTime; }
-            set { if (_audioFileReader != null) { _audioFileReader.CurrentTime = value; } }
-        }
-        
-        /// <inheritdoc />
-        public TimeSpan Length { get; private set; }
         #endregion
 
         #region Events
@@ -133,20 +122,20 @@ namespace ClipExplorer
                 {
                     _audioFileReader = new AudioFileReader(fn);
 
-                    CurrentTime = new TimeSpan();
-                    Length = _audioFileReader.TotalTime;
+                    timeBar.Length = _audioFileReader.TotalTime;
+                    timeBar.Start = TimeSpan.Zero;
+                    timeBar.End = TimeSpan.Zero;
+                    timeBar.Current = TimeSpan.Zero;
 
                     // Create reader.
-                    ISampleProvider sampleProvider;
-
                     var sampleChannel = new SampleChannel(_audioFileReader, false);
                     sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
 
                     var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
                     postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                    sampleProvider = postVolumeMeter;
-                    _waveOut.Init(sampleProvider);
+                   // ISampleProvider sampleProvider = postVolumeMeter;
+                    _waveOut.Init(postVolumeMeter);
                     _waveOut.Volume = (float)Volume;
 
                     ShowClip();
@@ -189,9 +178,8 @@ namespace ClipExplorer
         {
             if (_waveOut != null && _audioFileReader != null)
             {
-                //_waveOut.Stop();
-                CurrentTime = new TimeSpan();
-                timeBar.Current = CurrentTime;
+                _audioFileReader.Position = 0;
+                timeBar.Current = TimeSpan.Zero;
             }
         }
 
@@ -255,6 +243,14 @@ namespace ClipExplorer
 
             return ok;
         }
+
+        /// <inheritdoc />
+        public bool SaveSelection(string fn)
+        {
+            bool ok = true;
+            //TODO Make a new clip file from selection. >> public class WaveFileWriter : Stream
+            return ok;
+        }
         #endregion
 
         #region Private functions
@@ -313,7 +309,10 @@ namespace ClipExplorer
                     waveViewerR.Init(null, 0);
                 }
 
-                timeBar.Length = Length;
+                timeBar.Length = _audioFileReader.TotalTime;
+                timeBar.Start = TimeSpan.Zero;
+                timeBar.End = TimeSpan.Zero;
+                timeBar.Current = TimeSpan.Zero;
             }
         }
 
@@ -344,7 +343,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            CurrentTime = timeBar.Current;
+            //CurrentTime = timeBar.Current;
         }
 
         /// <summary>
@@ -382,7 +381,7 @@ namespace ClipExplorer
         {
             levelL.AddValue(e.MaxSampleValues[0]);
             levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
-            timeBar.Current = CurrentTime;
+            timeBar.Current = _audioFileReader.CurrentTime;
         }
         #endregion
     }

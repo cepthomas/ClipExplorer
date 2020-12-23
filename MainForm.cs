@@ -29,6 +29,9 @@ namespace ClipExplorer
         /// <summary>Midi device.</summary>
         MidiPlayer _midiPlayer = null;
 
+        /// <summary>Current file.</summary>
+        string _fn = "";
+
         /// <summary>Current play device.</summary>
         IPlayer _player = null;
         #endregion
@@ -55,24 +58,16 @@ namespace ClipExplorer
 
             // Create devices.
             lblMark.Visible = false;
-            _wavePlayer = new WavePlayer
-            {
-                Visible = false
-            };
+            _wavePlayer = new WavePlayer { Visible = false };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += Player_Log;
             _wavePlayer.Location = new Point(lblMark.Left, lblMark.Top);
-            //_wavePlayer.Width = timeBar.Width;
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
-            _midiPlayer = new MidiPlayer
-            {
-                Visible = false
-            };
+            _midiPlayer = new MidiPlayer { Visible = false };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += Player_Log;
             _midiPlayer.Location = new Point(lblMark.Left, lblMark.Top);
-            //_midiPlayer.Width = timeBar.Width;
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
             // Init UI from settings
@@ -266,7 +261,11 @@ namespace ClipExplorer
         {
             //ToolStripMenuItem item = sender as ToolStripMenuItem;
             string fn = sender.ToString();
-            OpenFile(fn);
+            if(fn != _fn)
+            {
+                OpenFile(fn);
+                _fn = fn;
+            }
         }
 
         /// <summary>
@@ -279,19 +278,19 @@ namespace ClipExplorer
             {
                 sext += ($"*{ext}; ");
             }
-            
-            OpenFileDialog openDlg = new OpenFileDialog()
+
+            using (OpenFileDialog openDlg = new OpenFileDialog()
             {
                 Filter = sext,
                 Title = "Select a file"
-            };
-
-            if (openDlg.ShowDialog() == DialogResult.OK)
+            })
             {
-                OpenFile(openDlg.FileName);
+                if (openDlg.ShowDialog() == DialogResult.OK && openDlg.FileName != _fn)
+                {
+                    OpenFile(openDlg.FileName);
+                    _fn = openDlg.FileName;
+                }
             }
-
-            openDlg.Dispose();
         }
 
         /// <summary>
@@ -302,6 +301,7 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
+
             Stop();
 
             using (new WaitCursor())
@@ -367,7 +367,7 @@ namespace ClipExplorer
         }
         #endregion
 
-        #region Transport
+        #region Transport control
         /// <summary>
         /// Internal handler.
         /// </summary>
@@ -419,8 +419,8 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Player_PlaybackCompleted(object sender, EventArgs e)
         {
-            // Comes from a different thread.
-            this.InvokeIfRequired(o =>
+            // Usually comes from a different thread.
+            this.InvokeIfRequired(_ =>
             {
                 if (chkLoop.Checked)
                 {
@@ -483,8 +483,12 @@ namespace ClipExplorer
         /// <param name="fn"></param>
         void Navigator_FileSelectedEvent(object sender, string fn)
         {
-            rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
-            OpenFile(fn);
+            if(fn != _fn)
+            {
+                rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
+                OpenFile(fn);
+                _fn = fn;
+            }
         }
         #endregion
 

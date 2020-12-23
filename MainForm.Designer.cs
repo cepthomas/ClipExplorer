@@ -160,10 +160,10 @@
             // chkLoop
             // 
             this.chkLoop.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkLoop.FlatAppearance.BorderSize = 0;
+            this.chkLoop.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkLoop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_366_restart;
-            this.chkLoop.Location = new System.Drawing.Point(115, 16);
+            this.chkLoop.Location = new System.Drawing.Point(119, 16);
             this.chkLoop.Margin = new System.Windows.Forms.Padding(4);
             this.chkLoop.Name = "chkLoop";
             this.chkLoop.Size = new System.Drawing.Size(43, 39);
@@ -172,6 +172,7 @@
             // 
             // sldVolume
             // 
+            this.sldVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.sldVolume.DecPlaces = 1;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
@@ -189,7 +190,6 @@
             // 
             // btnRewind
             // 
-            this.btnRewind.FlatAppearance.BorderSize = 0;
             this.btnRewind.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRewind.Image = global::ClipExplorer.Properties.Resources.glyphicons_173_rewind;
             this.btnRewind.Location = new System.Drawing.Point(21, 16);
@@ -203,10 +203,10 @@
             // chkPlay
             // 
             this.chkPlay.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkPlay.FlatAppearance.BorderSize = 0;
+            this.chkPlay.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkPlay.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkPlay.Image = global::ClipExplorer.Properties.Resources.glyphicons_174_play;
-            this.chkPlay.Location = new System.Drawing.Point(73, 16);
+            this.chkPlay.Location = new System.Drawing.Point(71, 16);
             this.chkPlay.Margin = new System.Windows.Forms.Padding(4);
             this.chkPlay.Name = "chkPlay";
             this.chkPlay.Size = new System.Drawing.Size(43, 39);

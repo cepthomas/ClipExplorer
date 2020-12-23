@@ -41,13 +41,15 @@ namespace ClipExplorer
             this.barBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.barBar.BeatsPerBar = 4;
-            this.barBar.Current = 0;
-            this.barBar.Length = 0;
+            this.barBar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.barBar.FontLarge = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.barBar.FontSmall = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.barBar.Location = new System.Drawing.Point(0, 0);
+            this.barBar.MarkerColor = System.Drawing.Color.Black;
             this.barBar.Name = "barBar";
             this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(498, 50);
-            this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Tick;
+            this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
             this.barBar.TabIndex = 70;
             this.barBar.TicksPerBeat = 8;
             // 
@@ -65,6 +67,7 @@ namespace ClipExplorer
             // 
             // sldTempo
             // 
+            this.sldTempo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.sldTempo.DecPlaces = 0;
             this.sldTempo.DrawColor = System.Drawing.Color.PaleGreen;
             this.sldTempo.Label = "BPM";

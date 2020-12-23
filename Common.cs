@@ -17,12 +17,6 @@ namespace ClipExplorer
         #region Properties
         /// <summary>Adjust master volume between 0.0 and 1.0.</summary>
         double Volume { get; set; }
-
-        /// <summary>Current play time/position.</summary>
-        TimeSpan CurrentTime { get; set; }
-
-        /// <summary>Play length in same units as CurrentTime.</summary>
-        TimeSpan Length { get; }
         #endregion
 
         #region Events
@@ -55,6 +49,11 @@ namespace ClipExplorer
         /// <param name="fn">Output filename</param>
         /// <returns>success</returns>
         bool Dump(string fn);
+
+        /// <summary>Save the current selection to a file.</summary>
+        /// <param name="fn">Output filename</param>
+        /// <returns>success</returns>
+        bool SaveSelection(string fn);
         #endregion
     }
 }

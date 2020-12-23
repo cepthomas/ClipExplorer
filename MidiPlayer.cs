@@ -14,8 +14,6 @@ using NBagOfTricks.Utils;
 
 // TODO Mute/solo individual drums.
 
-// TODO Select then loop and/or make a new clip file from selection.  >> MidiFile.Export(target, events);
-
 
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
@@ -57,12 +55,6 @@ namespace ClipExplorer
         /// <summary>Midi output device.</summary>
         MidiOut _midiOut = null;
 
-        /// <summary>Current tick.</summary>
-        int _currentTick = 0;
-
-        /// <summary>Max for whole piece.</summary>
-        int _lastTick = 0;
-
         /// <summary>Period.</summary>
         double _msecPerTick = 0;
 
@@ -97,12 +89,6 @@ namespace ClipExplorer
         #region Properties - interface implementation
         /// <inheritdoc />
         public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
-
-        /// <inheritdoc />
-        public TimeSpan CurrentTime { get { return TicksToTime(_currentTick); } set { _currentTick = TimeToTicks(value); } }
-
-        /// <inheritdoc />
-        public TimeSpan Length { get; private set; }
         #endregion
 
         #region Events
@@ -201,7 +187,7 @@ namespace ClipExplorer
                 {
                     // Default in case not specified in file.
                     int tempo = 100;
-                    _lastTick = 0;
+                    int lastTick = 0;
 
                     // Get events.
                     var mfile = new MidiFile(fn, true);
@@ -275,7 +261,7 @@ namespace ClipExplorer
                             pc.Name += $"Patch:{pc.Patch}";
                         }
 
-                        _lastTick = Math.Max(_lastTick, pc.MaxTick);
+                        lastTick = Math.Max(lastTick, pc.MaxTick);
                         if(pc.Valid)
                         {
                             clickGrid.AddIndicator(pc.Name, i);
@@ -287,8 +273,10 @@ namespace ClipExplorer
                     // Figure out times.
                     sldTempo.Value = tempo;
 
-                    Length = TicksToTime(_lastTick);
-                    barBar.Length = _lastTick;
+                    barBar.Length = new BarSpan(lastTick);
+                    barBar.Start = BarSpan.Zero;
+                    barBar.End = barBar.Length - BarSpan.OneTick;
+                    barBar.Current = BarSpan.Zero;
                 }
             }
 
@@ -301,6 +289,8 @@ namespace ClipExplorer
             // Start or restart?
             if(!_running)
             {
+                timeKillEvent(_timerID);
+
                 // Calculate the actual period to tell the user.
                 double secPerBeat = 60 / sldTempo.Value;
                 _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
@@ -353,8 +343,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Rewind()
         {
-            _currentTick = 0;
-            barBar.Current = _currentTick;
+            barBar.Current = BarSpan.Zero;
         }
 
         /// <inheritdoc />
@@ -406,6 +395,14 @@ namespace ClipExplorer
 
             return ok;
         }
+
+        /// <inheritdoc />
+        public bool SaveSelection(string fn)
+        {
+            bool ok = true;
+            //TODO Make a new clip file from selection.  >> MidiFile.Export(target, events);
+            return ok;
+        }
         #endregion
 
         #region Private Functions
@@ -428,9 +425,9 @@ namespace ClipExplorer
                         if (ch.Mode == PlayChannel.PlayMode.Solo || (!solo && ch.Mode == PlayChannel.PlayMode.Normal))
                         {
                             // Process any sequence steps.
-                            if (ch.Events.ContainsKey(_currentTick))
+                            if (ch.Events.ContainsKey(barBar.Current.TotalTicks))
                             {
-                                foreach (var mevt in ch.Events[_currentTick])
+                                foreach (var mevt in ch.Events[barBar.Current.TotalTicks])
                                 {
                                     // Maybe adjust volume.
                                     if (mevt is NoteEvent)
@@ -451,13 +448,10 @@ namespace ClipExplorer
                     }
                 }
 
-                // Bump time.
-                _currentTick++;
-                barBar.Current = _currentTick;
-
-                // Check for end of play. Client will take care of transport control.
-                if (_currentTick > _lastTick)
+                // Bump time. Check for end of play. Client will take care of transport control.
+                if(barBar.IncrementCurrent(1))
                 {
+                    _running = false;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
                 }
             }
@@ -481,27 +475,6 @@ namespace ClipExplorer
             //LogMessage($"Kill:{channel}");
             ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
             _midiOut?.Send(nevt.GetAsShortMessage());
-        }
-
-        /// <summary>
-        /// Convert timespan to ticks.
-        /// </summary>
-        /// <param name="msec"></param>
-        /// <returns></returns>
-        int TimeToTicks(TimeSpan ts)
-        {
-            int ticks = (int)(ts.TotalMilliseconds / _msecPerTick);
-            return ticks;
-        }
-
-        /// <summary>
-        /// Convert ticks to timespan.
-        /// </summary>
-        /// <returns></returns>
-        TimeSpan TicksToTime(int ticks)
-        {
-            TimeSpan ts = new TimeSpan(0, 0, 0, 0, (int)(ticks * _msecPerTick));
-            return ts;
         }
 
         /// <summary>
@@ -607,7 +580,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         private void BarBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            CurrentTime = TicksToTime(barBar.Current);
+            //CurrentTime = TicksToTime(barBar.Current.TotalTicks);
         }
 
         /// <summary>
