@@ -134,7 +134,6 @@ namespace ClipExplorer
                     var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
                     postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                   // ISampleProvider sampleProvider = postVolumeMeter;
                     _waveOut.Init(postVolumeMeter);
                     _waveOut.Volume = (float)Volume;
 
@@ -237,7 +236,7 @@ namespace ClipExplorer
             }
             else
             {
-                Log?.Invoke(this, "Audio file not open");
+                Log?.Invoke(this, "ERR: Audio file not open");
                 ok = false;
             }
 
@@ -322,7 +321,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void LogMessage(string s)
         {
-            Log?.Invoke(this, $"WavePlayer:{s}");
+            Log?.Invoke(this, s);
         }
 
         /// <summary>

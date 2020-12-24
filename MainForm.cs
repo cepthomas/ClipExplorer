@@ -56,17 +56,24 @@ namespace ClipExplorer
             di.Create();
             UserSettings.Load(appDir);
 
+            // The text output.
+            txtViewer.WordWrap = true;
+            txtViewer.BackColor = Color.Cornsilk;
+            txtViewer.Colors.Add("ERR:", Color.LightPink);
+            txtViewer.Colors.Add("WRN:", Color.Plum);
+            txtViewer.Font = new Font("Lucida Console", 9);
+
             // Create devices.
             lblMark.Visible = false;
             _wavePlayer = new WavePlayer { Visible = false };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
-            _wavePlayer.Log += Player_Log;
+            _wavePlayer.Log += UserMessage;
             _wavePlayer.Location = new Point(lblMark.Left, lblMark.Top);
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
             _midiPlayer = new MidiPlayer { Visible = false };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
-            _midiPlayer.Log += Player_Log;
+            _midiPlayer.Log += UserMessage;
             _midiPlayer.Location = new Point(lblMark.Left, lblMark.Top);
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
@@ -180,15 +187,6 @@ namespace ClipExplorer
         /// <summary>
         /// All about me.
         /// </summary>
-        /// <param name="s"></param>
-        void ErrorMessage(string s)
-        {
-            MessageBox.Show(s);
-        }
-
-        /// <summary>
-        /// All about me.
-        /// </summary>
         void About_Click(object sender, EventArgs e)
         {
             // Make some markdown.
@@ -221,13 +219,12 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Log helper.
+        /// Something you should know.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Player_Log(object sender, string e)
+        /// <param name="s"></param>
+        void UserMessage(object sender, string s)
         {
-            rtbInfo.AppendText($"Player:{e}{Environment.NewLine}");
+            txtViewer.AddLine($"{sender} {s}");
         }
         #endregion
 
@@ -239,12 +236,11 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void File_DropDownOpening(object sender, EventArgs e)
         {
-            // Take a reference to add back in later.
-            var op = openToolStripMenuItem;
-
             fileDropDownButton.DropDownItems.Clear();
-            fileDropDownButton.DropDownItems.Add(op);
 
+            // Always:
+            fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Open...", null, Open_Click));
+            fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Dump...", null, Dump_Click));
             fileDropDownButton.DropDownItems.Add(new ToolStripSeparator());
 
             Common.Settings.RecentFiles.ForEach(f =>
@@ -274,7 +270,7 @@ namespace ClipExplorer
         void Open_Click(object sender, EventArgs e)
         {
             string sext = "Clip Files | ";
-            foreach(string ext in _fileExts.SplitByToken(";"))
+            foreach (string ext in _fileExts.SplitByToken(";"))
             {
                 sext += ($"*{ext}; ");
             }
@@ -294,6 +290,23 @@ namespace ClipExplorer
         }
 
         /// <summary>
+        /// Dump current file.
+        /// </summary>
+        void Dump_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dumpDlg = new SaveFileDialog()
+            {
+                Title = "Dump to file"
+            })
+            {
+                if (dumpDlg.ShowDialog() == DialogResult.OK && dumpDlg.FileName != "")
+                {
+                    _player?.Dump(dumpDlg.FileName);
+                }
+            }
+        }
+
+        /// <summary>
         /// Common file opener.
         /// </summary>
         /// <param name="fn">The file to open.</param>
@@ -303,6 +316,8 @@ namespace ClipExplorer
             bool ok = true;
 
             Stop();
+
+            UserMessage(this, $"Open file: {fn}");
 
             using (new WaitCursor())
             {
@@ -326,7 +341,7 @@ namespace ClipExplorer
                                 break;
 
                             default:
-                                ErrorMessage($"Invalid file type: {fn}");
+                                UserMessage(this, $"ERR: Invalid file type: {fn}");
                                 ok = false;
                                 break;
                         }
@@ -342,13 +357,13 @@ namespace ClipExplorer
                     }
                     else
                     {
-                        ErrorMessage($"Invalid file: {fn}");
+                        UserMessage(this, $"ERR: Invalid file: {fn}");
                         ok = false;
                     }
                 }
                 catch (Exception ex)
                 {
-                    ErrorMessage($"Couldn't open the file: {fn} because: {ex.Message}");
+                    UserMessage(this, $"ERR: Couldn't open the file: {fn} because: {ex.Message}");
                     ok = false;
                 }
             }
@@ -485,7 +500,6 @@ namespace ClipExplorer
         {
             if(fn != _fn)
             {
-                rtbInfo.AppendText($"Sel file {fn}{Environment.NewLine}");
                 OpenFile(fn);
                 _fn = fn;
             }

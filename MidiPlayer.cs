@@ -389,7 +389,7 @@ namespace ClipExplorer
             }
             else
             {
-                Log?.Invoke(this, "Midi file not open");
+                Log?.Invoke(this, "ERR: Midi file not open");
                 ok = false;
             }
 
@@ -463,7 +463,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void LogMessage(string s)
         {
-            Log?.Invoke(this, $"MidiPlayer:{s}");
+            Log?.Invoke(this, s);
         }
 
         /// <summary>

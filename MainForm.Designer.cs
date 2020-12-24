@@ -32,18 +32,17 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
-            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfTricks.UI.FilTree();
             this.lblMark = new System.Windows.Forms.Label();
-            this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.sldVolume = new NBagOfTricks.UI.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.txtViewer = new NBagOfTricks.UI.TextViewer();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -67,8 +66,6 @@
             // fileDropDownButton
             // 
             this.fileDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.fileDropDownButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem});
             this.fileDropDownButton.Image = global::ClipExplorer.Properties.Resources.glyphicons_37_file;
             this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDownButton.Name = "fileDropDownButton";
@@ -76,13 +73,6 @@
             this.fileDropDownButton.Text = "File";
             this.fileDropDownButton.ToolTipText = "File operations";
             this.fileDropDownButton.DropDownOpening += new System.EventHandler(this.File_DropDownOpening);
-            // 
-            // openToolStripMenuItem
-            // 
-            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(137, 26);
-            this.openToolStripMenuItem.Text = "Open...";
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.Open_Click);
             // 
             // btnSettings
             // 
@@ -118,8 +108,8 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.txtViewer);
             this.splitContainer1.Panel2.Controls.Add(this.lblMark);
-            this.splitContainer1.Panel2.Controls.Add(this.rtbInfo);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
@@ -146,16 +136,6 @@
             this.lblMark.Size = new System.Drawing.Size(46, 17);
             this.lblMark.TabIndex = 57;
             this.lblMark.Text = "label1";
-            // 
-            // rtbInfo
-            // 
-            this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbInfo.HideSelection = false;
-            this.rtbInfo.Location = new System.Drawing.Point(21, 537);
-            this.rtbInfo.Name = "rtbInfo";
-            this.rtbInfo.Size = new System.Drawing.Size(628, 107);
-            this.rtbInfo.TabIndex = 56;
-            this.rtbInfo.Text = "";
             // 
             // chkLoop
             // 
@@ -219,6 +199,15 @@
             this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
+            // txtViewer
+            // 
+            this.txtViewer.Location = new System.Drawing.Point(24, 318);
+            this.txtViewer.MaxText = 5000;
+            this.txtViewer.Name = "txtViewer";
+            this.txtViewer.Size = new System.Drawing.Size(605, 150);
+            this.txtViewer.TabIndex = 58;
+            this.txtViewer.WordWrap = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -255,11 +244,10 @@
         private NBagOfTricks.UI.FilTree ftree;
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.RichTextBox rtbInfo;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
-        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.Label lblMark;
+        private NBagOfTricks.UI.TextViewer txtViewer;
     }
 }
 
