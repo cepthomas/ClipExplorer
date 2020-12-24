@@ -224,7 +224,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void UserMessage(object sender, string s)
         {
-            txtViewer.AddLine($"{sender} {s}");
+            txtViewer.AddLine($"> {sender} {s}");
         }
         #endregion
 
@@ -294,12 +294,9 @@ namespace ClipExplorer
         /// </summary>
         void Dump_Click(object sender, EventArgs e)
         {
-            using (SaveFileDialog dumpDlg = new SaveFileDialog()
+            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Dump to file", FileName = "dump.csv" }     )
             {
-                Title = "Dump to file"
-            })
-            {
-                if (dumpDlg.ShowDialog() == DialogResult.OK && dumpDlg.FileName != "")
+                if (dumpDlg.ShowDialog() == DialogResult.OK)
                 {
                     _player?.Dump(dumpDlg.FileName);
                 }

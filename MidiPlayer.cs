@@ -368,20 +368,23 @@ namespace ClipExplorer
 
             if(_sourceEvents != null)
             {
-                List<string> st = new List<string>();
-                st.Add($"MidiFileType:{_sourceEvents.MidiFileType}");
-                st.Add($"DeltaTicksPerQuarterNote:{_sourceEvents.DeltaTicksPerQuarterNote}");
-                st.Add($"StartAbsoluteTime:{_sourceEvents.StartAbsoluteTime}");
-                st.Add($"Tracks:{_sourceEvents.Tracks}");
+                List<string> st = new List<string>
+                {
+                    $"MidiFileType:{_sourceEvents.MidiFileType}",
+                    $"DeltaTicksPerQuarterNote:{_sourceEvents.DeltaTicksPerQuarterNote}",
+                    $"StartAbsoluteTime:{_sourceEvents.StartAbsoluteTime}",
+                    $"Tracks:{_sourceEvents.Tracks}"
+                };
 
                 for (int trk = 0; trk < _sourceEvents.Tracks; trk++)
                 {
-                    st.Add($"  Track:{trk}");
+                    st.Add($"");
+                    st.Add($">>> Track:{trk}");
 
                     var trackEvents = _sourceEvents.GetTrackEvents(trk);
                     for (int te = 0; te < trackEvents.Count; te++)
                     {
-                        st.Add($"    {trackEvents[te]}");
+                        st.Add($"{trackEvents[te]}");
                     }
                 }
 
