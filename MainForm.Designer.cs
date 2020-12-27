@@ -36,13 +36,13 @@
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfTricks.UI.FilTree();
+            this.txtViewer = new NBagOfTricks.UI.TextViewer();
             this.lblMark = new System.Windows.Forms.Label();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.sldVolume = new NBagOfTricks.UI.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.txtViewer = new NBagOfTricks.UI.TextViewer();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -59,7 +59,7 @@
             this.btnAbout});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1330, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1395, 27);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -114,8 +114,8 @@
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
-            this.splitContainer1.Size = new System.Drawing.Size(1330, 656);
-            this.splitContainer1.SplitterDistance = 647;
+            this.splitContainer1.Size = new System.Drawing.Size(1395, 656);
+            this.splitContainer1.SplitterDistance = 678;
             this.splitContainer1.TabIndex = 1;
             // 
             // ftree
@@ -124,9 +124,18 @@
             this.ftree.DoubleClickSelect = false;
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
-            this.ftree.Size = new System.Drawing.Size(647, 656);
+            this.ftree.Size = new System.Drawing.Size(678, 656);
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
+            // 
+            // txtViewer
+            // 
+            this.txtViewer.Location = new System.Drawing.Point(24, 318);
+            this.txtViewer.MaxText = 5000;
+            this.txtViewer.Name = "txtViewer";
+            this.txtViewer.Size = new System.Drawing.Size(677, 286);
+            this.txtViewer.TabIndex = 58;
+            this.txtViewer.WordWrap = true;
             // 
             // lblMark
             // 
@@ -199,20 +208,11 @@
             this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
-            // txtViewer
-            // 
-            this.txtViewer.Location = new System.Drawing.Point(24, 318);
-            this.txtViewer.MaxText = 5000;
-            this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(605, 150);
-            this.txtViewer.TabIndex = 58;
-            this.txtViewer.WordWrap = true;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1330, 683);
+            this.ClientSize = new System.Drawing.Size(1395, 683);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

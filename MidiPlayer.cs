@@ -12,9 +12,6 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// TODO Mute/solo individual drums.
-
-
 // An example midi file: WICKGAME.MID is 3:45 long.
 // DeltaTicksPerQuarterNote (ppq): 384.
 // 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec = 1.5625 msec/tick.
@@ -43,6 +40,9 @@ namespace ClipExplorer
 
         /// <summary>Our ppq aka resolution. 4 gives 16th note, 8 gives 32nd note, etc.</summary>
         const int TICKS_PER_BEAT = 32;
+
+        /// <summary>The drum channel.</summary>
+        const int DRUM_CHANNEL = 10;
         #endregion
 
         #region Fields
@@ -66,6 +66,9 @@ namespace ClipExplorer
 
         /// <summary>All the channels.</summary>
         readonly PlayChannel[] _playChannels = new PlayChannel[NUM_CHANNELS];
+
+        /// <summary>Requested tempo from file.</summary>
+        int _tempo = 100;
 
         /// <summary>Multimedia timer identifier.</summary>
         int _timerID = -1;
@@ -186,8 +189,9 @@ namespace ClipExplorer
                 if (ok)
                 {
                     // Default in case not specified in file.
-                    int tempo = 100;
                     int lastTick = 0;
+                    _tempo = 100;
+                    HashSet<int> allDrums = new HashSet<int>();
 
                     // Get events.
                     var mfile = new MidiFile(fn, true);
@@ -196,7 +200,7 @@ namespace ClipExplorer
                     // Init internal structure.
                     for (int i = 0; i < _playChannels.Count(); i++)
                     {
-                        _playChannels[i] = new PlayChannel();
+                        _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
                     }
 
                     // Bin events by channel. Scale ticks to internal ppq.
@@ -206,33 +210,36 @@ namespace ClipExplorer
                         {
                             if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
                             {
-                                // Adjust channel for non-compliant drums.
-                                if(Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
-                                {
-                                    te.Channel = 10;
-                                }
+                                // Do some miscellaneous fixups.
 
                                 // Scale tick to internal.
                                 long tick = te.AbsoluteTime * TICKS_PER_BEAT / _sourceEvents.DeltaTicksPerQuarterNote;
 
-                                _playChannels[te.Channel - 1].AddEvent((int)tick, te);
-
-                                // Dig out special events.
-                                switch (te)
+                                // Adjust channel for non-standard drums.
+                                if (Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
                                 {
-                                    case TempoEvent tem:
-                                        tempo = (int)tem.Tempo;
-                                        break;
-                                    case PatchChangeEvent pte:
-                                        _playChannels[te.Channel - 1].Patch = pte.Patch;
-                                        break;
-                                    //case TextEvent tevt:
-                                    //    if (tevt.MetaEventType == MetaEventType.SequenceTrackName)
-                                    //    {
-                                    //        _playChannels[tevt.Channel - 1].Name = tevt.Text;
-                                    //    }
-                                    //    break;
+                                    te.Channel = DRUM_CHANNEL;
                                 }
+
+                                // Other ops.
+                                switch(te)
+                                {
+                                    case NoteOnEvent non:
+                                        // Collect drum list.
+                                        if(non.Channel == DRUM_CHANNEL)
+                                        {
+                                            allDrums.Add(non.NoteNumber);
+                                        }
+
+                                        //if (non.Velocity > 0 && non.NoteLength == 0) EXP
+                                        //{
+                                        //    non.NoteLength = 1;
+                                        //}
+                                        break;
+                                }
+
+                                // Add to our collection.
+                                _playChannels[te.Channel - 1].AddEvent((int)tick, te);
                             }
                         };
                     }
@@ -244,13 +251,13 @@ namespace ClipExplorer
 
                         pc.Name = $"Ch:({i + 1}) ";
 
-                        if(i == 9)
+                        if(i + 1 == DRUM_CHANNEL)
                         {
-                            pc.Name += pc.Name = $"Drums";
+                            pc.Name += $"Drums";
                         }
                         else if (pc.Patch == -1)
                         {
-                            pc.Name += pc.Name = $"NoPatch";
+                            pc.Name += $"NoPatch";
                         }
                         else if(_instrumentDefs.ContainsKey(pc.Patch))
                         {
@@ -271,12 +278,21 @@ namespace ClipExplorer
                     clickGrid.Show(2, clickGrid.Width / 2, 20);
 
                     // Figure out times.
-                    sldTempo.Value = tempo;
+                    sldTempo.Value = _tempo;
 
                     barBar.Length = new BarSpan(lastTick);
                     barBar.Start = BarSpan.Zero;
                     barBar.End = barBar.Length - BarSpan.OneTick;
                     barBar.Current = BarSpan.Zero;
+
+                    // Debug stuff. EXP
+                    List<string> sdbg = new List<string>() { "Drums:" };
+                    foreach(int dr in allDrums)
+                    {
+                        string snm = _drumDefs.ContainsKey(dr) ? _drumDefs[dr] : "???";
+                        sdbg.Add($"{dr}={snm}");
+                    }
+                    LogMessage(string.Join(" ", sdbg));
                 }
             }
 
@@ -368,27 +384,77 @@ namespace ClipExplorer
 
             if(_sourceEvents != null)
             {
-                List<string> st = new List<string>
+                List<string> meta = new List<string>
                 {
-                    $"MidiFileType:{_sourceEvents.MidiFileType}",
-                    $"DeltaTicksPerQuarterNote:{_sourceEvents.DeltaTicksPerQuarterNote}",
-                    $"StartAbsoluteTime:{_sourceEvents.StartAbsoluteTime}",
-                    $"Tracks:{_sourceEvents.Tracks}"
+                    $"Meta,Value",
+                    $"MidiFileType,{_sourceEvents.MidiFileType}",
+                    $"DeltaTicksPerQuarterNote,{_sourceEvents.DeltaTicksPerQuarterNote}",
+                    $"StartAbsoluteTime,{_sourceEvents.StartAbsoluteTime}",
+                    $"Tracks,{_sourceEvents.Tracks}"
+                };
+
+                List<string> notes = new List<string>()
+                {
+                    "",
+                    "Time,Track,Channel,Note,Velocity,Duration",
+                };
+
+                List<string> other = new List<string>()
+                {
+                    "",
+                    "Time,Track,Channel,Event,Code",
                 };
 
                 for (int trk = 0; trk < _sourceEvents.Tracks; trk++)
                 {
-                    st.Add($"");
-                    st.Add($">>> Track:{trk}");
-
                     var trackEvents = _sourceEvents.GetTrackEvents(trk);
-                    for (int te = 0; te < trackEvents.Count; te++)
+                    foreach(var te in trackEvents)
                     {
-                        st.Add($"{trackEvents[te]}");
+                        string ntype = te.GetType().ToString().Replace("NAudio.Midi.", "");
+                        switch (te)
+                        {
+                            case NoteOnEvent evt:
+                                int len = evt.OffEvent == null ? 0 : evt.NoteLength;
+                                string nnum = $"{evt.NoteNumber}";
+                                if(te.Channel == DRUM_CHANNEL && _drumDefs.ContainsKey(evt.NoteNumber))
+                                {
+                                    nnum += $"_{_drumDefs[evt.NoteNumber]}";
+                                }
+                                notes.Add($"{te.AbsoluteTime},{trk},{te.Channel},{nnum},{evt.Velocity},{len}");
+                                break;
+
+                            case TempoEvent evt:
+                                _tempo = (int)evt.Tempo;
+                                meta.Add($"Tempo,{evt.Tempo}");
+                                break;
+
+                            //case ChannelAfterTouchEvent:
+                            //case ControlChangeEvent:
+                            //case KeySignatureEvent:
+                            //case MetaEvent:
+                            //case MidiEvent:
+                            //case NoteEvent:
+                            //case PatchChangeEvent:
+                            //case PitchWheelChangeEvent:
+                            //case RawMetaEvent:
+                            //case SequencerSpecificEvent:
+                            //case SmpteOffsetEvent:
+                            //case SysexEvent:
+                            //case TextEvent:
+                            //case TimeSignatureEvent:
+                            //case TrackSequenceNumberEvent:
+                            //    break;
+
+                            default:
+                                other.Add($"{te.AbsoluteTime},{trk},{te.Channel},{ntype},{te.CommandCode}");
+                                break;
+                        }
                     }
                 }
 
-                File.WriteAllLines(fn, st.ToArray());
+                File.WriteAllLines(fn, meta.ToArray());
+                File.AppendAllLines(fn, notes.ToArray());
+                File.AppendAllLines(fn, other.ToArray());
             }
             else
             {
@@ -432,18 +498,32 @@ namespace ClipExplorer
                             {
                                 foreach (var mevt in ch.Events[barBar.Current.TotalTicks])
                                 {
-                                    // Maybe adjust volume.
-                                    if (mevt is NoteEvent)
+                                    switch (mevt)
                                     {
-                                        double vel = (mevt as NoteEvent).Velocity;
-                                        (mevt as NoteEvent).Velocity = (int)(vel * Volume);
-                                        _midiOut?.Send(mevt.GetAsShortMessage());
-                                        // Need to restore.
-                                        (mevt as NoteEvent).Velocity = (int)vel;
-                                    }
-                                    else // not pertinent
-                                    {
-                                        _midiOut?.Send(mevt.GetAsShortMessage());
+                                        // Adjust volume.
+                                        case NoteOnEvent evt:
+                                            double vel = evt.Velocity;
+                                            evt.Velocity = (int)(vel * Volume);
+                                            _midiOut?.Send(evt.GetAsShortMessage());
+                                            // Need to restore.
+                                            evt.Velocity = (int)vel;
+                                            break;
+
+                                        case NoteEvent evt:
+                                            if(ch.ChannelNumber == DRUM_CHANNEL)
+                                            {
+                                                // EXP - skip noteoffs as windows GM doesn't like them.
+                                            }
+                                            else
+                                            {
+                                                _midiOut?.Send(evt.GetAsShortMessage());
+                                            }
+                                            break;
+
+                                        // No change.
+                                        default:
+                                            _midiOut?.Send(mevt.GetAsShortMessage());
+                                            break;
                                     }
                                 }
                             }
@@ -631,6 +711,9 @@ namespace ClipExplorer
     {
         #region Properties
         /// <summary>For UI.</summary>
+        public int ChannelNumber { get; set; } = -1;
+
+        /// <summary>For UI.</summary>
         public string Name { get; set; } = "";
 
         /// <summary>Channel used.</summary>
@@ -666,7 +749,7 @@ namespace ClipExplorer
         /// <summary>For viewing pleasure.</summary>
         public override string ToString()
         {
-            return $"PlayChannel: Name:{Name} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
+            return $"PlayChannel: Name:{Name} Number:{ChannelNumber} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
         }
     }
 }

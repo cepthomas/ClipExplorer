@@ -224,7 +224,7 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void UserMessage(object sender, string s)
         {
-            txtViewer.AddLine($"> {sender} {s}");
+            txtViewer.AddLine($"> ({(sender as Control).Name}) {s}");
         }
         #endregion
 
