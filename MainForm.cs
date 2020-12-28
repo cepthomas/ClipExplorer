@@ -50,6 +50,8 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_Load(object sender, EventArgs e)
         {
+            Icon = Properties.Resources.zebra;
+
             // Get the settings.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer");
             DirectoryInfo di = new DirectoryInfo(appDir);
