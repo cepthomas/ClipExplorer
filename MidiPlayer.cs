@@ -502,11 +502,18 @@ namespace ClipExplorer
                                     {
                                         // Adjust volume.
                                         case NoteOnEvent evt:
-                                            double vel = evt.Velocity;
-                                            evt.Velocity = (int)(vel * Volume);
-                                            _midiOut?.Send(evt.GetAsShortMessage());
-                                            // Need to restore.
-                                            evt.Velocity = (int)vel;
+                                            if (ch.ChannelNumber == DRUM_CHANNEL && evt.Velocity == 0)
+                                            {
+                                                // EXP - skip noteoffs as windows GM doesn't like them.
+                                            }
+                                            else
+                                            {
+                                                double vel = evt.Velocity;
+                                                evt.Velocity = (int)(vel * Volume);
+                                                MidiSend(evt);
+                                                // Need to restore.
+                                                evt.Velocity = (int)vel;
+                                            }
                                             break;
 
                                         case NoteEvent evt:
@@ -516,13 +523,13 @@ namespace ClipExplorer
                                             }
                                             else
                                             {
-                                                _midiOut?.Send(evt.GetAsShortMessage());
+                                                MidiSend(evt);
                                             }
                                             break;
 
                                         // No change.
                                         default:
-                                            _midiOut?.Send(mevt.GetAsShortMessage());
+                                            MidiSend(mevt);
                                             break;
                                     }
                                 }
@@ -537,6 +544,20 @@ namespace ClipExplorer
                     _running = false;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
                 }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="evt"></param>
+        void MidiSend(MidiEvent evt)
+        {
+            _midiOut?.Send(evt.GetAsShortMessage());
+
+            if (Common.Settings.LogEvents)
+            {
+                LogMessage(evt.ToString());
             }
         }
 
@@ -557,7 +578,7 @@ namespace ClipExplorer
         {
             //LogMessage($"Kill:{channel}");
             ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
-            _midiOut?.Send(nevt.GetAsShortMessage());
+            MidiSend(nevt);
         }
 
         /// <summary>

@@ -115,7 +115,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
             this.splitContainer1.Size = new System.Drawing.Size(1395, 656);
-            this.splitContainer1.SplitterDistance = 678;
+            this.splitContainer1.SplitterDistance = 677;
             this.splitContainer1.TabIndex = 1;
             // 
             // ftree
@@ -124,12 +124,15 @@
             this.ftree.DoubleClickSelect = false;
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
-            this.ftree.Size = new System.Drawing.Size(678, 656);
+            this.ftree.Size = new System.Drawing.Size(677, 656);
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
             // txtViewer
             // 
+            this.txtViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtViewer.Location = new System.Drawing.Point(24, 318);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";

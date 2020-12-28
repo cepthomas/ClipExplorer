@@ -224,7 +224,11 @@ namespace ClipExplorer
         /// <param name="s"></param>
         void UserMessage(object sender, string s)
         {
-            txtViewer.AddLine($"> ({(sender as Control).Name}) {s}");
+            // May come from a different thread.
+            this.InvokeIfRequired(_ =>
+            {
+                txtViewer.AddLine($"> ({(sender as Control).Name}) {s}");
+            });
         }
         #endregion
 

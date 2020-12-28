@@ -65,6 +65,12 @@ namespace ClipExplorer
         [Browsable(true)]
         public bool MapDrumChannel { get; set; } = false;
 
+        [DisplayName("Log Midi Events")]
+        [Description("Write to text viewer. Warning! could be very busy.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public bool LogEvents { get; set; } = false;
+
         [DisplayName("Snap To Grid")]
         [Description("Snap to bar | beat | tick.")]
         [Category("Midi")]
