@@ -93,6 +93,11 @@ namespace ClipExplorer
         public event EventHandler<string> Log;
         #endregion
 
+        #region Properties - interface implementation
+        /// <inheritdoc />
+        public double Volume { get; set; }
+        #endregion
+
         #region Lifecycle
         /// <summary>
         /// Normal constructor.
@@ -504,7 +509,7 @@ namespace ClipExplorer
                                             else
                                             {
                                                 double vel = evt.Velocity;
-                                                evt.Velocity = (int)(vel * Common.Settings.Volume);
+                                                evt.Velocity = (int)(vel * Volume);
                                                 MidiSend(evt);
                                                 // Need to restore.
                                                 evt.Velocity = (int)vel;

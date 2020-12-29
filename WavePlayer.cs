@@ -31,6 +31,9 @@ namespace ClipExplorer
 
         /// <summary>Stream read chunk.</summary>
         const int READ_BUFF_SIZE = 1000000;
+
+        /// <summary>The volume.</summary>
+        double _volume = 0.8;
         #endregion
 
         #region Events
@@ -39,6 +42,15 @@ namespace ClipExplorer
 
         /// <inheritdoc />
         public event EventHandler<string> Log;
+        #endregion
+
+        #region Properties - interface implementation
+        /// <inheritdoc />
+        public double Volume
+        {
+            get { return _volume; }
+            set { _volume = MathUtils.Constrain(value, 0, 1); if(_waveOut != null) _waveOut.Volume = (float)_volume; }
+        }
         #endregion
 
         #region Lifecycle
