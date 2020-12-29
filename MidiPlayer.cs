@@ -12,23 +12,22 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
-// An example midi file: WICKGAME.MID is 3:45 long.
-// DeltaTicksPerQuarterNote (ppq): 384.
-// 100 bpm = 38,400 ticks/min = 640 ticks/sec = 0.64 ticks/msec = 1.5625 msec/tick.
-// Length is 144,000 ticks = 3.75 min = 3:45.
-// Smallest event is 4 ticks.
-
-// Ableton Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps.
-// DeltaTicksPerQuarterNote (ppq): 96.
-// 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
-
-// If we use ppq of 8 (32nd notes):
-// 100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
-//  99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
+// TODO solo/mute individual drums.
+// TODO incorporate fluidsynth?
 
 
 namespace ClipExplorer
 {
+    /// <summary>
+    /// A "good enough" midi player.
+    /// There are some limitations: Windows multimedia timer has 1 msec resolution at best. This causes a trade-off between
+    /// ppq resolution and accuracy. The timer is also inherently wobbly.
+    /// If we use ppq of 8 (32nd notes):
+    ///   100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
+    ///   99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
+    /// For reference, Ableton Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps.
+    ///   100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
+    /// </summary>
     public partial class MidiPlayer : UserControl, IPlayer
     {
         #region Constants
@@ -38,8 +37,8 @@ namespace ClipExplorer
         /// <summary>Only 4/4 time supported.</summary>
         const int BEATS_PER_BAR = 4;
 
-        /// <summary>Our ppq aka resolution. 4 gives 16th note, 8 gives 32nd note, etc.</summary>
-        const int TICKS_PER_BEAT = 32;
+        /// <summary>Our ppq aka resolution aka ticks per beat. 4 gives 16th note, 8 gives 32nd note, etc.</summary>
+        const int PPQ = 32;
 
         /// <summary>The drum channel.</summary>
         const int DRUM_CHANNEL = 10;
@@ -213,7 +212,7 @@ namespace ClipExplorer
                                 // Do some miscellaneous fixups.
 
                                 // Scale tick to internal.
-                                long tick = te.AbsoluteTime * TICKS_PER_BEAT / _sourceEvents.DeltaTicksPerQuarterNote;
+                                long tick = te.AbsoluteTime * PPQ / _sourceEvents.DeltaTicksPerQuarterNote;
 
                                 // Adjust channel for non-standard drums.
                                 if (Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
@@ -313,10 +312,10 @@ namespace ClipExplorer
 
                 // Calculate the actual period to tell the user.
                 double secPerBeat = 60 / sldTempo.Value;
-                _msecPerTick = 1000 * secPerBeat / TICKS_PER_BEAT;
+                _msecPerTick = 1000 * secPerBeat / PPQ;
 
                 int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
-                float msecPerBeat = period * TICKS_PER_BEAT;
+                float msecPerBeat = period * PPQ;
                 float actualBpm = 60.0f * 1000.0f / msecPerBeat;
                 LogMessage($"Period:{period} Goal_BPM:{sldTempo.Value:f2} Actual_BPM:{actualBpm:f2}");
 
@@ -375,7 +374,7 @@ namespace ClipExplorer
             chkMapDrums.Text = $"Drums\r\nchan {Common.Settings.DrumChannel}";
 
             barBar.BeatsPerBar = BEATS_PER_BAR;
-            barBar.TicksPerBeat = TICKS_PER_BEAT;
+            barBar.TicksPerBeat = PPQ;
             barBar.Snap = Common.Settings.Snap;
 
             return ok;
