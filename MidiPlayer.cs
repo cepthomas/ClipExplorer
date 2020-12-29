@@ -236,6 +236,10 @@ namespace ClipExplorer
                                         //    non.NoteLength = 1;
                                         //}
                                         break;
+
+                                    case PatchChangeEvent evt:
+                                        _playChannels[te.Channel - 1].Patch = evt.Patch;
+                                        break;
                                 }
 
                                 // Add to our collection.
