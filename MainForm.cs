@@ -13,7 +13,6 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
-// Move into separate nbot project.
 
 namespace ClipExplorer
 {
@@ -67,13 +66,13 @@ namespace ClipExplorer
 
             // Create devices.
             lblMark.Visible = false;
-            _wavePlayer = new WavePlayer { Visible = false };
+            _wavePlayer = new WavePlayer() { Visible = false };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += UserMessage;
             _wavePlayer.Location = new Point(lblMark.Left, lblMark.Top);
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
-            _midiPlayer = new MidiPlayer { Visible = false };
+            _midiPlayer = new MidiPlayer() { Visible = false };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += UserMessage;
             _midiPlayer.Location = new Point(lblMark.Left, lblMark.Top);
@@ -296,20 +295,6 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Dump current file.
-        /// </summary>
-        void Dump_Click(object sender, EventArgs e)
-        {
-            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Dump to file", FileName = "dump.csv" }     )
-            {
-                if (dumpDlg.ShowDialog() == DialogResult.OK)
-                {
-                    _player?.Dump(dumpDlg.FileName);
-                }
-            }
-        }
-
-        /// <summary>
         /// Common file opener.
         /// </summary>
         /// <param name="fn">The file to open.</param>
@@ -382,6 +367,20 @@ namespace ClipExplorer
             }
 
             return ok;
+        }
+
+        /// <summary>
+        /// Dump current file.
+        /// </summary>
+        void Dump_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Dump to file", FileName = "dump.csv" })
+            {
+                if (dumpDlg.ShowDialog() == DialogResult.OK)
+                {
+                    _player?.Dump(dumpDlg.FileName);
+                }
+            }
         }
         #endregion
 
@@ -519,7 +518,7 @@ namespace ClipExplorer
         {
             if(_player != null)
             {
-                _player.Volume = (float)sldVolume.Value;
+                Common.Settings.Volume = (float)sldVolume.Value;
             }
         }
 

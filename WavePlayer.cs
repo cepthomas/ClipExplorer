@@ -33,11 +33,6 @@ namespace ClipExplorer
         const int READ_BUFF_SIZE = 1000000;
         #endregion
 
-        #region Properties - interface implementation
-        /// <inheritdoc />
-        public double Volume { get { return _waveOut.Volume; } set { _waveOut.Volume = (float)MathUtils.Constrain(value, 0, 1); } }
-        #endregion
-
         #region Events
         /// <inheritdoc />
         public event EventHandler PlaybackCompleted;
@@ -135,7 +130,7 @@ namespace ClipExplorer
                     postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
                     _waveOut.Init(postVolumeMeter);
-                    _waveOut.Volume = (float)Volume;
+                    _waveOut.Volume = (float)Common.Settings.Volume;
 
                     ShowClip();
                 }

@@ -23,10 +23,10 @@ namespace ClipExplorer
     /// There are some limitations: Windows multimedia timer has 1 msec resolution at best. This causes a trade-off between
     /// ppq resolution and accuracy. The timer is also inherently wobbly.
     /// If we use ppq of 8 (32nd notes):
-    ///   100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
-    ///   99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
+    ///   - 100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
+    ///   - 99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
     /// For reference, Ableton Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps.
-    ///   100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
+    ///   - 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
     /// </summary>
     public partial class MidiPlayer : UserControl, IPlayer
     {
@@ -57,9 +57,6 @@ namespace ClipExplorer
         /// <summary>Period.</summary>
         double _msecPerTick = 0;
 
-        /// <summary>Current volume between 0 and 1.</summary>
-        double _volume = 0.5;
-
         /// <summary>Midi events from the input file.</summary>
         MidiEventCollection _sourceEvents = null;
 
@@ -86,11 +83,6 @@ namespace ClipExplorer
 
         /// <summary>The midi controller definitions.</summary>
         readonly Dictionary<int, string> _controllerDefs = new Dictionary<int, string>();
-        #endregion
-
-        #region Properties - interface implementation
-        /// <inheritdoc />
-        public double Volume { get { return _volume; } set { _volume = MathUtils.Constrain(value, 0, 1); } }
         #endregion
 
         #region Events
@@ -512,7 +504,7 @@ namespace ClipExplorer
                                             else
                                             {
                                                 double vel = evt.Velocity;
-                                                evt.Velocity = (int)(vel * Volume);
+                                                evt.Velocity = (int)(vel * Common.Settings.Volume);
                                                 MidiSend(evt);
                                                 // Need to restore.
                                                 evt.Velocity = (int)vel;

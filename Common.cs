@@ -14,11 +14,6 @@ namespace ClipExplorer
 
     interface IPlayer : IDisposable
     {
-        #region Properties
-        /// <summary>Adjust master volume between 0.0 and 1.0.</summary>
-        double Volume { get; set; }
-        #endregion
-
         #region Events
         /// <summary>Client needs to know when playing is done.</summary>
         event EventHandler PlaybackCompleted;
