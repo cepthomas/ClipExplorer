@@ -233,6 +233,10 @@ namespace ClipExplorer
                                         //}
                                         break;
 
+                                    case TempoEvent evt:
+                                        _tempo = (int)evt.Tempo;
+                                        break;
+
                                     case PatchChangeEvent evt:
                                         _playChannels[te.Channel - 1].Patch = evt.Patch;
                                         break;

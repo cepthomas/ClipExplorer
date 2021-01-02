@@ -15,4 +15,4 @@ This application uses these FOSS components:
 - Button icons: [Glyphicons Free](http://glyphicons.com/) (CC BY 3.0).
 
 # License
-https://github.com/cepthomas/Nebulator/blob/master/LICENSE
+https://github.com/cepthomas/ClipExplorer/blob/master/LICENSE
