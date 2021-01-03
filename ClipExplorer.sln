@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipExplorer", "ClipExplorer.csproj", "{9DD0B2F2-D697-4DD1-BB05-BFBCCB86E1ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Source", "..\NBagOfTricks\Source\Source.csproj", "{D90BF3A3-41D7-4AC4-9FBE-D75277338426}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{9DD0B2F2-D697-4DD1-BB05-BFBCCB86E1ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9DD0B2F2-D697-4DD1-BB05-BFBCCB86E1ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9DD0B2F2-D697-4DD1-BB05-BFBCCB86E1ED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D90BF3A3-41D7-4AC4-9FBE-D75277338426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D90BF3A3-41D7-4AC4-9FBE-D75277338426}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D90BF3A3-41D7-4AC4-9FBE-D75277338426}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D90BF3A3-41D7-4AC4-9FBE-D75277338426}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
