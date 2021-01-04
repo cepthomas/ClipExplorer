@@ -403,7 +403,7 @@ namespace ClipExplorer
         bool Start()
         {
             _player?.Rewind();
-            _player?.Start();
+            _player?.Play();
             SetPlayCheck(true);
             return true;
         }

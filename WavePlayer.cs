@@ -161,7 +161,7 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public void Start()
+        public void Play()
         {
             if (_waveOut != null && _audioFileReader != null)
             {

@@ -304,7 +304,7 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public void Start()
+        public void Play()
         {
             // Start or restart?
             if(!_running)
@@ -677,7 +677,7 @@ namespace ClipExplorer
             if (_running)
             {
                 Stop();
-                Start();
+                Play();
             }
         }
 
