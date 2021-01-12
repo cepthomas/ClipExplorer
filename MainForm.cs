@@ -14,6 +14,7 @@ using NBagOfTricks.UI;
 using NBagOfTricks.Utils;
 
 
+
 namespace ClipExplorer
 {
     public partial class MainForm : Form
