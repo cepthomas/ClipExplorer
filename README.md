@@ -13,6 +13,3 @@ This application uses these FOSS components:
 - Json processor: [Newtonsoft](https://github.com/JamesNK/Newtonsoft.Json) (MIT) Note - uses 9.0.1 - don't update!
 - Main icon: [Charlotte Schmidt](http://pattedemouche.free.fr/) (Copyright © 2009 of Charlotte Schmidt).
 - Button icons: [Glyphicons Free](http://glyphicons.com/) (CC BY 3.0).
-
-# License
-https://github.com/cepthomas/ClipExplorer/blob/master/LICENSE
