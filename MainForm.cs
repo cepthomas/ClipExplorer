@@ -21,7 +21,7 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Supported file types.</summary>
-        readonly string _fileExts = ".wav;.mp3;.mid;";
+        readonly string _fileExts = ".wav;.mp3;.mid;.flac;";
 
         /// <summary>Audio device.</summary>
         WavePlayer _wavePlayer = null;
@@ -318,6 +318,7 @@ namespace ClipExplorer
                         {
                             case ".wav":
                             case ".mp3":
+                            case ".flac":
                                 _wavePlayer.Visible = true;
                                 _midiPlayer.Visible = false;
                                 _player = _wavePlayer;

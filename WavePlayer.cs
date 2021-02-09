@@ -144,7 +144,11 @@ namespace ClipExplorer
                     _waveOut.Init(postVolumeMeter);
                     _waveOut.Volume = (float)Common.Settings.Volume;
 
-                    ShowClip();
+                    try // This fails for flac files - unknown.
+                    {
+                        ShowClip();
+                    }
+                    catch { }
                 }
                 else
                 {
@@ -290,7 +294,7 @@ namespace ClipExplorer
                 int num = -1;
                 while (num != 0)
                 {
-                    num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
+                    num = _audioFileReader.Read(data, offset, (int)Math.Min(len, READ_BUFF_SIZE));
                     offset += num;
                 }
 
