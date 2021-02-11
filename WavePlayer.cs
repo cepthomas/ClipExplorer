@@ -107,6 +107,8 @@ namespace ClipExplorer
             {
                 // Clean up first.
                 CloseAudio();
+                waveViewerL.Reset();
+                waveViewerR.Reset();
 
                 // Create output device.
                 for (int id = -1; id < WaveOut.DeviceCount; id++)

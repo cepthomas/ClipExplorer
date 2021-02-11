@@ -20,8 +20,8 @@ namespace ClipExplorer
     public partial class MainForm : Form
     {
         #region Fields
-        /// <summary>Supported file types.</summary>
-        readonly string _fileExts = ".wav;.mp3;.mid;.flac;";
+        /// <summary>Supported file types..</summary>
+        string[] _fileTypes = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
 
         /// <summary>Audio device.</summary>
         WavePlayer _wavePlayer = null;
@@ -276,7 +276,7 @@ namespace ClipExplorer
         void Open_Click(object sender, EventArgs e)
         {
             string sext = "Clip Files | ";
-            foreach (string ext in _fileExts.SplitByToken(";"))
+            foreach (string ext in _fileTypes)
             {
                 sext += ($"*{ext}; ");
             }
@@ -318,6 +318,7 @@ namespace ClipExplorer
                         {
                             case ".wav":
                             case ".mp3":
+                            case ".m4a":
                             case ".flac":
                                 _wavePlayer.Visible = true;
                                 _midiPlayer.Visible = false;
@@ -486,7 +487,7 @@ namespace ClipExplorer
         /// </summary>
         void InitNavigator()
         {
-            ftree.FilterExts = _fileExts.ToLower().SplitByToken(";");
+            ftree.FilterExts = _fileTypes.ToList();
             ftree.RootDirs = Common.Settings.RootDirs;
             ftree.AllTags = Common.Settings.AllTags;
             ftree.TaggedPaths = Common.Settings.TaggedPaths;
