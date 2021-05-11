@@ -260,7 +260,7 @@ namespace ClipExplorer
         public bool SaveSelection(string fn)
         {
             bool ok = true;
-            //TODO Make a new clip file from selection. >> public class WaveFileWriter : Stream
+
             return ok;
         }
         #endregion
