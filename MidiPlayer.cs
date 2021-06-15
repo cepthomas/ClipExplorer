@@ -8,8 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NAudio.Midi;
+using NBagOfTricks;
 using NBagOfTricks.UI;
-using NBagOfTricks.Utils;
 
 
 // TODO solo/mute individual drums.

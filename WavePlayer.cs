@@ -15,7 +15,6 @@ using NAudio.Wave.SampleProviders;
 using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfTricks.UI;
-using NBagOfTricks.Utils;
 
 
 namespace ClipExplorer
