@@ -52,7 +52,7 @@ namespace ClipExplorer
             Icon = Properties.Resources.zebra;
 
             // Get the settings.
-            string appDir = MiscUtils.GetAppDataDir("ClipExplorer");
+            string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
             DirectoryInfo di = new DirectoryInfo(appDir);
             di.Create();
             UserSettings.Load(appDir);
