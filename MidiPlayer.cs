@@ -13,7 +13,6 @@ using NBagOfTricks.UI;
 
 
 // TODO solo/mute individual drums.
-// TODO incorporate fluidsynth?
 
 
 namespace ClipExplorer
@@ -22,11 +21,6 @@ namespace ClipExplorer
     /// A "good enough" midi player.
     /// There are some limitations: Windows multimedia timer has 1 msec resolution at best. This causes a trade-off between
     /// ppq resolution and accuracy. The timer is also inherently wobbly.
-    /// If we use ppq of 8 (32nd notes):
-    ///   - 100 bpm = 800 ticks/min = 13.33 ticks/sec = 0.01333 ticks/msec = 75.0 msec/tick
-    ///   - 99 bpm = 792 ticks/min = 13.20 ticks/sec = 0.0132 ticks/msec  = 75.757 msec/tick
-    /// For reference, Ableton Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps.
-    ///   - 100 bpm = 9,600 ticks/min = 160 ticks/sec = 0.16 ticks/msec = 6.25 msec/tick.
     /// </summary>
     public partial class MidiPlayer : UserControl, IPlayer
     {
@@ -37,7 +31,7 @@ namespace ClipExplorer
         /// <summary>Only 4/4 time supported.</summary>
         const int BEATS_PER_BAR = 4;
 
-        /// <summary>Our ppq aka resolution aka ticks per beat. 4 gives 16th note, 8 gives 32nd note, etc.</summary>
+        /// <summary>Our ppq aka resolution.</summary>
         const int PPQ = 32;
 
         /// <summary>The drum channel.</summary>
@@ -45,14 +39,17 @@ namespace ClipExplorer
         #endregion
 
         #region Fields
+        /// <summary>Midi output device.</summary>
+        MidiOut _midiOut = null;
+
+        /// <summary>The fast timer.</summary>
+        MmTimerEx _mmTimer = new MmTimerEx();
+
         /// <summary>Current file.</summary>
         string _fn = "";
 
         /// <summary>Indicates whether or not the midi is playing.</summary>
         bool _running = false;
-
-        /// <summary>Midi output device.</summary>
-        MidiOut _midiOut = null;
 
         /// <summary>Period.</summary>
         double _msecPerTick = 0;
@@ -65,15 +62,6 @@ namespace ClipExplorer
 
         /// <summary>Requested tempo from file.</summary>
         int _tempo = 100;
-
-        /// <summary>Multimedia timer identifier.</summary>
-        int _timerID = -1;
-
-        /// <summary>Delegate for Windows mmtimer callback.</summary>
-        delegate void TimeProc(int id, int msg, int user, int param1, int param2);
-
-        /// <summary>Called by Windows when a mmtimer event occurs.</summary>
-        TimeProc _timeProc;
 
         /// <summary>The midi instrument definitions.</summary>
         readonly Dictionary<int, string> _instrumentDefs = new Dictionary<int, string>();
@@ -142,8 +130,6 @@ namespace ClipExplorer
             barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
 
             sldTempo.DrawColor = Common.Settings.SliderColor;
-
-            _timeProc = new TimeProc(MmTimerCallback);
         }
 
         /// <summary> 
@@ -154,11 +140,14 @@ namespace ClipExplorer
         {
             // Stop and destroy mmtimer.
             Stop();
-            timeKillEvent(_timerID);
 
             // Resources.
             _midiOut?.Dispose();
             _midiOut = null;
+
+            _mmTimer?.Stop();
+            _mmTimer?.Dispose();
+            _mmTimer = null;
 
             if (disposing && (components != null))
             {
@@ -227,7 +216,7 @@ namespace ClipExplorer
                                             allDrums.Add(non.NoteNumber);
                                         }
 
-                                        //if (non.Velocity > 0 && non.NoteLength == 0) EXP
+                                        //if (non.Velocity > 0 && non.NoteLength == 0)
                                         //{
                                         //    non.NoteLength = 1;
                                         //}
@@ -309,8 +298,6 @@ namespace ClipExplorer
             // Start or restart?
             if(!_running)
             {
-                timeKillEvent(_timerID);
-
                 // Calculate the actual period to tell the user.
                 double secPerBeat = 60 / sldTempo.Value;
                 _msecPerTick = 1000 * secPerBeat / PPQ;
@@ -320,19 +307,11 @@ namespace ClipExplorer
                 float actualBpm = 60.0f * 1000.0f / msecPerBeat;
                 LogMessage($"Period:{period} Goal_BPM:{sldTempo.Value:f2} Actual_BPM:{actualBpm:f2}");
 
-                // Create and start periodic timer. Resolution is 1. Mode is TIME_PERIODIC.
-                _timerID = timeSetEvent(period, 1, _timeProc, IntPtr.Zero, 1);
+                // Create periodic timer.
+                _mmTimer.SetTimer(period, MmTimerCallback);
+                _mmTimer.Start();
 
-                // If the timer was created successfully.
-                if (_timerID != 0)
-                {
-                    _running = true;
-                }
-                else
-                {
-                    _running = false;
-                    throw new Exception("Unable to start periodic multimedia Timer.");
-                }
+                _running = true;
             }
             else
             {
@@ -346,8 +325,8 @@ namespace ClipExplorer
             if(_running)
             {
                 _running = false;
-                timeKillEvent(_timerID);
-                _timerID = -1;
+
+                _mmTimer.Stop();
 
                 // Send midi stop all notes just in case.
                 for (int i = 0; i < _playChannels.Count(); i++)
@@ -482,7 +461,7 @@ namespace ClipExplorer
         /// <summary>
         /// Multimedia timer callback. Synchronously outputs the next midi events.
         /// </summary>
-        void MmTimerCallback(int id, int msg, int user, int param1, int param2)
+        void MmTimerCallback(double totalElapsed, double periodElapsed)
         {
             if (_running)
             {
@@ -705,29 +684,6 @@ namespace ClipExplorer
                 OpenFile(_fn);
             }
         }
-        #endregion
-
-        #region Interop Multimedia Timer Functions
-        #pragma warning disable IDE1006 // Naming Styles
-
-        [DllImport("winmm.dll")]
-        private static extern int timeGetDevCaps(ref TimerCaps caps, int sizeOfTimerCaps);
-
-        /// <summary>Start her up.</summary>
-        [DllImport("winmm.dll")]
-        private static extern int timeSetEvent(int delay, int resolution, TimeProc proc, IntPtr user, int mode);
-
-        [DllImport("winmm.dll")]
-        private static extern int timeKillEvent(int id);
-
-        /// <summary>Represents information about the multimedia timer capabilities.</summary>
-        [StructLayout(LayoutKind.Sequential)]
-        struct TimerCaps
-        {
-            public int periodMin;
-            public int periodMax;
-        }
-        #pragma warning restore IDE1006 // Naming Styles
         #endregion
     }
 

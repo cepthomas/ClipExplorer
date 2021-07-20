@@ -37,7 +37,7 @@ namespace ClipExplorer
         [Category("Audio")]
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
-        public string WavOutDevice { get; set; } = "";
+        public string WavOutDevice { get; set; } = "Microsoft Sound Mapper";
 
         [DisplayName("Latency")]
         [Description("What's the hurry?")]
@@ -51,7 +51,7 @@ namespace ClipExplorer
         [Category("Midi")]
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
-        public string MidiOutDevice { get; set; } = "";
+        public string MidiOutDevice { get; set; } = "Microsoft GS Wavetable Synth";
 
         [DisplayName("Drum Channel")]
         [Description("Some files have drums on other than channel 10 so map those from that channel.")]
