@@ -12,7 +12,7 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 
 
-// TODO solo/mute individual drums.
+// FUTURE solo/mute individual drums.
 
 
 namespace ClipExplorer
@@ -452,7 +452,7 @@ namespace ClipExplorer
         public bool SaveSelection(string fn)
         {
             bool ok = true;
-            //TODO Make a new clip file from selection.  >> MidiFile.Export(target, events);
+            // FUTURE Make a new clip file from selection.  >> MidiFile.Export(target, events);
             return ok;
         }
         #endregion
