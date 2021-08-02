@@ -188,6 +188,14 @@ namespace ClipExplorer
                         _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
                     }
 
+                    // Scale ticks to internal ppq.
+                    MidiTime mt = new MidiTime()
+                    {
+                        InternalPpq = PPQ,
+                        MidiPpq = _sourceEvents.DeltaTicksPerQuarterNote,
+                        Tempo = _tempo
+                    };
+
                     // Bin events by channel. Scale ticks to internal ppq.
                     for (int track = 0; track < _sourceEvents.Tracks; track++)
                     {
@@ -198,7 +206,7 @@ namespace ClipExplorer
                                 // Do some miscellaneous fixups.
 
                                 // Scale tick to internal.
-                                long tick = te.AbsoluteTime * PPQ / _sourceEvents.DeltaTicksPerQuarterNote;
+                                long tick = mt.MidiToInternal(te.AbsoluteTime);
 
                                 // Adjust channel for non-standard drums.
                                 if (Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
@@ -298,14 +306,16 @@ namespace ClipExplorer
             // Start or restart?
             if(!_running)
             {
-                // Calculate the actual period to tell the user.
-                double secPerBeat = 60 / sldTempo.Value;
-                _msecPerTick = 1000 * secPerBeat / PPQ;
-
-                int period = _msecPerTick > 1.0 ? (int)Math.Round(_msecPerTick) : 1;
-                float msecPerBeat = period * PPQ;
-                float actualBpm = 60.0f * 1000.0f / msecPerBeat;
-                LogMessage($"Period:{period} Goal_BPM:{sldTempo.Value:f2} Actual_BPM:{actualBpm:f2}");
+                // Calculate the actual period.
+                MidiTime mt = new MidiTime()
+                {
+                    InternalPpq = PPQ,
+                    MidiPpq = _sourceEvents.DeltaTicksPerQuarterNote,
+                    Tempo = _tempo
+                };
+                
+                _msecPerTick = 60.0 / _tempo;
+                int period = mt.RoundedInternalPeriod();
 
                 // Create periodic timer.
                 _mmTimer.SetTimer(period, MmTimerCallback);
