@@ -685,6 +685,7 @@ namespace ClipExplorer
             if (_running)
             {
                 Stop();
+                _tempo = (int)sldTempo.Value;
                 Play();
             }
         }
