@@ -371,9 +371,9 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public bool Dump(string fn)
+        public List<string> Dump()
         {
-            bool ok = true;
+            List<string> ret = new List<string>();
 
             if(_sourceEvents != null)
             {
@@ -395,7 +395,7 @@ namespace ClipExplorer
                 List<string> other = new List<string>()
                 {
                     "",
-                    "Time,Track,Channel,Event,Code",
+                    "Time,Track,Channel,Event,Val1,Val2",
                 };
 
                 for (int trk = 0; trk < _sourceEvents.Tracks; trk++)
@@ -419,43 +419,60 @@ namespace ClipExplorer
                             case TempoEvent evt:
                                 _tempo = (int)evt.Tempo;
                                 meta.Add($"Tempo,{evt.Tempo}");
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Tempo},{evt.MicrosecondsPerQuarterNote}");
+                                break;
+
+                            case TimeSignatureEvent evt:
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.TimeSignature},NA");
+                                break;
+
+                            case KeySignatureEvent evt:
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.SharpsFlats},{evt.MajorMinor}");
+                                break;
+
+                            case PatchChangeEvent evt:
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Patch},NA");
+                                break;
+
+                            case ControlChangeEvent evt:
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Controller},{evt.ControllerValue}");
+                                break;
+
+                            case PitchWheelChangeEvent evt:
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Pitch},NA");
+                                break;
+
+                            case TextEvent evt:
+                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Text},{evt.Data.Length}");
                                 break;
 
                             //case ChannelAfterTouchEvent:
-                            //case ControlChangeEvent:
-                            //case KeySignatureEvent:
                             //case MetaEvent:
                             //case MidiEvent:
                             //case NoteEvent:
-                            //case PatchChangeEvent:
-                            //case PitchWheelChangeEvent:
                             //case RawMetaEvent:
                             //case SequencerSpecificEvent:
                             //case SmpteOffsetEvent:
                             //case SysexEvent:
-                            //case TextEvent:
-                            //case TimeSignatureEvent:
                             //case TrackSequenceNumberEvent:
-                            //    break;
-
                             default:
-                                other.Add($"{te.AbsoluteTime},{trk},{te.Channel},{ntype},{te.CommandCode}");
+                                other.Add($"{te.AbsoluteTime},{trk},{te.Channel},{ntype},{te}");
                                 break;
                         }
                     }
                 }
 
-                File.WriteAllLines(fn, meta.ToArray());
-                File.AppendAllLines(fn, notes.ToArray());
-                File.AppendAllLines(fn, other.ToArray());
+                ret.AddRange(meta);
+                ret.AddRange(notes);
+                ret.AddRange(other);
             }
             else
             {
                 Log?.Invoke(this, "ERR: Midi file not open");
-                ok = false;
+                ret.Clear();
             }
 
-            return ok;
+            return ret;
         }
 
         /// <inheritdoc />
@@ -740,7 +757,7 @@ namespace ClipExplorer
         /// <summary>For viewing pleasure.</summary>
         public override string ToString()
         {
-            return $"PlayChannel: Name:{Name} Number:{ChannelNumber} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
+            return $"PlayChannel: Name:{Name} ChannelNumber:{ChannelNumber} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
         }
     }
 }

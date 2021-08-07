@@ -32,6 +32,12 @@ namespace ClipExplorer
         [Browsable(true)]
         public bool Autoplay { get; set; } = true;
 
+        [DisplayName("Dump To Clipboard")]
+        [Description("Otherwise to file.")]
+        [Category("Navigator")]
+        [Browsable(true)]
+        public bool DumpToClip { get; set; } = false;
+
         [DisplayName("Wave Output Device")]
         [Description("How to play the audio files.")]
         [Category("Audio")]

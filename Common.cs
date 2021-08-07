@@ -47,8 +47,8 @@ namespace ClipExplorer
 
         /// <summary>Utility.</summary>
         /// <param name="fn">Output filename</param>
-        /// <returns>success</returns>
-        bool Dump(string fn);
+        /// <returns>Formatted content. Empty if there was an error.</returns>
+        List<string> Dump();
 
         /// <summary>Save the current selection to a file.</summary>
         /// <param name="fn">Output filename</param>

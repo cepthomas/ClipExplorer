@@ -202,11 +202,11 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public bool Dump(string fn)
+        public List<string> Dump()
         {
-            bool ok = true;
+            List<string> ret = new List<string>();
 
-            if(_audioFileReader != null)
+            if (_audioFileReader != null)
             {
                 _audioFileReader.Position = 0; // rewind
                 var sampleChannel = new SampleChannel(_audioFileReader, false);
@@ -223,36 +223,32 @@ namespace ClipExplorer
                 }
 
                 // Make a csv file of data for external processing.
-                List<string> samples = new List<string>();
-
                 if (sampleChannel.WaveFormat.Channels == 2) // stereo
                 {
-                    samples.Add($"Index,Left,Right");
+                    ret.Add($"Index,Left,Right");
                     long stlen = len / 2;
 
                     for (long i = 0; i < stlen; i++)
                     {
-                        samples.Add($"{i + 1}, {data[i * 2]}, {data[i * 2 + 1]}");
+                        ret.Add($"{i + 1}, {data[i * 2]}, {data[i * 2 + 1]}");
                     }
                 }
                 else // mono
                 {
-                    samples.Add($"Index,Val");
+                    ret.Add($"Index,Val");
                     for (int i = 0; i < data.Length; i++)
                     {
-                        samples.Add($"{i + 1}, {data[i]}");
+                        ret.Add($"{i + 1}, {data[i]}");
                     }
                 }
-
-                File.WriteAllLines(fn, samples);
             }
             else
             {
                 Log?.Invoke(this, "ERR: Audio file not open");
-                ok = false;
+                ret.Clear();
             }
 
-            return ok;
+            return ret;
         }
 
         /// <inheritdoc />

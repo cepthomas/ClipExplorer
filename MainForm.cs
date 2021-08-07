@@ -350,11 +350,23 @@ namespace ClipExplorer
         /// </summary>
         void Dump_Click(object sender, EventArgs e)
         {
-            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Dump to file", FileName = "dump.csv" })
+            var ds = _player.Dump();
+            if (ds.Count > 0)
             {
-                if (dumpDlg.ShowDialog() == DialogResult.OK)
+                if (Common.Settings.DumpToClip)
                 {
-                    _player?.Dump(dumpDlg.FileName);
+                    Clipboard.SetText(string.Join(Environment.NewLine, ds));
+                    UserMessage(this, "File dumped to clipboard");
+                }
+                else
+                {
+                    using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Dump to file", FileName = "dump.csv" })
+                    {
+                        if (dumpDlg.ShowDialog() == DialogResult.OK)
+                        {
+                            File.WriteAllLines(dumpDlg.FileName, ds.ToArray());
+                        }
+                    }
                 }
             }
         }
