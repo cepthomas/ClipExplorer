@@ -435,28 +435,30 @@ namespace ClipExplorer
                                 break;
 
                             case ControlChangeEvent evt:
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Controller},{evt.ControllerValue}");
+                                //other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Controller},{evt.ControllerValue}");
                                 break;
 
                             case PitchWheelChangeEvent evt:
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Pitch},NA");
+                                //other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Pitch},NA");
                                 break;
 
                             case TextEvent evt:
                                 other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Text},{evt.Data.Length}");
                                 break;
 
+                            case NoteEvent evt:
+                                // skip
+                                break;
+
                             //case ChannelAfterTouchEvent:
+                            //case SysexEvent:
                             //case MetaEvent:
-                            //case MidiEvent:
-                            //case NoteEvent:
                             //case RawMetaEvent:
                             //case SequencerSpecificEvent:
                             //case SmpteOffsetEvent:
-                            //case SysexEvent:
                             //case TrackSequenceNumberEvent:
                             default:
-                                other.Add($"{te.AbsoluteTime},{trk},{te.Channel},{ntype},{te}");
+                                //other.Add($"{te.AbsoluteTime},{trk},{te.Channel},{ntype},{te}");
                                 break;
                         }
                     }
