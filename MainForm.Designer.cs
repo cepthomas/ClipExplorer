@@ -41,7 +41,6 @@
             this.sldVolume = new NBagOfTricks.UI.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -205,11 +204,6 @@
             this.chkPlay.UseVisualStyleBackColor = false;
             this.chkPlay.CheckedChanged += new System.EventHandler(this.Play_CheckedChanged);
             // 
-            // timer1
-            // 
-            this.timer1.Interval = 50;
-            this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -244,7 +238,6 @@
         private System.Windows.Forms.CheckBox chkPlay;
         private NBagOfTricks.UI.FilTree ftree;
         private System.Windows.Forms.CheckBox chkLoop;
-        private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
         private System.Windows.Forms.Label lblMark;

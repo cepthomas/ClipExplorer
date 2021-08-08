@@ -35,7 +35,7 @@ namespace ClipExplorer
         const int PPQ = 32;
 
         /// <summary>The normal drum channel.</summary>
-        const int DEFAULT_DRUM_CHANNEL = 10;//TODO not always
+        const int DEFAULT_DRUM_CHANNEL = 10;
         #endregion
 
         #region Fields
@@ -62,6 +62,15 @@ namespace ClipExplorer
 
         /// <summary>Requested tempo from file.</summary>
         int _tempo = 100;
+
+        /// <summary>Some midi files have drums on a different channel so allow the user to re-map.</summary>
+        int _drumChannel = DEFAULT_DRUM_CHANNEL;
+
+        /// <summary>Some midi files have less than ideal patches so allow the user to re-map.</summary>
+        readonly HashSet<int> _patchChannels = new HashSet<int>();
+
+        ///// <summary>Some midi files have less than ideal patches so allow the user to re-map.</summary>
+        //int _patchRemap = 0;
 
         /// <summary>The midi instrument definitions.</summary>
         readonly Dictionary<int, string> _instrumentDefs = new Dictionary<int, string>();
@@ -103,6 +112,14 @@ namespace ClipExplorer
         void MidiPlayer_Load(object sender, EventArgs e)
         {
             LoadMidiDefs();
+
+            // Fill patch list.
+            foreach (var kv in _instrumentDefs)
+            {
+                cmbPatchList.Items.Add(kv.Value);
+            }
+            cmbPatchList.SelectedIndex = 0;
+            cmbPatchList.SelectedIndexChanged += PatchList_SelectedIndexChanged;
 
             SettingsUpdated();
 
@@ -158,11 +175,6 @@ namespace ClipExplorer
         }
         #endregion
 
-
-        int DrumChannel = DEFAULT_DRUM_CHANNEL;
-
-
-
         #region Public Functions - interface implementation
         /// <inheritdoc />
         public bool OpenFile(string fn)
@@ -181,7 +193,6 @@ namespace ClipExplorer
                     // Default in case not specified in file.
                     int lastTick = 0;
                     _tempo = 100;
-                    //HashSet<int> allDrums = new HashSet<int>();
 
                     // Get events.
                     var mfile = new MidiFile(fn, true);
@@ -213,26 +224,10 @@ namespace ClipExplorer
                                 // Scale tick to internal.
                                 long tick = mt.MidiToInternal(te.AbsoluteTime);
 
-                                //// Adjust channel for non-standard drums.
-                                //if (Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
-                                //{
-                                //    te.Channel = DRUM_CHANNEL;
-                                //}
-
                                 // Other ops.
                                 switch(te)
                                 {
                                     case NoteOnEvent non:
-                                        // Collect drum list.
-                                        //if(non.Channel == DRUM_CHANNEL)
-                                        //{
-                                        //    allDrums.Add(non.NoteNumber);
-                                        //}
-
-                                        //if (non.Velocity > 0 && non.NoteLength == 0)
-                                        //{
-                                        //    non.NoteLength = 1;
-                                        //}
                                         break;
 
                                     case TempoEvent evt:
@@ -257,7 +252,7 @@ namespace ClipExplorer
 
                         // Make a name for UI.
                         pc.Name = $"Ch:({i + 1}) ";
-                        if(i + 1 == DrumChannel) //TODO temp - not correct.
+                        if(i + 1 == _drumChannel) //TODO not always correct.
                         {
                             pc.Name += $"Drums";
                         }
@@ -293,15 +288,6 @@ namespace ClipExplorer
                     barBar.Start = BarSpan.Zero;
                     barBar.End = barBar.Length - BarSpan.OneTick;
                     barBar.Current = BarSpan.Zero;
-
-                    //// Debug stuff. EXP
-                    //List<string> sdbg = new List<string>() { "Drums:" };
-                    //foreach(int dr in allDrums)
-                    //{
-                    //    string snm = _drumDefs.ContainsKey(dr) ? _drumDefs[dr] : "???";
-                    //    sdbg.Add($"{dr}={snm}");
-                    //}
-                    //LogMessage(string.Join(" ", sdbg));
                 }
             }
 
@@ -368,9 +354,6 @@ namespace ClipExplorer
         {
             bool ok = true;
 
-            //chkMapDrums.Checked = Common.Settings.MapDrumChannel;
-            //chkMapDrums.Text = $"Drums\r\nchan {Common.Settings.DrumChannel}";
-
             barBar.BeatsPerBar = BEATS_PER_BAR;
             barBar.TicksPerBeat = PPQ;
             barBar.Snap = Common.Settings.Snap;
@@ -417,7 +400,7 @@ namespace ClipExplorer
                             case NoteOnEvent evt:
                                 int len = evt.OffEvent == null ? 0 : evt.NoteLength;
                                 string nnum = $"{evt.NoteNumber}";
-                                if(te.Channel == DrumChannel && _drumDefs.ContainsKey(evt.NoteNumber))
+                                if(te.Channel == _drumChannel && _drumDefs.ContainsKey(evt.NoteNumber))
                                 {
                                     nnum += $"_{_drumDefs[evt.NoteNumber]}";
                                 }
@@ -521,19 +504,16 @@ namespace ClipExplorer
                                     switch (mevt)
                                     {
                                         case NoteOnEvent evt:
-                                            if (ch.ChannelNumber == DrumChannel && evt.Velocity == 0)
+                                            if (ch.ChannelNumber == _drumChannel && evt.Velocity == 0)
                                             {
                                                 // Skip drum noteoffs as windows GM doesn't like them.
                                             }
                                             else
                                             {
-                                                //public override MidiEvent Clone() => new NoteOnEvent(AbsoluteTime, Channel, NoteNumber, Velocity, NoteLength);
-                                                //NoteOnEvent ne  = evt.Clone() as NoteOnEvent;
-
                                                 // Adjust volume and maybe drum channel. Also NAudio NoteLength bug.
                                                 NoteOnEvent ne = new NoteOnEvent(
                                                     evt.AbsoluteTime,
-                                                    ch.ChannelNumber == DrumChannel ? DEFAULT_DRUM_CHANNEL : evt.Channel,
+                                                    ch.ChannelNumber == _drumChannel ? DEFAULT_DRUM_CHANNEL : evt.Channel,
                                                     evt.NoteNumber,
                                                     (int)(evt.Velocity * Volume),
                                                     evt.OffEvent == null ? 0 : evt.NoteLength);
@@ -543,7 +523,7 @@ namespace ClipExplorer
                                             break;
 
                                         case NoteEvent evt:
-                                            if(ch.ChannelNumber == DrumChannel)
+                                            if(ch.ChannelNumber == _drumChannel)
                                             {
                                                 // Skip drum noteoffs as windows GM doesn't like them.
                                             }
@@ -553,7 +533,6 @@ namespace ClipExplorer
                                             }
                                             break;
 
-                                        // No change.
                                         default:
                                             MidiSend(mevt);
                                             break;
@@ -649,9 +628,23 @@ namespace ClipExplorer
                 }
             }
         }
+
+        /// <summary>
+        /// Update all patches now. TODO nice to have a restore old ones aka undo.
+        /// </summary>
+        void SendPatches()
+        {
+            int patch = cmbPatchList.SelectedIndex;
+            foreach (var ch in _patchChannels)
+            {
+                PatchChangeEvent evt = new PatchChangeEvent(0, ch, patch);
+                MidiSend(evt);
+            }
+
+        }
         #endregion
 
-        #region Event handlers
+        #region UI event handlers
         /// <summary>
         /// 
         /// </summary>
@@ -716,23 +709,6 @@ namespace ClipExplorer
             //CurrentTime = TicksToTime(barBar.Current.TotalTicks);
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //void MapDrums_CheckedChanged(object sender, EventArgs e)
-        //{
-        //    Common.Settings.MapDrumChannel = chkMapDrums.Checked;
-        //    if (_fn != "")
-        //    {
-        //        // Reload.
-        //        OpenFile(_fn);
-        //    }
-        //}
-        #endregion
-
-
         /// <summary>
         /// User wants to change the drum channel.
         /// </summary>
@@ -744,14 +720,52 @@ namespace ClipExplorer
             bool valid = int.TryParse(txtDrumChannel.Text, out int dch);
             if (valid && dch >= 1 && dch <= 16)
             {
-                DrumChannel = dch;
+                _drumChannel = dch;
             }
             else
             {
-                DrumChannel = DEFAULT_DRUM_CHANNEL;
-                txtDrumChannel.Text = DrumChannel.ToString();
+                _drumChannel = DEFAULT_DRUM_CHANNEL;
+                txtDrumChannel.Text = _drumChannel.ToString();
             }
         }
+
+        void PatchChannel_TextChanged(object sender, EventArgs e)
+        {
+            // Check for valid numbers.
+            var parts = txtPatchChannel.Text.SplitByToken(" ");
+
+            _patchChannels.Clear();
+            bool valid = true;
+
+            for (int i = 0; i < parts.Count && valid; i++)
+            {
+                valid = int.TryParse(txtPatchChannel.Text, out int pch);
+                if (valid && pch >= 1 && pch <= 16)
+                {
+                    _patchChannels.Add(pch);
+                }
+            }
+
+            if(valid)
+            {
+                SendPatches();
+            }
+            else
+            {
+                txtPatchChannel.Text = "";
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void PatchList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SendPatches();
+        }
+        #endregion
     }
 
     /// <summary>Channel events and other properties.</summary>

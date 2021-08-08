@@ -22,6 +22,9 @@ namespace ClipExplorer
             this.sldTempo = new NBagOfTricks.UI.Slider();
             this.label1 = new System.Windows.Forms.Label();
             this.txtDrumChannel = new System.Windows.Forms.TextBox();
+            this.txtPatchChannel = new System.Windows.Forms.TextBox();
+            this.cmbPatchList = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // barBar
@@ -75,9 +78,9 @@ namespace ClipExplorer
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(0, 106);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(62, 17);
+            this.label1.Size = new System.Drawing.Size(79, 17);
             this.label1.TabIndex = 71;
-            this.label1.Text = "Alt Drum";
+            this.label1.Text = "Drum Chan";
             // 
             // txtDrumChannel
             // 
@@ -90,10 +93,43 @@ namespace ClipExplorer
             this.txtDrumChannel.Text = "10";
             this.txtDrumChannel.TextChanged += new System.EventHandler(this.DrumChannel_TextChanged);
             // 
+            // txtPatchChannel
+            // 
+            this.txtPatchChannel.BackColor = System.Drawing.SystemColors.Control;
+            this.txtPatchChannel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtPatchChannel.Location = new System.Drawing.Point(67, 136);
+            this.txtPatchChannel.Name = "txtPatchChannel";
+            this.txtPatchChannel.Size = new System.Drawing.Size(34, 22);
+            this.txtPatchChannel.TabIndex = 73;
+            this.txtPatchChannel.TextChanged += new System.EventHandler(this.PatchChannel_TextChanged);
+            // 
+            // cmbPatchList
+            // 
+            this.cmbPatchList.BackColor = System.Drawing.SystemColors.Control;
+            this.cmbPatchList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPatchList.DropDownWidth = 150;
+            this.cmbPatchList.FormattingEnabled = true;
+            this.cmbPatchList.Location = new System.Drawing.Point(3, 166);
+            this.cmbPatchList.Name = "cmbPatchList";
+            this.cmbPatchList.Size = new System.Drawing.Size(98, 24);
+            this.cmbPatchList.TabIndex = 74;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(0, 138);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(61, 17);
+            this.label2.TabIndex = 75;
+            this.label2.Text = "Repatch";
+            // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.cmbPatchList);
+            this.Controls.Add(this.txtPatchChannel);
             this.Controls.Add(this.txtDrumChannel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.barBar);
@@ -113,5 +149,8 @@ namespace ClipExplorer
         private NBagOfTricks.UI.BarBar barBar;
         private Label label1;
         private TextBox txtDrumChannel;
+        private TextBox txtPatchChannel;
+        private ComboBox cmbPatchList;
+        private Label label2;
     }
 }

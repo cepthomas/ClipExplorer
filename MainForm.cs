@@ -89,11 +89,6 @@ namespace ClipExplorer
             InitNavigator();
 
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
-            timer1.Enabled = true;
-
-            ///// for testing only
-            //OpenFile(@"C:\Dev\repos\ClipExplorer\_files\ref-stereo.wav");
-            //_player.Dump("Dump.csv");
         }
 
         /// <summary>
@@ -512,15 +507,6 @@ namespace ClipExplorer
             {
                 _midiPlayer.Volume = (float)sldVolume.Value;
             }
-        }
-
-        /// <summary>
-        /// Update realtime clock.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Timer1_Tick(object sender, EventArgs e)
-        {
         }
         #endregion
     }

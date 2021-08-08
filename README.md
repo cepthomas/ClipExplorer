@@ -5,8 +5,12 @@ minimal attention has been paid to aesthetics over functionality. This explains 
 ones available on your box. (Hint- VirtualMidiSynth).
 
 # Usage
-The simple UI shows a tree directory navigator on the left and standard audio transport family of controls on the right. Depending on file
-choice, audio or midi specific controls will be shown. Files can have tags applied for the purpose of filtering. Click on the settings icon to get your options.
+- The simple UI shows a tree directory navigator on the left and standard audio transport family of controls on the right.
+  Depending on file choice, audio or midi specific controls will be shown.
+- Files can have tags applied for the purpose of filtering.
+- Click on the settings icon to get your options.
+- Some midi files with single instruments are sloppy with the channel numbers so there are a couple of options for simple remapping.
+- TODO Need better docs!
 
 # Third Party
 This application uses these FOSS components:
