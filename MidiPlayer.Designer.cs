@@ -17,24 +17,12 @@ namespace ClipExplorer
         /// </summary>
         private void InitializeComponent()
         {
-            this.chkMapDrums = new System.Windows.Forms.CheckBox();
             this.barBar = new NBagOfTricks.UI.BarBar();
             this.clickGrid = new NBagOfTricks.UI.ClickGrid();
             this.sldTempo = new NBagOfTricks.UI.Slider();
+            this.label1 = new System.Windows.Forms.Label();
+            this.txtDrumChannel = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
-            // 
-            // chkMapDrums
-            // 
-            this.chkMapDrums.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkMapDrums.AutoSize = true;
-            this.chkMapDrums.FlatAppearance.BorderSize = 0;
-            this.chkMapDrums.Location = new System.Drawing.Point(0, 112);
-            this.chkMapDrums.Name = "chkMapDrums";
-            this.chkMapDrums.Size = new System.Drawing.Size(57, 27);
-            this.chkMapDrums.TabIndex = 71;
-            this.chkMapDrums.Text = "DMAP";
-            this.chkMapDrums.UseVisualStyleBackColor = true;
-            this.chkMapDrums.CheckedChanged += new System.EventHandler(this.MapDrums_CheckedChanged);
             // 
             // barBar
             // 
@@ -82,11 +70,32 @@ namespace ClipExplorer
             this.sldTempo.Value = 100D;
             this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(0, 106);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(62, 17);
+            this.label1.TabIndex = 71;
+            this.label1.Text = "Alt Drum";
+            // 
+            // txtDrumChannel
+            // 
+            this.txtDrumChannel.BackColor = System.Drawing.SystemColors.Control;
+            this.txtDrumChannel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtDrumChannel.Location = new System.Drawing.Point(76, 105);
+            this.txtDrumChannel.Name = "txtDrumChannel";
+            this.txtDrumChannel.Size = new System.Drawing.Size(25, 22);
+            this.txtDrumChannel.TabIndex = 72;
+            this.txtDrumChannel.Text = "10";
+            this.txtDrumChannel.TextChanged += new System.EventHandler(this.DrumChannel_TextChanged);
+            // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.chkMapDrums);
+            this.Controls.Add(this.txtDrumChannel);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.barBar);
             this.Controls.Add(this.clickGrid);
             this.Controls.Add(this.sldTempo);
@@ -102,6 +111,7 @@ namespace ClipExplorer
         private NBagOfTricks.UI.Slider sldTempo;
         private NBagOfTricks.UI.ClickGrid clickGrid;
         private NBagOfTricks.UI.BarBar barBar;
-        private CheckBox chkMapDrums;
+        private Label label1;
+        private TextBox txtDrumChannel;
     }
 }

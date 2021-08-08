@@ -488,11 +488,8 @@ namespace ClipExplorer
         /// <param name="fn"></param>
         void Navigator_FileSelectedEvent(object sender, string fn)
         {
-            if(fn != _fn)
-            {
-                OpenFile(fn);
-                _fn = fn;
-            }
+            OpenFile(fn);
+            _fn = fn;
         }
         #endregion
 

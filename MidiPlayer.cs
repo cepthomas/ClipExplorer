@@ -34,8 +34,8 @@ namespace ClipExplorer
         /// <summary>Our ppq aka resolution.</summary>
         const int PPQ = 32;
 
-        /// <summary>The drum channel.</summary>
-        const int DRUM_CHANNEL = 10;//TODO not always
+        /// <summary>The normal drum channel.</summary>
+        const int DEFAULT_DRUM_CHANNEL = 10;//TODO not always
         #endregion
 
         #region Fields
@@ -158,6 +158,11 @@ namespace ClipExplorer
         }
         #endregion
 
+
+        int DrumChannel = DEFAULT_DRUM_CHANNEL;
+
+
+
         #region Public Functions - interface implementation
         /// <inheritdoc />
         public bool OpenFile(string fn)
@@ -176,7 +181,7 @@ namespace ClipExplorer
                     // Default in case not specified in file.
                     int lastTick = 0;
                     _tempo = 100;
-                    HashSet<int> allDrums = new HashSet<int>();
+                    //HashSet<int> allDrums = new HashSet<int>();
 
                     // Get events.
                     var mfile = new MidiFile(fn, true);
@@ -208,21 +213,21 @@ namespace ClipExplorer
                                 // Scale tick to internal.
                                 long tick = mt.MidiToInternal(te.AbsoluteTime);
 
-                                // Adjust channel for non-standard drums.
-                                if (Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
-                                {
-                                    te.Channel = DRUM_CHANNEL;
-                                }
+                                //// Adjust channel for non-standard drums.
+                                //if (Common.Settings.MapDrumChannel && te.Channel == Common.Settings.DrumChannel)
+                                //{
+                                //    te.Channel = DRUM_CHANNEL;
+                                //}
 
                                 // Other ops.
                                 switch(te)
                                 {
                                     case NoteOnEvent non:
                                         // Collect drum list.
-                                        if(non.Channel == DRUM_CHANNEL)
-                                        {
-                                            allDrums.Add(non.NoteNumber);
-                                        }
+                                        //if(non.Channel == DRUM_CHANNEL)
+                                        //{
+                                        //    allDrums.Add(non.NoteNumber);
+                                        //}
 
                                         //if (non.Velocity > 0 && non.NoteLength == 0)
                                         //{
@@ -250,9 +255,9 @@ namespace ClipExplorer
                     {
                         var pc = _playChannels[i];
 
+                        // Make a name for UI.
                         pc.Name = $"Ch:({i + 1}) ";
-
-                        if(i + 1 == DRUM_CHANNEL)
+                        if(i + 1 == DrumChannel) //TODO temp - not correct.
                         {
                             pc.Name += $"Drums";
                         }
@@ -269,7 +274,10 @@ namespace ClipExplorer
                             pc.Name += $"Patch:{pc.Patch}";
                         }
 
+                        // Extents.
                         lastTick = Math.Max(lastTick, pc.MaxTick);
+
+                        // Maybe add to UI.
                         if(pc.Valid && pc.HasNotes)
                         {
                             clickGrid.AddIndicator(pc.Name, i);
@@ -286,14 +294,14 @@ namespace ClipExplorer
                     barBar.End = barBar.Length - BarSpan.OneTick;
                     barBar.Current = BarSpan.Zero;
 
-                    // Debug stuff. EXP
-                    List<string> sdbg = new List<string>() { "Drums:" };
-                    foreach(int dr in allDrums)
-                    {
-                        string snm = _drumDefs.ContainsKey(dr) ? _drumDefs[dr] : "???";
-                        sdbg.Add($"{dr}={snm}");
-                    }
-                    LogMessage(string.Join(" ", sdbg));
+                    //// Debug stuff. EXP
+                    //List<string> sdbg = new List<string>() { "Drums:" };
+                    //foreach(int dr in allDrums)
+                    //{
+                    //    string snm = _drumDefs.ContainsKey(dr) ? _drumDefs[dr] : "???";
+                    //    sdbg.Add($"{dr}={snm}");
+                    //}
+                    //LogMessage(string.Join(" ", sdbg));
                 }
             }
 
@@ -360,8 +368,8 @@ namespace ClipExplorer
         {
             bool ok = true;
 
-            chkMapDrums.Checked = Common.Settings.MapDrumChannel;
-            chkMapDrums.Text = $"Drums\r\nchan {Common.Settings.DrumChannel}";
+            //chkMapDrums.Checked = Common.Settings.MapDrumChannel;
+            //chkMapDrums.Text = $"Drums\r\nchan {Common.Settings.DrumChannel}";
 
             barBar.BeatsPerBar = BEATS_PER_BAR;
             barBar.TicksPerBeat = PPQ;
@@ -409,7 +417,7 @@ namespace ClipExplorer
                             case NoteOnEvent evt:
                                 int len = evt.OffEvent == null ? 0 : evt.NoteLength;
                                 string nnum = $"{evt.NoteNumber}";
-                                if(te.Channel == DRUM_CHANNEL && _drumDefs.ContainsKey(evt.NoteNumber))
+                                if(te.Channel == DrumChannel && _drumDefs.ContainsKey(evt.NoteNumber))
                                 {
                                     nnum += $"_{_drumDefs[evt.NoteNumber]}";
                                 }
@@ -486,7 +494,7 @@ namespace ClipExplorer
         }
         #endregion
 
-        #region Private Functions
+        #region Midi send
         /// <summary>
         /// Multimedia timer callback. Synchronously outputs the next midi events.
         /// </summary>
@@ -512,26 +520,32 @@ namespace ClipExplorer
                                 {
                                     switch (mevt)
                                     {
-                                        // Adjust volume.
                                         case NoteOnEvent evt:
-                                            if (ch.ChannelNumber == DRUM_CHANNEL && evt.Velocity == 0)
+                                            if (ch.ChannelNumber == DrumChannel && evt.Velocity == 0)
                                             {
-                                                // EXP - skip noteoffs as windows GM doesn't like them.
+                                                // Skip drum noteoffs as windows GM doesn't like them.
                                             }
                                             else
                                             {
-                                                double vel = evt.Velocity;
-                                                evt.Velocity = (int)(vel * Volume);
-                                                MidiSend(evt);
-                                                // Need to restore.
-                                                evt.Velocity = (int)vel;
+                                                //public override MidiEvent Clone() => new NoteOnEvent(AbsoluteTime, Channel, NoteNumber, Velocity, NoteLength);
+                                                //NoteOnEvent ne  = evt.Clone() as NoteOnEvent;
+
+                                                // Adjust volume and maybe drum channel. Also NAudio NoteLength bug.
+                                                NoteOnEvent ne = new NoteOnEvent(
+                                                    evt.AbsoluteTime,
+                                                    ch.ChannelNumber == DrumChannel ? DEFAULT_DRUM_CHANNEL : evt.Channel,
+                                                    evt.NoteNumber,
+                                                    (int)(evt.Velocity * Volume),
+                                                    evt.OffEvent == null ? 0 : evt.NoteLength);
+
+                                                MidiSend(ne);
                                             }
                                             break;
 
                                         case NoteEvent evt:
-                                            if(ch.ChannelNumber == DRUM_CHANNEL)
+                                            if(ch.ChannelNumber == DrumChannel)
                                             {
-                                                // EXP - skip noteoffs as windows GM doesn't like them.
+                                                // Skip drum noteoffs as windows GM doesn't like them.
                                             }
                                             else
                                             {
@@ -572,7 +586,9 @@ namespace ClipExplorer
                 LogMessage(evt.ToString());
             }
         }
+        #endregion
 
+        #region Private Functions
         /// <summary>
         /// Logger.
         /// </summary>
@@ -700,21 +716,42 @@ namespace ClipExplorer
             //CurrentTime = TicksToTime(barBar.Current.TotalTicks);
         }
 
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //void MapDrums_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    Common.Settings.MapDrumChannel = chkMapDrums.Checked;
+        //    if (_fn != "")
+        //    {
+        //        // Reload.
+        //        OpenFile(_fn);
+        //    }
+        //}
+        #endregion
+
+
         /// <summary>
-        /// 
+        /// User wants to change the drum channel.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MapDrums_CheckedChanged(object sender, EventArgs e)
+        void DrumChannel_TextChanged(object sender, EventArgs e)
         {
-            Common.Settings.MapDrumChannel = chkMapDrums.Checked;
-            if(_fn != "")
+            // Check for valid number.
+            bool valid = int.TryParse(txtDrumChannel.Text, out int dch);
+            if (valid && dch >= 1 && dch <= 16)
             {
-                // Reload.
-                OpenFile(_fn);
+                DrumChannel = dch;
+            }
+            else
+            {
+                DrumChannel = DEFAULT_DRUM_CHANNEL;
+                txtDrumChannel.Text = DrumChannel.ToString();
             }
         }
-        #endregion
     }
 
     /// <summary>Channel events and other properties.</summary>
@@ -737,7 +774,7 @@ namespace ClipExplorer
         public PlayMode Mode { get; set; } = PlayMode.Normal;
         public enum PlayMode { Normal = 0, Solo = 1, Mute = 2 }
 
-        /// <summary>For UI.</summary>
+        /// <summary>Optional patch.</summary>
         public int Patch { get; set; } = -1;
 
         ///<summary>The main collection of Steps. The key is the subbeat/tick to send the list.</summary>
