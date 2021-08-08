@@ -35,7 +35,7 @@ namespace ClipExplorer
         const int PPQ = 32;
 
         /// <summary>The drum channel.</summary>
-        const int DRUM_CHANNEL = 10;
+        const int DRUM_CHANNEL = 10;//TODO not always
         #endregion
 
         #region Fields
@@ -270,7 +270,7 @@ namespace ClipExplorer
                         }
 
                         lastTick = Math.Max(lastTick, pc.MaxTick);
-                        if(pc.Valid)
+                        if(pc.Valid && pc.HasNotes)
                         {
                             clickGrid.AddIndicator(pc.Name, i);
                         }
@@ -730,6 +730,9 @@ namespace ClipExplorer
         /// <summary>Channel used.</summary>
         public bool Valid { get { return Events.Count > 0; } }
 
+        /// <summary>Music or control/meta.</summary>
+        public bool HasNotes { get; private set; } = false;
+
         /// <summary>For muting/soloing.</summary>
         public PlayMode Mode { get; set; } = PlayMode.Normal;
         public enum PlayMode { Normal = 0, Solo = 1, Mute = 2 }
@@ -755,6 +758,7 @@ namespace ClipExplorer
             }
             Events[tick].Add(evt);
             MaxTick = Math.Max(MaxTick, tick);
+            HasNotes |= evt is NoteEvent;
         }
 
         /// <summary>For viewing pleasure.</summary>
