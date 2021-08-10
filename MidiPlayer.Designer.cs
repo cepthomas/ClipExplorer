@@ -46,6 +46,7 @@ namespace ClipExplorer
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
             this.barBar.TabIndex = 70;
             this.barBar.TicksPerBeat = 8;
+            this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
             // 
             // clickGrid
             // 
@@ -57,6 +58,7 @@ namespace ClipExplorer
             this.clickGrid.Name = "clickGrid";
             this.clickGrid.Size = new System.Drawing.Size(390, 178);
             this.clickGrid.TabIndex = 69;
+            this.toolTip.SetToolTip(this.clickGrid, "Midi channels with mute/solo");
             this.clickGrid.IndicatorEvent += new System.EventHandler<NBagOfTricks.UI.IndicatorEventArgs>(this.ClickGrid_IndicatorEvent);
             // 
             // sldTempo
@@ -139,6 +141,7 @@ namespace ClipExplorer
             this.chkLogMidi.Size = new System.Drawing.Size(71, 27);
             this.chkLogMidi.TabIndex = 76;
             this.chkLogMidi.Text = "Log Midi";
+            this.toolTip.SetToolTip(this.chkLogMidi, "Enable logging midi events");
             this.chkLogMidi.UseVisualStyleBackColor = true;
             // 
             // MidiPlayer

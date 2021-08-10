@@ -18,11 +18,13 @@ namespace ClipExplorer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.waveViewerL = new NBagOfTricks.UI.WaveViewer();
             this.levelR = new NBagOfTricks.UI.Meter();
             this.levelL = new NBagOfTricks.UI.Meter();
             this.waveViewerR = new NBagOfTricks.UI.WaveViewer();
             this.timeBar = new NBagOfTricks.UI.TimeBar();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // waveViewerL
@@ -35,6 +37,7 @@ namespace ClipExplorer
             this.waveViewerL.Name = "waveViewerL";
             this.waveViewerL.Size = new System.Drawing.Size(525, 50);
             this.waveViewerL.TabIndex = 67;
+            this.toolTip.SetToolTip(this.waveViewerL, "Left waveform");
             // 
             // levelR
             // 
@@ -49,6 +52,7 @@ namespace ClipExplorer
             this.levelR.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.levelR.Size = new System.Drawing.Size(100, 40);
             this.levelR.TabIndex = 65;
+            this.toolTip.SetToolTip(this.levelR, "Right level");
             // 
             // levelL
             // 
@@ -63,6 +67,7 @@ namespace ClipExplorer
             this.levelL.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.levelL.Size = new System.Drawing.Size(100, 40);
             this.levelL.TabIndex = 64;
+            this.toolTip.SetToolTip(this.levelL, "Left level");
             // 
             // waveViewerR
             // 
@@ -74,6 +79,7 @@ namespace ClipExplorer
             this.waveViewerR.Name = "waveViewerR";
             this.waveViewerR.Size = new System.Drawing.Size(525, 50);
             this.waveViewerR.TabIndex = 68;
+            this.toolTip.SetToolTip(this.waveViewerR, "Right waveform");
             // 
             // timeBar
             // 
@@ -90,6 +96,7 @@ namespace ClipExplorer
             this.timeBar.Size = new System.Drawing.Size(525, 50);
             this.timeBar.SnapMsec = 0;
             this.timeBar.TabIndex = 69;
+            this.toolTip.SetToolTip(this.timeBar, "Time in min:sec:msec");
             this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
             // 
             // WavePlayer
@@ -115,6 +122,7 @@ namespace ClipExplorer
         private Meter levelR;
         private Meter levelL;
         private TimeBar timeBar;
+        private System.Windows.Forms.ToolTip toolTip;
         //private NAudio.Gui.WaveformPainter waveformPainterR;
         //private NAudio.Gui.WaveformPainter waveformPainterL;
     }

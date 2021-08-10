@@ -43,7 +43,7 @@ namespace ClipExplorer
         void Rewind();
 
         /// <summary>Settings have been edited.</summary>
-        bool SettingsUpdated();
+        bool SettingsChanged();
 
         /// <summary>Utility.</summary>
         /// <param name="fn">Output filename</param>

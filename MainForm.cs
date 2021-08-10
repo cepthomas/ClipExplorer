@@ -166,7 +166,7 @@ namespace ClipExplorer
 
                 if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
                 {
-                    _player.SettingsUpdated();
+                    _player.SettingsChanged();
                 }
 
                 if(navChange)

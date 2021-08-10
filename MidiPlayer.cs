@@ -114,7 +114,7 @@ namespace ClipExplorer
             }
             cmbPatchList.SelectedIndex = 0;
 
-            SettingsUpdated();
+            SettingsChanged();
 
             // Figure out which midi output device.
             for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
@@ -340,7 +340,7 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public bool SettingsUpdated()
+        public bool SettingsChanged()
         {
             bool ok = true;
 

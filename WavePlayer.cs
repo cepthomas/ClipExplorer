@@ -195,7 +195,7 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public bool SettingsUpdated()
+        public bool SettingsChanged()
         {
             // Nothing to do.
             return true;
