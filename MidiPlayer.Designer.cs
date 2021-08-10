@@ -17,6 +17,7 @@ namespace ClipExplorer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.barBar = new NBagOfTricks.UI.BarBar();
             this.clickGrid = new NBagOfTricks.UI.ClickGrid();
             this.sldTempo = new NBagOfTricks.UI.Slider();
@@ -24,7 +25,9 @@ namespace ClipExplorer
             this.txtDrumChannel = new System.Windows.Forms.TextBox();
             this.txtPatchChannel = new System.Windows.Forms.TextBox();
             this.cmbPatchList = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.btnPatch = new System.Windows.Forms.Button();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.chkLogMidi = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // barBar
@@ -91,6 +94,7 @@ namespace ClipExplorer
             this.txtDrumChannel.Size = new System.Drawing.Size(25, 22);
             this.txtDrumChannel.TabIndex = 72;
             this.txtDrumChannel.Text = "10";
+            this.toolTip.SetToolTip(this.txtDrumChannel, "Reassign the drum channel");
             this.txtDrumChannel.TextChanged += new System.EventHandler(this.DrumChannel_TextChanged);
             // 
             // txtPatchChannel
@@ -101,7 +105,7 @@ namespace ClipExplorer
             this.txtPatchChannel.Name = "txtPatchChannel";
             this.txtPatchChannel.Size = new System.Drawing.Size(34, 22);
             this.txtPatchChannel.TabIndex = 73;
-            this.txtPatchChannel.TextChanged += new System.EventHandler(this.PatchChannel_TextChanged);
+            this.toolTip.SetToolTip(this.txtPatchChannel, "Patch channel number");
             // 
             // cmbPatchList
             // 
@@ -113,21 +117,36 @@ namespace ClipExplorer
             this.cmbPatchList.Name = "cmbPatchList";
             this.cmbPatchList.Size = new System.Drawing.Size(98, 24);
             this.cmbPatchList.TabIndex = 74;
+            this.toolTip.SetToolTip(this.cmbPatchList, "Patch name");
             // 
-            // label2
+            // btnPatch
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(0, 138);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(61, 17);
-            this.label2.TabIndex = 75;
-            this.label2.Text = "Repatch";
+            this.btnPatch.Location = new System.Drawing.Point(4, 136);
+            this.btnPatch.Name = "btnPatch";
+            this.btnPatch.Size = new System.Drawing.Size(57, 23);
+            this.btnPatch.TabIndex = 75;
+            this.btnPatch.Text = "Patch";
+            this.toolTip.SetToolTip(this.btnPatch, "Send the patch to channel");
+            this.btnPatch.UseVisualStyleBackColor = true;
+            this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
+            // 
+            // chkLogMidi
+            // 
+            this.chkLogMidi.Appearance = System.Windows.Forms.Appearance.Button;
+            this.chkLogMidi.AutoSize = true;
+            this.chkLogMidi.Location = new System.Drawing.Point(4, 212);
+            this.chkLogMidi.Name = "chkLogMidi";
+            this.chkLogMidi.Size = new System.Drawing.Size(71, 27);
+            this.chkLogMidi.TabIndex = 76;
+            this.chkLogMidi.Text = "Log Midi";
+            this.chkLogMidi.UseVisualStyleBackColor = true;
             // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.chkLogMidi);
+            this.Controls.Add(this.btnPatch);
             this.Controls.Add(this.cmbPatchList);
             this.Controls.Add(this.txtPatchChannel);
             this.Controls.Add(this.txtDrumChannel);
@@ -151,6 +170,8 @@ namespace ClipExplorer
         private TextBox txtDrumChannel;
         private TextBox txtPatchChannel;
         private ComboBox cmbPatchList;
-        private Label label2;
+        private Button btnPatch;
+        private ToolTip toolTip;
+        private CheckBox chkLogMidi;
     }
 }

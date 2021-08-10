@@ -13,15 +13,6 @@ using NAudio.Midi;
 using NBagOfTricks.UI;
 
 
-// TODO option to lock bpm to ui.
-
-// TODO:
-// [DisplayName("Default Tempo")]
-// [Description("Use this tempo if it's not in the file.")]
-// [Category("Midi")]
-// [Browsable(true)]
-// public int DefaultTempo { get; set; } = 100;
-
 namespace ClipExplorer
 {
     [Serializable]
@@ -68,11 +59,11 @@ namespace ClipExplorer
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string MidiOutDevice { get; set; } = "Microsoft GS Wavetable Synth";
 
-        [DisplayName("Log Midi Events")]
-        [Description("Write to text viewer. Warning! could be very busy.")]
+        [DisplayName("Default Tempo")]
+        [Description("Use this tempo if it's not in the file.")]
         [Category("Midi")]
         [Browsable(true)]
-        public bool LogEvents { get; set; } = false; //TODO put in UI chkbox?
+        public int DefaultTempo { get; set; } = 100;
 
         [DisplayName("Snap To Grid")]
         [Description("Snap to bar | beat | tick.")]

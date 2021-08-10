@@ -60,17 +60,11 @@ namespace ClipExplorer
         /// <summary>All the channels.</summary>
         readonly PlayChannel[] _playChannels = new PlayChannel[NUM_CHANNELS];
 
-        /// <summary>Requested tempo from file.</summary>
-        int _tempo = 100;
+        /// <summary>Requested tempo from file. Use default if not supplied.</summary>
+        int _tempo = Common.Settings.DefaultTempo;
 
         /// <summary>Some midi files have drums on a different channel so allow the user to re-map.</summary>
         int _drumChannel = DEFAULT_DRUM_CHANNEL;
-
-        /// <summary>Some midi files have less than ideal patches so allow the user to re-map.</summary>
-        readonly HashSet<int> _patchChannels = new HashSet<int>();
-
-        ///// <summary>Some midi files have less than ideal patches so allow the user to re-map.</summary>
-        //int _patchRemap = 0;
 
         /// <summary>The midi instrument definitions.</summary>
         readonly Dictionary<int, string> _instrumentDefs = new Dictionary<int, string>();
@@ -119,7 +113,6 @@ namespace ClipExplorer
                 cmbPatchList.Items.Add(kv.Value);
             }
             cmbPatchList.SelectedIndex = 0;
-            cmbPatchList.SelectedIndexChanged += PatchList_SelectedIndexChanged;
 
             SettingsUpdated();
 
@@ -252,7 +245,7 @@ namespace ClipExplorer
 
                         // Make a name for UI.
                         pc.Name = $"Ch:({i + 1}) ";
-                        if(i + 1 == _drumChannel) //TODO not always correct.
+                        if(i + 1 == _drumChannel) // TODO not correct if drum channel changed.
                         {
                             pc.Name += $"Drums";
                         }
@@ -326,19 +319,16 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Stop()
         {
-            if(_running)
+            _running = false;
+
+            _mmTimer.Stop();
+
+            // Send midi stop all notes just in case.
+            for (int i = 0; i < _playChannels.Count(); i++)
             {
-                _running = false;
-
-                _mmTimer.Stop();
-
-                // Send midi stop all notes just in case.
-                for (int i = 0; i < _playChannels.Count(); i++)
+                if (_playChannels[i].Valid)
                 {
-                    if(_playChannels[i].Valid)
-                    {
-                        Kill(i);
-                    }
+                    Kill(i);
                 }
             }
         }
@@ -560,7 +550,7 @@ namespace ClipExplorer
         {
             _midiOut?.Send(evt.GetAsShortMessage());
 
-            if (Common.Settings.LogEvents)
+            if (chkLogMidi.Checked)
             {
                 LogMessage(evt.ToString());
             }
@@ -627,20 +617,6 @@ namespace ClipExplorer
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Update all patches now. TODO nice to have a restore old ones aka undo.
-        /// </summary>
-        void SendPatches()
-        {
-            int patch = cmbPatchList.SelectedIndex;
-            foreach (var ch in _patchChannels)
-            {
-                PatchChangeEvent evt = new PatchChangeEvent(0, ch, patch);
-                MidiSend(evt);
-            }
-
         }
         #endregion
 
@@ -729,44 +705,27 @@ namespace ClipExplorer
             }
         }
 
-        void PatchChannel_TextChanged(object sender, EventArgs e)
+        /// <summary>
+        /// Validate selections and send patch now. TODO nice to have a restore old ones aka undo.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Patch_Click(object sender, EventArgs e)
         {
-            // Check for valid numbers.
-            var parts = txtPatchChannel.Text.SplitByToken(" ");
-
-            _patchChannels.Clear();
-            bool valid = true;
-
-            for (int i = 0; i < parts.Count && valid; i++)
+            bool valid = int.TryParse(txtPatchChannel.Text, out int pch);
+            if (valid && pch >= 1 && pch <= 16)
             {
-                valid = int.TryParse(txtPatchChannel.Text, out int pch);
-                if (valid && pch >= 1 && pch <= 16)
-                {
-                    _patchChannels.Add(pch);
-                }
-            }
-
-            if(valid)
-            {
-                SendPatches();
+                PatchChangeEvent evt = new PatchChangeEvent(0, pch, cmbPatchList.SelectedIndex);
+                MidiSend(evt);
             }
             else
             {
                 txtPatchChannel.Text = "";
+                LogMessage("Invalid patch channel");
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void PatchList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            SendPatches();
-        }
-        #endregion
     }
+    #endregion
 
     /// <summary>Channel events and other properties.</summary>
     public class PlayChannel

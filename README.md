@@ -9,8 +9,7 @@ ones available on your box. (Hint- VirtualMidiSynth).
   Depending on file choice, audio or midi specific controls will be shown.
 - Files can have tags applied for the purpose of filtering.
 - Click on the settings icon to get your options.
-- Some midi files with single instruments are sloppy with the channel numbers so there are a couple of options for simple remapping.
-- TODO Need better docs!
+- Some midi files with single instruments are sloppy with channel numbers so there are a couple of options for simple remapping.
 
 # Third Party
 This application uses these FOSS components:
