@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
@@ -182,10 +181,10 @@
             // 
             this.btnRewind.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRewind.Image = global::ClipExplorer.Properties.Resources.glyphicons_173_rewind;
-            this.btnRewind.Location = new System.Drawing.Point(21, 16);
+            this.btnRewind.Location = new System.Drawing.Point(66, 16);
             this.btnRewind.Margin = new System.Windows.Forms.Padding(4);
             this.btnRewind.Name = "btnRewind";
-            this.btnRewind.Size = new System.Drawing.Size(45, 39);
+            this.btnRewind.Size = new System.Drawing.Size(43, 39);
             this.btnRewind.TabIndex = 39;
             this.btnRewind.UseVisualStyleBackColor = false;
             this.btnRewind.Click += new System.EventHandler(this.Rewind_Click);
@@ -196,7 +195,7 @@
             this.chkPlay.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkPlay.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkPlay.Image = global::ClipExplorer.Properties.Resources.glyphicons_174_play;
-            this.chkPlay.Location = new System.Drawing.Point(71, 16);
+            this.chkPlay.Location = new System.Drawing.Point(15, 16);
             this.chkPlay.Margin = new System.Windows.Forms.Padding(4);
             this.chkPlay.Name = "chkPlay";
             this.chkPlay.Size = new System.Drawing.Size(43, 39);

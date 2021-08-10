@@ -409,7 +409,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Play_CheckedChanged(object sender, EventArgs e)
         {
-            bool _ = chkPlay.Checked ? Start() : Stop();
+            var _ = chkPlay.Checked ? Start() : Stop();
         }
 
         /// <summary>
