@@ -441,11 +441,18 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Space)
+            switch(e.KeyCode)
             {
-                // Toggle.
-                bool _ = chkPlay.Checked ? Stop() : Start();
-                e.Handled = true;
+                case Keys.Space:
+                    // Toggle.
+                    bool _ = chkPlay.Checked ? Stop() : Start();
+                    e.Handled = true;
+                    break;
+
+                case Keys.C:
+                    txtViewer.Clear();
+                    e.Handled = true;
+                    break;
             }
         }
 

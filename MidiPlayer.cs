@@ -326,7 +326,7 @@ namespace ClipExplorer
             // Send midi stop all notes just in case.
             for (int i = 0; i < _playChannels.Count(); i++)
             {
-                if (_playChannels[i].Valid)
+                if (_playChannels[i] != null && _playChannels[i].Valid)
                 {
                     Kill(i);
                 }

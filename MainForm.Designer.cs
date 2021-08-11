@@ -130,17 +130,17 @@
             this.txtViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtViewer.Location = new System.Drawing.Point(24, 318);
+            this.txtViewer.Location = new System.Drawing.Point(2, 318);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(677, 286);
+            this.txtViewer.Size = new System.Drawing.Size(709, 335);
             this.txtViewer.TabIndex = 58;
             this.txtViewer.WordWrap = true;
             // 
             // lblMark
             // 
             this.lblMark.AutoSize = true;
-            this.lblMark.Location = new System.Drawing.Point(21, 67);
+            this.lblMark.Location = new System.Drawing.Point(14, 57);
             this.lblMark.Name = "lblMark";
             this.lblMark.Size = new System.Drawing.Size(46, 17);
             this.lblMark.TabIndex = 57;
@@ -152,7 +152,7 @@
             this.chkLoop.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkLoop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_366_restart;
-            this.chkLoop.Location = new System.Drawing.Point(119, 16);
+            this.chkLoop.Location = new System.Drawing.Point(114, 6);
             this.chkLoop.Margin = new System.Windows.Forms.Padding(4);
             this.chkLoop.Name = "chkLoop";
             this.chkLoop.Size = new System.Drawing.Size(43, 39);
@@ -165,7 +165,7 @@
             this.sldVolume.DecPlaces = 1;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(185, 16);
+            this.sldVolume.Location = new System.Drawing.Point(180, 6);
             this.sldVolume.Margin = new System.Windows.Forms.Padding(4);
             this.sldVolume.Maximum = 1D;
             this.sldVolume.Minimum = 0D;
@@ -181,7 +181,7 @@
             // 
             this.btnRewind.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRewind.Image = global::ClipExplorer.Properties.Resources.glyphicons_173_rewind;
-            this.btnRewind.Location = new System.Drawing.Point(66, 16);
+            this.btnRewind.Location = new System.Drawing.Point(61, 6);
             this.btnRewind.Margin = new System.Windows.Forms.Padding(4);
             this.btnRewind.Name = "btnRewind";
             this.btnRewind.Size = new System.Drawing.Size(43, 39);
@@ -195,7 +195,7 @@
             this.chkPlay.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkPlay.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkPlay.Image = global::ClipExplorer.Properties.Resources.glyphicons_174_play;
-            this.chkPlay.Location = new System.Drawing.Point(15, 16);
+            this.chkPlay.Location = new System.Drawing.Point(10, 6);
             this.chkPlay.Margin = new System.Windows.Forms.Padding(4);
             this.chkPlay.Name = "chkPlay";
             this.chkPlay.Size = new System.Drawing.Size(43, 39);
