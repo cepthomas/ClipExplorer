@@ -238,14 +238,14 @@ namespace ClipExplorer
                         };
                     }
 
-                    // Final fixups.
+                    // Final fixups. TODO drum channel and patches are not updated if the user changes them.
                     for (int i = 0; i < _playChannels.Count(); i++)
                     {
                         var pc = _playChannels[i];
 
                         // Make a name for UI.
                         pc.Name = $"Ch:({i + 1}) ";
-                        if(i + 1 == _drumChannel) // TODO not correct if drum channel changed.
+                        if(i + 1 == _drumChannel)
                         {
                             pc.Name += $"Drums";
                         }
