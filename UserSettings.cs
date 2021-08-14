@@ -66,7 +66,7 @@ namespace ClipExplorer
         public int DefaultTempo { get; set; } = 100;
 
         [DisplayName("Snap To Grid")]
-        [Description("Snap to bar | beat | tick.")]
+        [Description("Snap to bar | beat | subdiv.")]
         [Category("Midi")]
         [Browsable(true)]
         public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;

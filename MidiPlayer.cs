@@ -177,7 +177,6 @@ namespace ClipExplorer
                 if (ok)
                 {
                     // Default in case not specified in file.
-                    int lastTick = 0;
                     _tempo = 100;
 
                     // Get events.
@@ -190,7 +189,7 @@ namespace ClipExplorer
                         _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
                     }
 
-                    // Scale ticks to internal ppq.
+                    // Scale to internal ppq.
                     MidiTime mt = new MidiTime()
                     {
                         InternalPpq = PPQ,
@@ -198,7 +197,7 @@ namespace ClipExplorer
                         Tempo = _tempo
                     };
 
-                    // Bin events by channel. Scale ticks to internal ppq.
+                    // Bin events by channel. Scale to internal ppq.
                     for (int track = 0; track < _sourceEvents.Tracks; track++)
                     {
                         foreach(var te in _sourceEvents.GetTrackEvents(track))
@@ -208,7 +207,7 @@ namespace ClipExplorer
                                 // Do some miscellaneous fixups.
 
                                 // Scale to internal.
-                                long tick = mt.MidiToInternal(te.AbsoluteTime);
+                                long subdiv = mt.MidiToInternal(te.AbsoluteTime);
 
                                 // Other ops.
                                 switch(te)
@@ -226,7 +225,7 @@ namespace ClipExplorer
                                 }
 
                                 // Add to our collection.
-                                _playChannels[te.Channel - 1].AddEvent((int)tick, te);
+                                _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
                             }
                         };
                     }
@@ -234,13 +233,13 @@ namespace ClipExplorer
                     InitGrid();
 
                     // Figure out times.
-                    lastTick = _playChannels.Max(pc => pc.MaxTick);
+                    int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
                     // Round up to bar.
-                    int floor = lastTick / (PPQ * 4); // 4/4 only.
-                    lastTick = (floor + 1) * (PPQ * 4);
+                    int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
+                    lastSubdiv = (floor + 1) * (PPQ * 4);
                     sldTempo.Value = _tempo;
 
-                    barBar.Length = new BarSpan(lastTick);
+                    barBar.Length = new BarSpan(lastSubdiv);
                     barBar.Start = BarSpan.Zero;
                     barBar.End = barBar.Length - BarSpan.OneSubdiv;
                     barBar.Current = BarSpan.Zero;
@@ -264,7 +263,7 @@ namespace ClipExplorer
                     Tempo = _tempo
                 };
                 
-                //msecPerTick = 60.0 / _tempo;
+                //msecPerSubdiv = 60.0 / _tempo;
                 int period = mt.RoundedInternalPeriod();
 
                 // Create periodic timer.
@@ -686,7 +685,6 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void BarBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            //CurrentTime = TicksToTime(barBar.Current.TotalTicks);
         }
 
         /// <summary>
@@ -751,31 +749,31 @@ namespace ClipExplorer
         /// <summary>Optional patch.</summary>
         public int Patch { get; set; } = -1;
 
-        ///<summary>The main collection of Steps. The key is the subbeat/tick to send the list.</summary>
+        ///<summary>The main collection of Steps. The key is the subdiv/time.</summary>
         public Dictionary<int, List<MidiEvent>> Events { get; set; } = new Dictionary<int, List<MidiEvent>>();
 
         ///<summary>The duration of the whole channel.</summary>
-        public int MaxTick { get; private set; } = 0;
+        public int MaxSubdiv { get; private set; } = 0;
         #endregion
 
-        /// <summary>Add an event at the given tick.</summary>
-        /// <param name="tick"></param>
+        /// <summary>Add an event at the given subdiv.</summary>
+        /// <param name="subdiv"></param>
         /// <param name="evt"></param>
-        public void AddEvent(int tick, MidiEvent evt)
+        public void AddEvent(int subdiv, MidiEvent evt)
         {
-            if (!Events.ContainsKey(tick))
+            if (!Events.ContainsKey(subdiv))
             {
-                Events.Add(tick, new List<MidiEvent>());
+                Events.Add(subdiv, new List<MidiEvent>());
             }
-            Events[tick].Add(evt);
-            MaxTick = Math.Max(MaxTick, tick);
+            Events[subdiv].Add(evt);
+            MaxSubdiv = Math.Max(MaxSubdiv, subdiv);
             HasNotes |= evt is NoteEvent;
         }
 
         /// <summary>For viewing pleasure.</summary>
         public override string ToString()
         {
-            return $"PlayChannel: Name:{Name} ChannelNumber:{ChannelNumber} Mode:{Mode} Events:{Events.Count} MaxTick:{MaxTick}";
+            return $"PlayChannel: Name:{Name} ChannelNumber:{ChannelNumber} Mode:{Mode} Events:{Events.Count} MaxSubdiv:{MaxSubdiv}";
         }
     }
 }
