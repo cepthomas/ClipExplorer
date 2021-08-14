@@ -350,7 +350,6 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
         {
-            //TODO Loop from Start to End doesn't work yet.
             //CurrentTime = timeBar.Current;
         }
 

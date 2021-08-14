@@ -44,7 +44,7 @@ namespace ClipExplorer
             this.barBar.Size = new System.Drawing.Size(498, 50);
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
             this.barBar.TabIndex = 70;
-            this.barBar.TicksPerBeat = 8;
+            this.barBar.SubdivsPerBeat = 8;
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
             // 
             // clickGrid

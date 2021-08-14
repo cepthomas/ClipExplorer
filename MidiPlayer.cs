@@ -207,7 +207,7 @@ namespace ClipExplorer
                             {
                                 // Do some miscellaneous fixups.
 
-                                // Scale tick to internal.
+                                // Scale to internal.
                                 long tick = mt.MidiToInternal(te.AbsoluteTime);
 
                                 // Other ops.
@@ -242,7 +242,7 @@ namespace ClipExplorer
 
                     barBar.Length = new BarSpan(lastTick);
                     barBar.Start = BarSpan.Zero;
-                    barBar.End = barBar.Length - BarSpan.OneTick;
+                    barBar.End = barBar.Length - BarSpan.OneSubdiv;
                     barBar.Current = BarSpan.Zero;
                 }
             }
@@ -308,7 +308,7 @@ namespace ClipExplorer
             bool ok = true;
 
             barBar.BeatsPerBar = BEATS_PER_BAR;
-            barBar.TicksPerBeat = PPQ;
+            barBar.SubdivsPerBeat = PPQ;
             barBar.Snap = Common.Settings.Snap;
 
             return ok;
@@ -450,9 +450,9 @@ namespace ClipExplorer
                         if (ch.Mode == PlayChannel.PlayMode.Solo || (!solo && ch.Mode == PlayChannel.PlayMode.Normal))
                         {
                             // Process any sequence steps.
-                            if (ch.Events.ContainsKey(barBar.Current.TotalTicks))
+                            if (ch.Events.ContainsKey(barBar.Current.TotalSubdivs))
                             {
-                                foreach (var mevt in ch.Events[barBar.Current.TotalTicks])
+                                foreach (var mevt in ch.Events[barBar.Current.TotalSubdivs])
                                 {
                                     switch (mevt)
                                     {
