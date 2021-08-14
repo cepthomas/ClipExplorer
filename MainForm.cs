@@ -503,17 +503,9 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Volume_ValueChanged(object sender, EventArgs e)
         {
-            Common.Settings.Volume = (float)sldVolume.Value;
-
-            if (_wavePlayer != null)
-            {
-                _wavePlayer.Volume = (float)sldVolume.Value;
-            }
-
-            if (_midiPlayer != null)
-            {
-                _midiPlayer.Volume = (float)sldVolume.Value;
-            }
+            float vol = (float)sldVolume.Value;
+            Common.Settings.Volume = vol;
+            _player.Volume = vol;
         }
         #endregion
     }
