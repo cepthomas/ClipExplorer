@@ -45,14 +45,8 @@ namespace ClipExplorer
         /// <summary>The fast timer.</summary>
         MmTimerEx _mmTimer = new MmTimerEx();
 
-        /// <summary>Current file.</summary>
-        string _fn = "";
-
         /// <summary>Indicates whether or not the midi is playing.</summary>
         bool _running = false;
-
-        /// <summary>Period.</summary>
-        double _msecPerTick = 0;
 
         /// <summary>Midi events from the input file.</summary>
         MidiEventCollection _sourceEvents = null;
@@ -173,7 +167,6 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
-            _fn = fn;
 
             using (new WaitCursor())
             {
@@ -242,6 +235,9 @@ namespace ClipExplorer
 
                     // Figure out times.
                     lastTick = _playChannels.Max(pc => pc.MaxTick);
+                    // Round up to bar.
+                    int floor = lastTick / (PPQ * 4); // 4/4 only.
+                    lastTick = (floor + 1) * (PPQ * 4);
                     sldTempo.Value = _tempo;
 
                     barBar.Length = new BarSpan(lastTick);
@@ -268,7 +264,7 @@ namespace ClipExplorer
                     Tempo = _tempo
                 };
                 
-                _msecPerTick = 60.0 / _tempo;
+                //msecPerTick = 60.0 / _tempo;
                 int period = mt.RoundedInternalPeriod();
 
                 // Create periodic timer.
