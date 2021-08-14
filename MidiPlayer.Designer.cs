@@ -21,13 +21,12 @@ namespace ClipExplorer
             this.barBar = new NBagOfTricks.UI.BarBar();
             this.clickGrid = new NBagOfTricks.UI.ClickGrid();
             this.sldTempo = new NBagOfTricks.UI.Slider();
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtDrumChannel = new System.Windows.Forms.TextBox();
             this.txtPatchChannel = new System.Windows.Forms.TextBox();
             this.cmbPatchList = new System.Windows.Forms.ComboBox();
-            this.btnPatch = new System.Windows.Forms.Button();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.chkLogMidi = new System.Windows.Forms.CheckBox();
+            this.chkDrumsOn1 = new System.Windows.Forms.CheckBox();
+            this.btnPatch = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // barBar
@@ -78,32 +77,11 @@ namespace ClipExplorer
             this.sldTempo.Value = 100D;
             this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(0, 106);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(79, 17);
-            this.label1.TabIndex = 71;
-            this.label1.Text = "Drum Chan";
-            // 
-            // txtDrumChannel
-            // 
-            this.txtDrumChannel.BackColor = System.Drawing.SystemColors.Control;
-            this.txtDrumChannel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDrumChannel.Location = new System.Drawing.Point(76, 105);
-            this.txtDrumChannel.Name = "txtDrumChannel";
-            this.txtDrumChannel.Size = new System.Drawing.Size(25, 22);
-            this.txtDrumChannel.TabIndex = 72;
-            this.txtDrumChannel.Text = "10";
-            this.toolTip.SetToolTip(this.txtDrumChannel, "Reassign the drum channel");
-            this.txtDrumChannel.TextChanged += new System.EventHandler(this.DrumChannel_TextChanged);
-            // 
             // txtPatchChannel
             // 
             this.txtPatchChannel.BackColor = System.Drawing.SystemColors.Control;
             this.txtPatchChannel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPatchChannel.Location = new System.Drawing.Point(67, 136);
+            this.txtPatchChannel.Location = new System.Drawing.Point(66, 136);
             this.txtPatchChannel.Name = "txtPatchChannel";
             this.txtPatchChannel.Size = new System.Drawing.Size(34, 22);
             this.txtPatchChannel.TabIndex = 73;
@@ -121,17 +99,6 @@ namespace ClipExplorer
             this.cmbPatchList.TabIndex = 74;
             this.toolTip.SetToolTip(this.cmbPatchList, "Patch name");
             // 
-            // btnPatch
-            // 
-            this.btnPatch.Location = new System.Drawing.Point(4, 136);
-            this.btnPatch.Name = "btnPatch";
-            this.btnPatch.Size = new System.Drawing.Size(57, 23);
-            this.btnPatch.TabIndex = 75;
-            this.btnPatch.Text = "Patch";
-            this.toolTip.SetToolTip(this.btnPatch, "Send the patch to channel");
-            this.btnPatch.UseVisualStyleBackColor = true;
-            this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
-            // 
             // chkLogMidi
             // 
             this.chkLogMidi.Appearance = System.Windows.Forms.Appearance.Button;
@@ -144,16 +111,38 @@ namespace ClipExplorer
             this.toolTip.SetToolTip(this.chkLogMidi, "Enable logging midi events");
             this.chkLogMidi.UseVisualStyleBackColor = true;
             // 
+            // chkDrumsOn1
+            // 
+            this.chkDrumsOn1.AutoSize = true;
+            this.chkDrumsOn1.Location = new System.Drawing.Point(4, 109);
+            this.chkDrumsOn1.Name = "chkDrumsOn1";
+            this.chkDrumsOn1.Size = new System.Drawing.Size(77, 21);
+            this.chkDrumsOn1.TabIndex = 77;
+            this.chkDrumsOn1.Text = "Dr on 1";
+            this.toolTip.SetToolTip(this.chkDrumsOn1, "Drums are on channel 1");
+            this.chkDrumsOn1.UseVisualStyleBackColor = true;
+            this.chkDrumsOn1.CheckedChanged += new System.EventHandler(this.DrumsOn1_CheckedChanged);
+            // 
+            // btnPatch
+            // 
+            this.btnPatch.Location = new System.Drawing.Point(3, 136);
+            this.btnPatch.Name = "btnPatch";
+            this.btnPatch.Size = new System.Drawing.Size(57, 23);
+            this.btnPatch.TabIndex = 75;
+            this.btnPatch.Text = "Patch";
+            this.toolTip.SetToolTip(this.btnPatch, "Send the patch to channel");
+            this.btnPatch.UseVisualStyleBackColor = true;
+            this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
+            // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.chkDrumsOn1);
             this.Controls.Add(this.chkLogMidi);
             this.Controls.Add(this.btnPatch);
             this.Controls.Add(this.cmbPatchList);
             this.Controls.Add(this.txtPatchChannel);
-            this.Controls.Add(this.txtDrumChannel);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.barBar);
             this.Controls.Add(this.clickGrid);
             this.Controls.Add(this.sldTempo);
@@ -169,12 +158,11 @@ namespace ClipExplorer
         private NBagOfTricks.UI.Slider sldTempo;
         private NBagOfTricks.UI.ClickGrid clickGrid;
         private NBagOfTricks.UI.BarBar barBar;
-        private Label label1;
-        private TextBox txtDrumChannel;
         private TextBox txtPatchChannel;
         private ComboBox cmbPatchList;
-        private Button btnPatch;
         private ToolTip toolTip;
         private CheckBox chkLogMidi;
+        private CheckBox chkDrumsOn1;
+        private Button btnPatch;
     }
 }

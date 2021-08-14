@@ -31,7 +31,7 @@ namespace ClipExplorer
         /// <summary>Only 4/4 time supported.</summary>
         const int BEATS_PER_BAR = 4;
 
-        /// <summary>Our ppq aka resolution.</summary>
+        /// <summary>Our internal ppq aka resolution.</summary>
         const int PPQ = 32;
 
         /// <summary>The normal drum channel.</summary>
@@ -238,43 +238,10 @@ namespace ClipExplorer
                         };
                     }
 
-                    // Final fixups. TODO drum channel and patches are not updated if the user changes them.
-                    for (int i = 0; i < _playChannels.Count(); i++)
-                    {
-                        var pc = _playChannels[i];
-
-                        // Make a name for UI.
-                        pc.Name = $"Ch:({i + 1}) ";
-                        if(i + 1 == _drumChannel)
-                        {
-                            pc.Name += $"Drums";
-                        }
-                        else if (pc.Patch == -1)
-                        {
-                            pc.Name += $"NoPatch";
-                        }
-                        else if(_instrumentDefs.ContainsKey(pc.Patch))
-                        {
-                            pc.Name += $"{_instrumentDefs[pc.Patch]}";
-                        }
-                        else
-                        {
-                            pc.Name += $"Patch:{pc.Patch}";
-                        }
-
-                        // Extents.
-                        lastTick = Math.Max(lastTick, pc.MaxTick);
-
-                        // Maybe add to UI.
-                        if(pc.Valid && pc.HasNotes)
-                        {
-                            clickGrid.AddIndicator(pc.Name, i);
-                        }
-                    }
-
-                    clickGrid.Show(2, clickGrid.Width / 2, 20);
+                    InitGrid();
 
                     // Figure out times.
+                    lastTick = _playChannels.Max(pc => pc.MaxTick);
                     sldTempo.Value = _tempo;
 
                     barBar.Length = new BarSpan(lastTick);
@@ -618,6 +585,47 @@ namespace ClipExplorer
                 }
             }
         }
+
+        /// <summary>
+        /// Populate the click grid.
+        /// </summary>
+        void InitGrid()
+        {
+            clickGrid.Clear();
+
+            for (int i = 0; i < _playChannels.Count(); i++)
+            {
+                var pc = _playChannels[i];
+
+                // Make a name for UI.
+                pc.Name = $"Ch:({i + 1}) ";
+
+                if (i + 1 == _drumChannel)
+                {
+                    pc.Name += $"Drums";
+                }
+                else if (pc.Patch == -1)
+                {
+                    pc.Name += $"NoPatch";
+                }
+                else if (_instrumentDefs.ContainsKey(pc.Patch))
+                {
+                    pc.Name += $"{_instrumentDefs[pc.Patch]}";
+                }
+                else
+                {
+                    pc.Name += $"Patch:{pc.Patch}";
+                }
+
+                // Maybe add to UI.
+                if (pc.Valid && pc.HasNotes)
+                {
+                    clickGrid.AddIndicator(pc.Name, i);
+                }
+            }
+
+            clickGrid.Show(2, clickGrid.Width / 2, 20);
+        }
         #endregion
 
         #region UI event handlers
@@ -626,7 +634,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ClickGrid_IndicatorEvent(object sender, IndicatorEventArgs e)
+        void ClickGrid_IndicatorEvent(object sender, IndicatorEventArgs e)
         {
             int channel = e.Id;
             PlayChannel pch = _playChannels[channel];
@@ -680,33 +688,26 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void BarBar_CurrentTimeChanged(object sender, EventArgs e)
+        void BarBar_CurrentTimeChanged(object sender, EventArgs e)
         {
             //CurrentTime = TicksToTime(barBar.Current.TotalTicks);
         }
 
         /// <summary>
-        /// User wants to change the drum channel.
+        /// Sometimes drums are on channel 1, usually if it's the only channel in a clip file.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void DrumChannel_TextChanged(object sender, EventArgs e)
+        void DrumsOn1_CheckedChanged(object sender, EventArgs e)
         {
-            // Check for valid number.
-            bool valid = int.TryParse(txtDrumChannel.Text, out int dch);
-            if (valid && dch >= 1 && dch <= 16)
-            {
-                _drumChannel = dch;
-            }
-            else
-            {
-                _drumChannel = DEFAULT_DRUM_CHANNEL;
-                txtDrumChannel.Text = _drumChannel.ToString();
-            }
+            _drumChannel = chkDrumsOn1.Checked ? 1 : 10;
+
+            // Update UI.
+            InitGrid();
         }
 
         /// <summary>
-        /// Validate selections and send patch now. TODO nice to have a restore old ones aka undo.
+        /// Validate selections and send patch now.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -717,10 +718,14 @@ namespace ClipExplorer
             {
                 PatchChangeEvent evt = new PatchChangeEvent(0, pch, cmbPatchList.SelectedIndex);
                 MidiSend(evt);
+
+                // Update UI.
+                _playChannels[pch - 1].Patch = cmbPatchList.SelectedIndex;
+                InitGrid();
             }
             else
             {
-                txtPatchChannel.Text = "";
+                //txtPatchChannel.Text = "";
                 LogMessage("Invalid patch channel");
             }
         }

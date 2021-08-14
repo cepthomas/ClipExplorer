@@ -152,7 +152,7 @@
             this.chkLoop.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkLoop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_366_restart;
-            this.chkLoop.Location = new System.Drawing.Point(114, 6);
+            this.chkLoop.Location = new System.Drawing.Point(112, 6);
             this.chkLoop.Margin = new System.Windows.Forms.Padding(4);
             this.chkLoop.Name = "chkLoop";
             this.chkLoop.Size = new System.Drawing.Size(43, 39);
@@ -165,7 +165,7 @@
             this.sldVolume.DecPlaces = 1;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(180, 6);
+            this.sldVolume.Location = new System.Drawing.Point(169, 6);
             this.sldVolume.Margin = new System.Windows.Forms.Padding(4);
             this.sldVolume.Maximum = 1D;
             this.sldVolume.Minimum = 0D;
