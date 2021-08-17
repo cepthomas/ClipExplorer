@@ -20,7 +20,7 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Supported file types..</summary>
-        string[] _fileTypes = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
+        string[] _fileTypes = new[] { ".mid", ".sty", ".wav", ".mp3", ".m4a", ".flac" };
 
         /// <summary>Audio device.</summary>
         WavePlayer _wavePlayer = null;
@@ -246,7 +246,7 @@ namespace ClipExplorer
             string sext = "Clip Files | ";
             foreach (string ext in _fileTypes)
             {
-                sext += ($"*{ext}; ");
+                sext += $"*{ext}; ";
             }
 
             using (OpenFileDialog openDlg = new OpenFileDialog()
@@ -294,6 +294,7 @@ namespace ClipExplorer
                                 break;
 
                             case ".mid":
+                            case ".sty":
                                 _wavePlayer.Visible = false;
                                 _midiPlayer.Visible = true;
                                 _player = _midiPlayer;
@@ -505,7 +506,15 @@ namespace ClipExplorer
         {
             float vol = (float)sldVolume.Value;
             Common.Settings.Volume = vol;
-            _player.Volume = vol;
+            if(_player is null)
+            {
+                _midiPlayer.Volume = vol;
+                _wavePlayer.Volume = vol;
+            }
+            else
+            {
+                _player.Volume = vol;
+            }
         }
         #endregion
     }
