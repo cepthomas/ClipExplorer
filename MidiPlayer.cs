@@ -75,7 +75,7 @@ namespace ClipExplorer
         public event EventHandler PlaybackCompleted;
 
         /// <inheritdoc />
-        public event EventHandler<string> Log;
+        public event EventHandler<LogEventArgs> Log;
         #endregion
 
         #region Properties - interface implementation
@@ -174,76 +174,73 @@ namespace ClipExplorer
                 clickGrid.Clear();
                 Rewind();
 
-                if (ok)
+                // Default in case not specified in file.
+                _tempo = 100;
+
+                // Get events.
+                var mfile = new MidiFile(fn, true);
+                _sourceEvents = mfile.Events;
+
+                // Init internal structure.
+                for (int i = 0; i < _playChannels.Count(); i++)
                 {
-                    // Default in case not specified in file.
-                    _tempo = 100;
-
-                    // Get events.
-                    var mfile = new MidiFile(fn, true);
-                    _sourceEvents = mfile.Events;
-
-                    // Init internal structure.
-                    for (int i = 0; i < _playChannels.Count(); i++)
-                    {
-                        _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
-                    }
-
-                    // Scale to internal ppq.
-                    MidiTime mt = new MidiTime()
-                    {
-                        InternalPpq = PPQ,
-                        MidiPpq = _sourceEvents.DeltaTicksPerQuarterNote,
-                        Tempo = _tempo
-                    };
-
-                    // Bin events by channel. Scale to internal ppq.
-                    for (int track = 0; track < _sourceEvents.Tracks; track++)
-                    {
-                        foreach(var te in _sourceEvents.GetTrackEvents(track))
-                        {
-                            if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
-                            {
-                                // Do some miscellaneous fixups.
-
-                                // Scale to internal.
-                                long subdiv = mt.MidiToInternal(te.AbsoluteTime);
-
-                                // Other ops.
-                                switch(te)
-                                {
-                                    case NoteOnEvent non:
-                                        break;
-
-                                    case TempoEvent evt:
-                                        _tempo = (int)evt.Tempo;
-                                        break;
-
-                                    case PatchChangeEvent evt:
-                                        _playChannels[te.Channel - 1].Patch = evt.Patch;
-                                        break;
-                                }
-
-                                // Add to our collection.
-                                _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
-                            }
-                        };
-                    }
-
-                    InitGrid();
-
-                    // Figure out times.
-                    int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
-                    // Round up to bar.
-                    int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
-                    lastSubdiv = (floor + 1) * (PPQ * 4);
-                    sldTempo.Value = _tempo;
-
-                    barBar.Length = new BarSpan(lastSubdiv);
-                    barBar.Start = BarSpan.Zero;
-                    barBar.End = barBar.Length - BarSpan.OneSubdiv;
-                    barBar.Current = BarSpan.Zero;
+                    _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
                 }
+
+                // Scale to internal ppq.
+                MidiTime mt = new MidiTime()
+                {
+                    InternalPpq = PPQ,
+                    MidiPpq = _sourceEvents.DeltaTicksPerQuarterNote,
+                    Tempo = _tempo
+                };
+
+                // Bin events by channel. Scale to internal ppq.
+                for (int track = 0; track < _sourceEvents.Tracks; track++)
+                {
+                    foreach(var te in _sourceEvents.GetTrackEvents(track))
+                    {
+                        if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
+                        {
+                            // Do some miscellaneous fixups.
+
+                            // Scale to internal.
+                            long subdiv = mt.MidiToInternal(te.AbsoluteTime);
+
+                            // Other ops.
+                            switch(te)
+                            {
+                                case NoteOnEvent non:
+                                    break;
+
+                                case TempoEvent evt:
+                                    _tempo = (int)evt.Tempo;
+                                    break;
+
+                                case PatchChangeEvent evt:
+                                    _playChannels[te.Channel - 1].Patch = evt.Patch;
+                                    break;
+                            }
+
+                            // Add to our collection.
+                            _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
+                        }
+                    };
+                }
+
+                InitGrid();
+
+                // Figure out times.
+                int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
+                // Round up to bar.
+                int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
+                lastSubdiv = (floor + 1) * (PPQ * 4);
+                sldTempo.Value = _tempo;
+
+                barBar.Length = new BarSpan(lastSubdiv);
+                barBar.Start = BarSpan.Zero;
+                barBar.End = barBar.Length - BarSpan.OneSubdiv;
+                barBar.Current = BarSpan.Zero;
             }
 
             return ok;
@@ -413,7 +410,7 @@ namespace ClipExplorer
             }
             else
             {
-                Log?.Invoke(this, "ERR: Midi file not open");
+                LogMessage("ERROR", "Midi file not open");
                 ret.Clear();
             }
 
@@ -514,7 +511,7 @@ namespace ClipExplorer
 
             if (chkLogMidi.Checked)
             {
-                LogMessage(evt.ToString());
+                LogMessage("MIDI_SEND", evt.ToString());
             }
         }
         #endregion
@@ -523,10 +520,11 @@ namespace ClipExplorer
         /// <summary>
         /// Logger.
         /// </summary>
-        /// <param name="s"></param>
-        void LogMessage(string s)
+        /// <param name="cat"></param>
+        /// <param name="msg"></param>
+        void LogMessage(string cat, string msg)
         {
-            Log?.Invoke(this, s);
+            Log?.Invoke(this, new LogEventArgs(cat, msg));
         }
 
         /// <summary>
@@ -720,7 +718,7 @@ namespace ClipExplorer
             else
             {
                 //txtPatchChannel.Text = "";
-                LogMessage("Invalid patch channel");
+                LogMessage("ERROR", "Invalid patch channel");
             }
         }
     }

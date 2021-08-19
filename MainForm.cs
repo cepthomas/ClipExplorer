@@ -68,13 +68,13 @@ namespace ClipExplorer
             lblMark.Visible = false;
             _wavePlayer = new WavePlayer() { Visible = false };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
-            _wavePlayer.Log += UserMessage;
+            _wavePlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             _wavePlayer.Location = new Point(lblMark.Left, lblMark.Top);
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
             _midiPlayer = new MidiPlayer() { Visible = false };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
-            _midiPlayer.Log += UserMessage;
+            _midiPlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             _midiPlayer.Location = new Point(lblMark.Left, lblMark.Top);
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
@@ -191,13 +191,18 @@ namespace ClipExplorer
         /// <summary>
         /// Something you should know.
         /// </summary>
-        /// <param name="s"></param>
-        void UserMessage(object sender, string s)
+        /// <param name="sender"></param>
+        /// <param name="ea"></param>
+        void LogMessage(object sender, string cat, string msg)
         {
+            int catSize = 4;
+            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
+
             // May come from a different thread.
             this.InvokeIfRequired(_ =>
             {
-                txtViewer.AddLine($"> ({(sender as Control).Name}) {s}");
+                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({(sender as Control).Name}) {msg}";
+                txtViewer.AddLine(s);
             });
         }
         #endregion
@@ -274,7 +279,7 @@ namespace ClipExplorer
 
             Stop();
 
-            UserMessage(this, $"Open file: {fn}");
+            LogMessage(this, "INFO", $"Opening file: {fn}");
 
             using (new WaitCursor())
             {
@@ -301,7 +306,7 @@ namespace ClipExplorer
                                 break;
 
                             default:
-                                UserMessage(this, $"ERR: Invalid file type: {fn}");
+                                LogMessage(this, "ERROR", $"Invalid file type: {fn}");
                                 ok = false;
                                 break;
                         }
@@ -309,7 +314,7 @@ namespace ClipExplorer
                         if(ok)
                         {
                             ok = _player.OpenFile(fn);
-                            if(Common.Settings.Autoplay)
+                            if (Common.Settings.Autoplay)
                             {
                                 Start();
                             }
@@ -317,13 +322,13 @@ namespace ClipExplorer
                     }
                     else
                     {
-                        UserMessage(this, $"ERR: Invalid file: {fn}");
+                        LogMessage(this, "ERROR", $"Invalid file: {fn}");
                         ok = false;
                     }
                 }
                 catch (Exception ex)
                 {
-                    UserMessage(this, $"ERR: Couldn't open the file: {fn} because: {ex.Message}");
+                    LogMessage(this, "ERROR", $"Couldn't open the file: {fn} because: {ex.Message}");
                     ok = false;
                 }
             }
@@ -349,10 +354,10 @@ namespace ClipExplorer
             var ds = _player.Dump();
             if (ds.Count > 0)
             {
-                if (Common.Settings.DumpToClip)
+                if (Common.Settings.DumpToClip)//TODO prob remove this - separate menu items.
                 {
                     Clipboard.SetText(string.Join(Environment.NewLine, ds));
-                    UserMessage(this, "File dumped to clipboard");
+                    LogMessage(this, "INFO", "File dumped to clipboard");
                 }
                 else
                 {

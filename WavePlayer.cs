@@ -40,7 +40,7 @@ namespace ClipExplorer
         public event EventHandler PlaybackCompleted;
 
         /// <inheritdoc />
-        public event EventHandler<string> Log;
+        public event EventHandler<LogEventArgs> Log;
         #endregion
 
         #region Properties - interface implementation
@@ -87,7 +87,7 @@ namespace ClipExplorer
         {
             ResetMeters();
 
-            waveViewerL.DrawColor = Color.Black;
+            waveViewerL.DrawColor = Color.Black; // TODO get rid of red "No data"
             waveViewerR.DrawColor = Color.Black;
             levelL.DrawColor = Common.Settings.MeterColor;
             levelR.DrawColor = Common.Settings.MeterColor;
@@ -100,7 +100,6 @@ namespace ClipExplorer
         public bool OpenFile(string fn)
         {
             bool ok = true;
-            LogMessage($"Open:{fn}");
 
             using (new WaitCursor())
             {
@@ -145,11 +144,14 @@ namespace ClipExplorer
                     _waveOut.Init(postVolumeMeter);
                     _waveOut.Volume = (float)Common.Settings.Volume;
 
-                    try // This fails for flac files - unknown.
+                    try // TODO This throws for flac and m4a files - unknown.
                     {
                         ShowClip();
                     }
-                    catch { }
+                    catch
+                    {
+                        LogMessage("ERROR", "TODO - error on load");
+                    }
                 }
                 else
                 {
@@ -216,6 +218,7 @@ namespace ClipExplorer
                 var data = new float[len];
                 int offset = 0;
                 int num = -1;
+
                 while (num != 0)
                 {
                     num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
@@ -244,7 +247,7 @@ namespace ClipExplorer
             }
             else
             {
-                Log?.Invoke(this, "ERR: Audio file not open");
+                LogMessage("ERROR", "Audio file not open");
                 ret.Clear();
             }
 
@@ -289,6 +292,7 @@ namespace ClipExplorer
                 var data = new float[len];
                 int offset = 0;
                 int num = -1;
+
                 while (num != 0)
                 {
                     num = _audioFileReader.Read(data, offset, (int)Math.Min(len, READ_BUFF_SIZE));
@@ -326,10 +330,11 @@ namespace ClipExplorer
         /// <summary>
         /// Logger.
         /// </summary>
-        /// <param name="s"></param>
-        void LogMessage(string s)
+        /// <param name="cat"></param>
+        /// <param name="msg"></param>
+        void LogMessage(string cat, string msg)
         {
-            Log?.Invoke(this, s);
+            Log?.Invoke(this, new LogEventArgs(cat, msg));
         }
 
         /// <summary>
@@ -362,7 +367,7 @@ namespace ClipExplorer
         {
             if (e.Exception != null)
             {
-                Log?.Invoke(this, e.Exception.Message);
+                LogMessage("ERROR", e.Exception.Message);
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
@@ -386,7 +391,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
-            levelL.AddValue(e.MaxSampleValues[0]);
+            levelL.AddValue(e.MaxSampleValues[0]);//TODO: wave player levels in waveform display.
             levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
             timeBar.Current = _audioFileReader.CurrentTime;
         }
