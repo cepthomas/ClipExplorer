@@ -48,14 +48,19 @@ namespace ClipExplorer
         /// <summary>Indicates whether or not the midi is playing.</summary>
         bool _running = false;
 
-        /// <summary>Midi events from the input file.</summary>
-        MidiEventCollection _sourceEvents = null;
+        ///// <summary>Midi events from the input file.</summary>
+        //MidiEventCollection _sourceEvents = null;
 
         /// <summary>All the channels.</summary>
         readonly PlayChannel[] _playChannels = new PlayChannel[NUM_CHANNELS];
 
-        /// <summary>Requested tempo from file. Use default if not supplied.</summary>
-        int _tempo = Common.Settings.DefaultTempo;
+        ///// <summary>Requested tempo from file. Use default if not supplied.</summary>
+        double _tempo = Common.Settings.DefaultTempo;
+
+
+        MidiFile _mfile;
+
+
 
         /// <summary>Some midi files have drums on a different channel so allow the user to re-map.</summary>
         int _drumChannel = DEFAULT_DRUM_CHANNEL;
@@ -78,7 +83,7 @@ namespace ClipExplorer
         public event EventHandler<LogEventArgs> Log;
         #endregion
 
-        #region Properties - interface implementation
+        #region Properties
         /// <inheritdoc />
         public double Volume { get; set; }
         #endregion
@@ -162,7 +167,7 @@ namespace ClipExplorer
         }
         #endregion
 
-        #region Public Functions - interface implementation
+        #region File functions
         /// <inheritdoc />
         public bool OpenFile(string fn)
         {
@@ -174,11 +179,103 @@ namespace ClipExplorer
                 clickGrid.Clear();
                 Rewind();
 
+                // Init internal structure.
+                for (int i = 0; i < _playChannels.Count(); i++)
+                {
+                    _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
+                }
+
+                // Get events.
+                //   strictChecking: If true will error on non-paired note events
+
+                _mfile = new MidiFile();
+                _mfile.ProcessFile(fn);
+
+Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
+
+                _tempo = _mfile.Tempo;
+
+
+
+                // Scale times to internal ppq.
+                MidiTime mt = new MidiTime()
+                {
+                    InternalPpq = PPQ,
+                    MidiPpq = _mfile.DeltaTicksPerQuarterNote,
+                    Tempo = _tempo
+                };
+
+
+
+                // Bin events by channel. Scale to internal ppq.
+                foreach(var ch in _mfile.Channels)
+                {
+                    foreach (var te in _mfile.GetEvents(ch.Key))//  _sourceEvents.GetTrackEvents(track))
+                    {
+                        if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
+                        {
+                            // Do some miscellaneous fixups.
+
+                            // Scale to internal.
+                            long subdiv = mt.MidiToInternal(te.AbsoluteTime);
+
+                            // Other ops.
+                            switch (te)
+                            {
+                                case NoteOnEvent non:
+                                    break;
+
+                                //case TempoEvent evt:
+                                //    _tempo = (int)evt.Tempo;
+                                //    break;
+
+                                case PatchChangeEvent evt:
+                                    _playChannels[te.Channel - 1].Patch = evt.Patch;
+                                    break;
+                            }
+
+                            // Add to our collection.
+                            _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
+                        }
+                    };
+                }
+
+                InitGrid();
+
+                // Figure out times.
+                int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
+                // Round up to bar.
+                int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
+                lastSubdiv = (floor + 1) * (PPQ * 4);
+                sldTempo.Value = _tempo;
+
+                barBar.Length = new BarSpan(lastSubdiv);
+                barBar.Start = BarSpan.Zero;
+                barBar.End = barBar.Length - BarSpan.OneSubdiv;
+                barBar.Current = BarSpan.Zero;
+            }
+
+            return ok;
+        }
+
+        public bool OpenFile_old(string fn) ////// this uses the NAudio midi file model - no styles
+        {
+            bool ok = true;
+
+            /// <summary>Midi events from the input file.</summary>
+            MidiEventCollection _sourceEvents = null;
+
+            using (new WaitCursor())
+            {
+                // Clean up first.
+                clickGrid.Clear();
+                Rewind();
+
                 // Default in case not specified in file.
                 _tempo = 100;
 
                 // Get events.
-                var mfile = new MidiFile(fn, true);
+                var mfile = new NAudio.Midi.MidiFile(fn, true);
                 _sourceEvents = mfile.Events;
 
                 // Init internal structure.
@@ -198,7 +295,7 @@ namespace ClipExplorer
                 // Bin events by channel. Scale to internal ppq.
                 for (int track = 0; track < _sourceEvents.Tracks; track++)
                 {
-                    foreach(var te in _sourceEvents.GetTrackEvents(track))
+                    foreach (var te in _sourceEvents.GetTrackEvents(track))
                     {
                         if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
                         {
@@ -208,7 +305,7 @@ namespace ClipExplorer
                             long subdiv = mt.MidiToInternal(te.AbsoluteTime);
 
                             // Other ops.
-                            switch(te)
+                            switch (te)
                             {
                                 case NoteOnEvent non:
                                     break;
@@ -245,7 +342,9 @@ namespace ClipExplorer
 
             return ok;
         }
+        #endregion
 
+        #region Play functions
         /// <inheritdoc />
         public void Play()
         {
@@ -256,7 +355,7 @@ namespace ClipExplorer
                 MidiTime mt = new MidiTime()
                 {
                     InternalPpq = PPQ,
-                    MidiPpq = _sourceEvents.DeltaTicksPerQuarterNote,
+                    MidiPpq = _mfile.DeltaTicksPerQuarterNote,
                     Tempo = _tempo
                 };
                 
@@ -297,7 +396,9 @@ namespace ClipExplorer
         {
             barBar.Current = BarSpan.Zero;
         }
+        #endregion
 
+        #region Misc functions
         /// <inheritdoc />
         public bool SettingsChanged()
         {
@@ -315,6 +416,7 @@ namespace ClipExplorer
         {
             List<string> ret = new List<string>();
 
+/*  TODO
             if(_sourceEvents != null)
             {
                 List<string> meta = new List<string>
@@ -341,6 +443,7 @@ namespace ClipExplorer
                 for (int trk = 0; trk < _sourceEvents.Tracks; trk++)
                 {
                     var trackEvents = _sourceEvents.GetTrackEvents(trk);
+
                     foreach(var te in trackEvents)
                     {
                         string ntype = te.GetType().ToString().Replace("NAudio.Midi.", "");
@@ -413,20 +516,12 @@ namespace ClipExplorer
                 LogMessage("ERROR", "Midi file not open");
                 ret.Clear();
             }
-
+*/
             return ret;
-        }
-
-        /// <inheritdoc />
-        public bool SaveSelection(string fn)
-        {
-            bool ok = true;
-            // FUTURE Make a new clip file from selection.  >> MidiFile.Export(target, events);
-            return ok;
         }
         #endregion
 
-        #region Midi send
+        #region Midi send callback
         /// <summary>
         /// Multimedia timer callback. Synchronously outputs the next midi events.
         /// </summary>

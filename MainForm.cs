@@ -58,10 +58,10 @@ namespace ClipExplorer
             UserSettings.Load(appDir);
 
             // The text output.
-            txtViewer.WordWrap = true;
+            txtViewer.WordWrap = true;//TODO need button and/or setting.
             txtViewer.BackColor = Color.Cornsilk;
-            txtViewer.Colors.Add("ERR:", Color.LightPink);
-            txtViewer.Colors.Add("WRN:", Color.Plum);
+            txtViewer.Colors.Add("ERROR", Color.LightPink);
+            //txtViewer.Colors.Add("WARN:", Color.Plum);
             txtViewer.Font = new Font("Lucida Console", 9);
 
             // Create devices.
@@ -195,7 +195,7 @@ namespace ClipExplorer
         /// <param name="ea"></param>
         void LogMessage(object sender, string cat, string msg)
         {
-            int catSize = 4;
+            int catSize = 5;
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
 
             // May come from a different thread.

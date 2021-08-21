@@ -10,9 +10,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 using NAudio.Wave;
-using NAudio.CoreAudioApi;
 using NAudio.Wave.SampleProviders;
-using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfTricks.UI;
 
@@ -43,7 +41,7 @@ namespace ClipExplorer
         public event EventHandler<LogEventArgs> Log;
         #endregion
 
-        #region Properties - interface implementation
+        #region Properties
         /// <inheritdoc />
         public double Volume
         {
@@ -87,15 +85,15 @@ namespace ClipExplorer
         {
             ResetMeters();
 
-            waveViewerL.DrawColor = Color.Black; // TODO get rid of red "No data"
+            waveViewerL.DrawColor = Color.Black;
             waveViewerR.DrawColor = Color.Black;
-            levelL.DrawColor = Common.Settings.MeterColor;
+            levelL.DrawColor = Common.Settings.MeterColor; //TODO remove these.
             levelR.DrawColor = Common.Settings.MeterColor;
             timeBar.ProgressColor = Common.Settings.BarColor;
         }
         #endregion
 
-        #region Public Functions - interface implementation
+        #region File functions
         /// <inheritdoc />
         public bool OpenFile(string fn)
         {
@@ -144,7 +142,7 @@ namespace ClipExplorer
                     _waveOut.Init(postVolumeMeter);
                     _waveOut.Volume = (float)Common.Settings.Volume;
 
-                    try // TODO This throws for flac and m4a files - unknown.
+                    try
                     {
                         ShowClip();
                     }
@@ -166,7 +164,9 @@ namespace ClipExplorer
 
             return ok;
         }
+        #endregion
 
+        #region Play functions
         /// <inheritdoc />
         public void Play()
         {
@@ -196,6 +196,7 @@ namespace ClipExplorer
             }
         }
 
+        #region Misc functions
         /// <inheritdoc />
         public bool SettingsChanged()
         {
@@ -221,8 +222,14 @@ namespace ClipExplorer
 
                 while (num != 0)
                 {
-                    num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
-                    offset += num;
+                    try // see OpenFile().
+                    {
+                        num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
+                        offset += num;
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
 
                 // Make a csv file of data for external processing.
@@ -253,14 +260,7 @@ namespace ClipExplorer
 
             return ret;
         }
-
-        /// <inheritdoc />
-        public bool SaveSelection(string fn)
-        {
-            bool ok = true;
-
-            return ok;
-        }
+        #endregion
         #endregion
 
         #region Private functions
@@ -295,8 +295,22 @@ namespace ClipExplorer
 
                 while (num != 0)
                 {
-                    num = _audioFileReader.Read(data, offset, (int)Math.Min(len, READ_BUFF_SIZE));
-                    offset += num;
+                    // TODO This throws for flac and m4a files - unknown reason - but works ok.
+                    //at NAudio.Wave.SampleProviders.Pcm16BitToSampleProvider.Read(Single[] buffer, Int32 offset, Int32 count)
+                    //at NAudio.Wave.SampleProviders.MeteringSampleProvider.Read(Single[] buffer, Int32 offset, Int32 count)
+                    //at NAudio.Wave.SampleProviders.VolumeSampleProvider.Read(Single[] buffer, Int32 offset, Int32 sampleCount)
+                    //at NAudio.Wave.SampleProviders.SampleChannel.Read(Single[] buffer, Int32 offset, Int32 sampleCount)
+                    //at NAudio.Wave.AudioFileReader.Read(Single[] buffer, Int32 offset, Int32 count)
+                    //at ClipExplorer.WavePlayer.ShowClip() in C:\Dev\repos\ClipExplorer\WavePlayer.cs:line 296
+
+                    try
+                    {
+                        num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
+                        offset += num;
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
 
                 if (sampleChannel.WaveFormat.Channels == 2) // stereo
@@ -347,7 +361,7 @@ namespace ClipExplorer
         }
         #endregion
 
-        #region Event Handlers
+        #region UI event handlers
         /// <summary>
         /// 
         /// </summary>

@@ -62,11 +62,6 @@ namespace ClipExplorer
         /// <param name="fn">Output filename</param>
         /// <returns>Formatted content. Empty if there was an error.</returns>
         List<string> Dump();
-
-        /// <summary>Save the current selection to a file.</summary>
-        /// <param name="fn">Output filename</param>
-        /// <returns>success</returns>
-        bool SaveSelection(string fn);
         #endregion
     }
 }

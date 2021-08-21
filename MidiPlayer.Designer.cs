@@ -43,8 +43,8 @@ namespace ClipExplorer
             this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(498, 50);
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
-            this.barBar.TabIndex = 70;
             this.barBar.SubdivsPerBeat = 8;
+            this.barBar.TabIndex = 70;
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
             // 
             // clickGrid
@@ -67,7 +67,7 @@ namespace ClipExplorer
             this.sldTempo.DrawColor = System.Drawing.Color.PaleGreen;
             this.sldTempo.Label = "BPM";
             this.sldTempo.Location = new System.Drawing.Point(0, 56);
-            this.sldTempo.Maximum = 250D;
+            this.sldTempo.Maximum = 200D;
             this.sldTempo.Minimum = 50D;
             this.sldTempo.Name = "sldTempo";
             this.sldTempo.Orientation = System.Windows.Forms.Orientation.Horizontal;
