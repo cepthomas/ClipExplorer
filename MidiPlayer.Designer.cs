@@ -19,7 +19,7 @@ namespace ClipExplorer
         {
             this.components = new System.ComponentModel.Container();
             this.barBar = new NBagOfTricks.UI.BarBar();
-            this.clickGrid = new NBagOfTricks.UI.ClickGrid();
+            this.cgChannels = new NBagOfTricks.UI.ClickGrid();
             this.sldTempo = new NBagOfTricks.UI.Slider();
             this.txtPatchChannel = new System.Windows.Forms.TextBox();
             this.cmbPatchList = new System.Windows.Forms.ComboBox();
@@ -27,6 +27,7 @@ namespace ClipExplorer
             this.chkLogMidi = new System.Windows.Forms.CheckBox();
             this.chkDrumsOn1 = new System.Windows.Forms.CheckBox();
             this.btnPatch = new System.Windows.Forms.Button();
+            this.lbPatterns = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // barBar
@@ -41,24 +42,24 @@ namespace ClipExplorer
             this.barBar.MarkerColor = System.Drawing.Color.Black;
             this.barBar.Name = "barBar";
             this.barBar.ProgressColor = System.Drawing.Color.White;
-            this.barBar.Size = new System.Drawing.Size(498, 50);
+            this.barBar.Size = new System.Drawing.Size(692, 50);
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
             this.barBar.SubdivsPerBeat = 8;
             this.barBar.TabIndex = 70;
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
             // 
-            // clickGrid
+            // cgChannels
             // 
-            this.clickGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.cgChannels.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.clickGrid.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.clickGrid.Location = new System.Drawing.Point(108, 56);
-            this.clickGrid.Name = "clickGrid";
-            this.clickGrid.Size = new System.Drawing.Size(390, 178);
-            this.clickGrid.TabIndex = 69;
-            this.toolTip.SetToolTip(this.clickGrid, "Midi channels with mute/solo");
-            this.clickGrid.IndicatorEvent += new System.EventHandler<NBagOfTricks.UI.IndicatorEventArgs>(this.ClickGrid_IndicatorEvent);
+            this.cgChannels.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cgChannels.Location = new System.Drawing.Point(259, 56);
+            this.cgChannels.Name = "cgChannels";
+            this.cgChannels.Size = new System.Drawing.Size(433, 180);
+            this.cgChannels.TabIndex = 69;
+            this.toolTip.SetToolTip(this.cgChannels, "Midi channels with mute/solo");
+            this.cgChannels.IndicatorEvent += new System.EventHandler<NBagOfTricks.UI.IndicatorEventArgs>(this.Channels_IndicatorEvent);
             // 
             // sldTempo
             // 
@@ -134,20 +135,33 @@ namespace ClipExplorer
             this.btnPatch.UseVisualStyleBackColor = true;
             this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
             // 
+            // lbPatterns
+            // 
+            this.lbPatterns.BackColor = System.Drawing.SystemColors.Control;
+            this.lbPatterns.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lbPatterns.FormattingEnabled = true;
+            this.lbPatterns.ItemHeight = 16;
+            this.lbPatterns.Location = new System.Drawing.Point(122, 56);
+            this.lbPatterns.Name = "lbPatterns";
+            this.lbPatterns.Size = new System.Drawing.Size(131, 178);
+            this.lbPatterns.TabIndex = 78;
+            this.lbPatterns.SelectedIndexChanged += new System.EventHandler(this.Patterns_SelectedIndexChanged);
+            // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.lbPatterns);
             this.Controls.Add(this.chkDrumsOn1);
             this.Controls.Add(this.chkLogMidi);
             this.Controls.Add(this.btnPatch);
             this.Controls.Add(this.cmbPatchList);
             this.Controls.Add(this.txtPatchChannel);
             this.Controls.Add(this.barBar);
-            this.Controls.Add(this.clickGrid);
+            this.Controls.Add(this.cgChannels);
             this.Controls.Add(this.sldTempo);
             this.Name = "MidiPlayer";
-            this.Size = new System.Drawing.Size(498, 249);
+            this.Size = new System.Drawing.Size(695, 249);
             this.Load += new System.EventHandler(this.MidiPlayer_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -156,7 +170,7 @@ namespace ClipExplorer
         #endregion
 
         private NBagOfTricks.UI.Slider sldTempo;
-        private NBagOfTricks.UI.ClickGrid clickGrid;
+        private NBagOfTricks.UI.ClickGrid cgChannels;
         private NBagOfTricks.UI.BarBar barBar;
         private TextBox txtPatchChannel;
         private ComboBox cmbPatchList;
@@ -164,5 +178,6 @@ namespace ClipExplorer
         private CheckBox chkLogMidi;
         private CheckBox chkDrumsOn1;
         private Button btnPatch;
+        private ListBox lbPatterns;
     }
 }

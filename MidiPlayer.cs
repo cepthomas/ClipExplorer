@@ -48,19 +48,14 @@ namespace ClipExplorer
         /// <summary>Indicates whether or not the midi is playing.</summary>
         bool _running = false;
 
-        ///// <summary>Midi events from the input file.</summary>
-        //MidiEventCollection _sourceEvents = null;
+        /// <summary>Midi events from the input file.</summary>
+        MidiFile _mfile;
 
         /// <summary>All the channels.</summary>
         readonly PlayChannel[] _playChannels = new PlayChannel[NUM_CHANNELS];
 
-        ///// <summary>Requested tempo from file. Use default if not supplied.</summary>
+        /// <summary>Requested tempo from file. Use default if not supplied.</summary>
         double _tempo = Common.Settings.DefaultTempo;
-
-
-        MidiFile _mfile;
-
-
 
         /// <summary>Some midi files have drums on a different channel so allow the user to re-map.</summary>
         int _drumChannel = DEFAULT_DRUM_CHANNEL;
@@ -106,6 +101,12 @@ namespace ClipExplorer
         {
             LoadMidiDefs();
 
+            // Init internal structure.
+            for (int i = 0; i < _playChannels.Count(); i++)
+            {
+                _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
+            }
+
             // Fill patch list.
             foreach (var kv in _instrumentDefs)
             {
@@ -131,9 +132,9 @@ namespace ClipExplorer
             }
 
             // Set up the channel/mute/solo grid.
-            clickGrid.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
-            clickGrid.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.LightGreen);
-            clickGrid.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.Salmon);
+            cgChannels.AddStateType((int)PlayChannel.PlayMode.Normal, Color.Black, Color.AliceBlue);
+            cgChannels.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.LightGreen);
+            cgChannels.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.Salmon);
 
             barBar.ProgressColor = Common.Settings.BarColor;
             barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
@@ -176,168 +177,41 @@ namespace ClipExplorer
             using (new WaitCursor())
             {
                 // Clean up first.
-                clickGrid.Clear();
+                cgChannels.Clear();
                 Rewind();
 
-                // Init internal structure.
-                for (int i = 0; i < _playChannels.Count(); i++)
-                {
-                    _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
-                }
-
-                // Get events.
-                //   strictChecking: If true will error on non-paired note events
-
+                // Process the file.
                 _mfile = new MidiFile();
                 _mfile.ProcessFile(fn);
 
-Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
-
                 _tempo = _mfile.Tempo;
 
-
-
-                // Scale times to internal ppq.
-                MidiTime mt = new MidiTime()
+                lbPatterns.Items.Clear();
+                foreach(var p in _mfile.AllPatterns)
                 {
-                    InternalPpq = PPQ,
-                    MidiPpq = _mfile.DeltaTicksPerQuarterNote,
-                    Tempo = _tempo
-                };
-
-
-
-                // Bin events by channel. Scale to internal ppq.
-                foreach(var ch in _mfile.Channels)
-                {
-                    foreach (var te in _mfile.GetEvents(ch.Key))//  _sourceEvents.GetTrackEvents(track))
+                    switch(p)
                     {
-                        if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
-                        {
-                            // Do some miscellaneous fixups.
+                        case "SFF1":
+                        case "SFF2":
+                        case "SInt":
+                            break;
 
-                            // Scale to internal.
-                            long subdiv = mt.MidiToInternal(te.AbsoluteTime);
-
-                            // Other ops.
-                            switch (te)
-                            {
-                                case NoteOnEvent non:
-                                    break;
-
-                                //case TempoEvent evt:
-                                //    _tempo = (int)evt.Tempo;
-                                //    break;
-
-                                case PatchChangeEvent evt:
-                                    _playChannels[te.Channel - 1].Patch = evt.Patch;
-                                    break;
-                            }
-
-                            // Add to our collection.
-                            _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
-                        }
-                    };
+                        default:
+                            lbPatterns.Items.Add(p);
+                            break;
+                    }
                 }
 
-                InitGrid();
-
-                // Figure out times.
-                int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
-                // Round up to bar.
-                int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
-                lastSubdiv = (floor + 1) * (PPQ * 4);
-                sldTempo.Value = _tempo;
-
-                barBar.Length = new BarSpan(lastSubdiv);
-                barBar.Start = BarSpan.Zero;
-                barBar.End = barBar.Length - BarSpan.OneSubdiv;
-                barBar.Current = BarSpan.Zero;
-            }
-
-            return ok;
-        }
-
-        public bool OpenFile_old(string fn) ////// this uses the NAudio midi file model - no styles
-        {
-            bool ok = true;
-
-            /// <summary>Midi events from the input file.</summary>
-            MidiEventCollection _sourceEvents = null;
-
-            using (new WaitCursor())
-            {
-                // Clean up first.
-                clickGrid.Clear();
-                Rewind();
-
-                // Default in case not specified in file.
-                _tempo = 100;
-
-                // Get events.
-                var mfile = new NAudio.Midi.MidiFile(fn, true);
-                _sourceEvents = mfile.Events;
-
-                // Init internal structure.
-                for (int i = 0; i < _playChannels.Count(); i++)
+                if (lbPatterns.Items.Count > 0)
                 {
-                    _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
+                    lbPatterns.SelectedIndex = 0;
+                }
+                else
+                {
+                    ShowEvents("");
                 }
 
-                // Scale to internal ppq.
-                MidiTime mt = new MidiTime()
-                {
-                    InternalPpq = PPQ,
-                    MidiPpq = _sourceEvents.DeltaTicksPerQuarterNote,
-                    Tempo = _tempo
-                };
-
-                // Bin events by channel. Scale to internal ppq.
-                for (int track = 0; track < _sourceEvents.Tracks; track++)
-                {
-                    foreach (var te in _sourceEvents.GetTrackEvents(track))
-                    {
-                        if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
-                        {
-                            // Do some miscellaneous fixups.
-
-                            // Scale to internal.
-                            long subdiv = mt.MidiToInternal(te.AbsoluteTime);
-
-                            // Other ops.
-                            switch (te)
-                            {
-                                case NoteOnEvent non:
-                                    break;
-
-                                case TempoEvent evt:
-                                    _tempo = (int)evt.Tempo;
-                                    break;
-
-                                case PatchChangeEvent evt:
-                                    _playChannels[te.Channel - 1].Patch = evt.Patch;
-                                    break;
-                            }
-
-                            // Add to our collection.
-                            _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
-                        }
-                    };
-                }
-
-                InitGrid();
-
-                // Figure out times.
-                int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
-                // Round up to bar.
-                int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
-                lastSubdiv = (floor + 1) * (PPQ * 4);
-                sldTempo.Value = _tempo;
-
-                barBar.Length = new BarSpan(lastSubdiv);
-                barBar.Start = BarSpan.Zero;
-                barBar.End = barBar.Length - BarSpan.OneSubdiv;
-                barBar.Current = BarSpan.Zero;
+                InitChannelsGrid();
             }
 
             return ok;
@@ -613,6 +487,70 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
 
         #region Private Functions
         /// <summary>
+        /// Get requested events.
+        /// </summary>
+        /// <param name="pattern">Specific pattern.</param>
+        void ShowEvents(string pattern)
+        {
+            // Init internal structure.
+            for (int i = 0; i < _playChannels.Count(); i++)
+            {
+                _playChannels[i].Events.Clear();
+            }
+
+            // Scale times to internal ppq.
+            MidiTime mt = new MidiTime()
+            {
+                InternalPpq = PPQ,
+                MidiPpq = _mfile.DeltaTicksPerQuarterNote,
+                Tempo = _tempo
+            };
+
+            // Bin events by channel. Scale to internal ppq.
+            foreach (var ch in _mfile.Channels)
+            {
+                var vvv = _mfile.GetEvents(pattern, ch.Key);
+
+                foreach (var te in _mfile.GetEvents(pattern, ch.Key))
+                {
+                    if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
+                    {
+                        // Do some miscellaneous fixups.
+
+                        // Scale to internal.
+                        long subdiv = mt.MidiToInternal(te.AbsoluteTime);
+
+                        // Other ops.
+                        switch (te)
+                        {
+                            case NoteOnEvent non:
+                                break;
+
+                            case PatchChangeEvent evt:
+                                _playChannels[te.Channel - 1].Patch = evt.Patch;
+                                break;
+                        }
+
+                        // Add to our collection.
+                        _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
+                    }
+                };
+            }
+
+            // Figure out times.
+            int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
+            // Round up to bar.
+            int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
+            lastSubdiv = (floor + 1) * (PPQ * 4);
+            sldTempo.Value = _tempo;
+
+            barBar.Length = new BarSpan(lastSubdiv);
+            barBar.Start = BarSpan.Zero;
+            barBar.End = barBar.Length - BarSpan.OneSubdiv;
+            barBar.Current = BarSpan.Zero;
+        }
+
+        /// <summary>
         /// Logger.
         /// </summary>
         /// <param name="cat"></param>
@@ -677,9 +615,9 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
         /// <summary>
         /// Populate the click grid.
         /// </summary>
-        void InitGrid()
+        void InitChannelsGrid()
         {
-            clickGrid.Clear();
+            cgChannels.Clear();
 
             for (int i = 0; i < _playChannels.Count(); i++)
             {
@@ -708,11 +646,11 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
                 // Maybe add to UI.
                 if (pc.Valid && pc.HasNotes)
                 {
-                    clickGrid.AddIndicator(pc.Name, i);
+                    cgChannels.AddIndicator(pc.Name, i);
                 }
             }
 
-            clickGrid.Show(2, clickGrid.Width / 2, 20);
+            cgChannels.Show(2, cgChannels.Width / 2, 20);
         }
         #endregion
 
@@ -722,7 +660,7 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void ClickGrid_IndicatorEvent(object sender, IndicatorEventArgs e)
+        void Channels_IndicatorEvent(object sender, IndicatorEventArgs e)
         {
             int channel = e.Id;
             PlayChannel pch = _playChannels[channel];
@@ -753,7 +691,7 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
                     break;
             }
 
-            clickGrid.SetIndicator(channel, (int)pch.Mode);
+            cgChannels.SetIndicator(channel, (int)pch.Mode);
         }
 
         /// <summary>
@@ -790,7 +728,7 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
             _drumChannel = chkDrumsOn1.Checked ? 1 : 10;
 
             // Update UI.
-            InitGrid();
+            InitChannelsGrid();
         }
 
         /// <summary>
@@ -798,7 +736,7 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Patch_Click(object sender, EventArgs e)
+        void Patch_Click(object sender, EventArgs e)
         {
             bool valid = int.TryParse(txtPatchChannel.Text, out int pch);
             if (valid && pch >= 1 && pch <= 16)
@@ -808,13 +746,23 @@ Clipboard.SetText(string.Join(Environment.NewLine, _mfile.AllFileContents));
 
                 // Update UI.
                 _playChannels[pch - 1].Patch = cmbPatchList.SelectedIndex;
-                InitGrid();
+                InitChannelsGrid();
             }
             else
             {
                 //txtPatchChannel.Text = "";
                 LogMessage("ERROR", "Invalid patch channel");
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Patterns_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowEvents(lbPatterns.SelectedItem.ToString());
         }
     }
     #endregion
