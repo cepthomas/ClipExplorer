@@ -38,11 +38,11 @@ namespace ClipExplorer
             this.barBar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.barBar.FontLarge = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.barBar.FontSmall = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.barBar.Location = new System.Drawing.Point(0, 0);
+            this.barBar.Location = new System.Drawing.Point(4, 0);
             this.barBar.MarkerColor = System.Drawing.Color.Black;
             this.barBar.Name = "barBar";
             this.barBar.ProgressColor = System.Drawing.Color.White;
-            this.barBar.Size = new System.Drawing.Size(692, 50);
+            this.barBar.Size = new System.Drawing.Size(677, 50);
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
             this.barBar.SubdivsPerBeat = 8;
             this.barBar.TabIndex = 70;
@@ -56,7 +56,7 @@ namespace ClipExplorer
             this.cgChannels.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.cgChannels.Location = new System.Drawing.Point(259, 56);
             this.cgChannels.Name = "cgChannels";
-            this.cgChannels.Size = new System.Drawing.Size(433, 180);
+            this.cgChannels.Size = new System.Drawing.Size(422, 178);
             this.cgChannels.TabIndex = 69;
             this.toolTip.SetToolTip(this.cgChannels, "Midi channels with mute/solo");
             this.cgChannels.IndicatorEvent += new System.EventHandler<NBagOfTricks.UI.IndicatorEventArgs>(this.Channels_IndicatorEvent);
@@ -67,13 +67,13 @@ namespace ClipExplorer
             this.sldTempo.DecPlaces = 0;
             this.sldTempo.DrawColor = System.Drawing.Color.PaleGreen;
             this.sldTempo.Label = "BPM";
-            this.sldTempo.Location = new System.Drawing.Point(0, 56);
+            this.sldTempo.Location = new System.Drawing.Point(4, 56);
             this.sldTempo.Maximum = 200D;
             this.sldTempo.Minimum = 50D;
             this.sldTempo.Name = "sldTempo";
             this.sldTempo.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.sldTempo.ResetValue = 50D;
-            this.sldTempo.Size = new System.Drawing.Size(102, 43);
+            this.sldTempo.Size = new System.Drawing.Size(98, 43);
             this.sldTempo.TabIndex = 63;
             this.sldTempo.Value = 100D;
             this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);

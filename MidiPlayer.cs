@@ -165,6 +165,7 @@ namespace ClipExplorer
 
                 // Process the file.
                 _mfile = new MidiFile();
+                _mfile.IgnoreNoisy = true;
                 _mfile.ProcessFile(fn);
 
                 // Do things with things.
@@ -176,10 +177,10 @@ namespace ClipExplorer
                 {
                     switch(p)
                     {
-                        //case "SFF1": TODO patches here
-                        //case "SFF2":
-                        //case "SInt":
-                        //    break;
+                        case "SFF1": // patches in here
+                        case "SFF2":
+                        case "SInt":
+                            break;
 
                         default:
                             lbPatterns.Items.Add(p);
@@ -274,8 +275,8 @@ namespace ClipExplorer
         public List<string> Dump()
         {
             _mfile.DrumChannel = _drumChannel;
-            return _mfile.GetReadableGrouped();
-            //return _mfile.GetReadableContents();
+            //return _mfile.GetReadableGrouped();
+            return _mfile.GetReadableContents();
         }
         #endregion
 
@@ -587,6 +588,17 @@ namespace ClipExplorer
         {
             GetPatternEvents(lbPatterns.SelectedItem.ToString());
             InitChannelsGrid();
+
+            // Might need to update the patches.
+            foreach(var ch in _mfile.Channels)
+            {
+                if(ch.Value != -1)
+                {
+                    PatchChangeEvent evt = new PatchChangeEvent(0, ch.Key, ch.Value);
+                    MidiSend(evt);
+                }
+            }
+
             Rewind();
             Play();
         }

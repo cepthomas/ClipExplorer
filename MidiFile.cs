@@ -11,7 +11,10 @@ using System.Windows.Forms;
 
 namespace ClipExplorer
 {
-    /// <summary>Reads in and processes standard midi or yahama style files. Timestamps are from original file.</summary>
+    /// <summary>
+    /// Reads in and processes standard midi or yahama style files. Timestamps are from original file.
+    /// TODO Doesn't support multiple tracks. Would it be useful.
+    /// </summary>
     public class MidiFile
     {
         #region Properties gleaned from the file
@@ -43,6 +46,9 @@ namespace ClipExplorer
         #region Properties set by client
         /// <summary>Sometimes drums are not on the default channel.</summary>
         public int DrumChannel { get; set; } = MidiDefs.DEFAULT_DRUM_CHANNEL;
+
+        /// <summary>Don't include some events.</summary>
+        public bool IgnoreNoisy { get; set; } = true;
         #endregion
 
         #region Fields
@@ -166,17 +172,17 @@ namespace ClipExplorer
 
             MidiFileType = (int)Read(br, 2);
 
-            // Style midi section is always type 0 - only one track.
-            if (MidiFileType != 0)
-            {
-                throw new FormatException($"This is type {MidiFileType} - must be 0");
-            }
+            //// Style midi section is always type 0.
+            //if (MidiFileType != 0)
+            //{
+            //    throw new FormatException($"This is type {MidiFileType} - must be 0");
+            //}
 
-            // Midi type 0 - only one track.
+            // Midi file type.
             Tracks = (int)Read(br, 2);
             if (Tracks != 1)
             {
-                throw new FormatException($"This has {Tracks} tracks - must be 1");
+                //throw new FormatException($"This has {Tracks} tracks - must be 1");
             }
 
             DeltaTicksPerQuarterNote = (int)Read(br, 2);
@@ -232,16 +238,22 @@ namespace ClipExplorer
 
                     case MidiCommandCode.ControlChange:
                         {
-                            ControlChangeEvent evt = me as ControlChangeEvent;
-                            AddMidiEvent(evt);
-                            Capture(evt.AbsoluteTime, "ControlChange", evt.Channel, evt.ToString());
+                            if (!IgnoreNoisy)
+                            {
+                                ControlChangeEvent evt = me as ControlChangeEvent;
+                                AddMidiEvent(evt);
+                                Capture(evt.AbsoluteTime, "ControlChange", evt.Channel, evt.ToString());
+                            }
                         }
                         break;
 
                     case MidiCommandCode.PitchWheelChange:
                         {
-                            PitchWheelChangeEvent evt = me as PitchWheelChangeEvent;
-                            //AddMidiEvent(evt);
+                            if (!IgnoreNoisy)
+                            {
+                                PitchWheelChangeEvent evt = me as PitchWheelChangeEvent;
+                                //AddMidiEvent(evt);
+                            }
                         }
                         break;
 
@@ -257,9 +269,12 @@ namespace ClipExplorer
 
                     case MidiCommandCode.Sysex:
                         {
-                            SysexEvent evt = me as SysexEvent;
-                            string s = evt.ToString().Replace(Environment.NewLine, " ");
-                            Capture(evt.AbsoluteTime, "Sysex", evt.Channel, s);
+                            if(!IgnoreNoisy)
+                            {
+                                SysexEvent evt = me as SysexEvent;
+                                string s = evt.ToString().Replace(Environment.NewLine, " ");
+                                Capture(evt.AbsoluteTime, "Sysex", evt.Channel, s);
+                            }
                         }
                         break;
 
@@ -424,7 +439,7 @@ namespace ClipExplorer
         /// <returns></returns>
         public List<string> GetReadableContents()
         {
-            return  _allContents;
+            return _allContents;
         }
 
         /// <summary>
@@ -433,9 +448,6 @@ namespace ClipExplorer
         /// <returns></returns>
         public List<string> GetReadableGrouped()
         {
-            List<string> ret = new List<string>();
-            bool includeNoisy = false;
-
             List<string> meta = new List<string>
             {
                 $"---Meta---",
@@ -492,21 +504,16 @@ namespace ClipExplorer
                         break;
 
                     case PatchChangeEvent evt:
-                        other.Add($"{sc},{evt.Patch},{MidiDefs.GetInstrumentDef(evt.Patch)},");
+                        string pname = evt.Channel == DrumChannel ? $"0" : $"{MidiDefs.GetInstrumentDef(evt.Patch)}"; // TODO kit?
+                        other.Add($"{sc},{evt.Patch},{pname},");
                         break;
 
                     case ControlChangeEvent evt:
-                        if(includeNoisy)
-                        {
-                            other.Add($"{sc},{(int)evt.Controller},{MidiDefs.GetControllerDef((int)evt.Controller)},{evt.ControllerValue}");
-                        }
+                        other.Add($"{sc},{(int)evt.Controller},{MidiDefs.GetControllerDef((int)evt.Controller)},{evt.ControllerValue}");
                         break;
 
                     case PitchWheelChangeEvent evt:
-                        if (includeNoisy)
-                        {
-                            other.Add($"{sc},{evt.Pitch},,");
-                        }
+                        other.Add($"{sc},{evt.Pitch},,");
                         break;
 
                     case TextEvent evt:
@@ -525,6 +532,7 @@ namespace ClipExplorer
                 }
             }
 
+            List<string> ret = new List<string>();
             ret.AddRange(meta);
             ret.AddRange(notes);
             ret.AddRange(other);
@@ -549,7 +557,7 @@ namespace ClipExplorer
             }
         }
 
-        public void ExportOneMidi(string midiFileName, string pattern, string info)
+        public void ExportOneMidi(string midiFileName, string pattern, string info) //TODO 
         {
             // Timestamp,Type             ,Content
             // -1       ,Section          ,MThd
@@ -627,12 +635,12 @@ namespace ClipExplorer
             //    // >> 0 SequenceTrackName G.MIDI Acou Bass
             //}
 
-/*
+/*         
             // Run through the main steps and create a midi event per.
             foreach (Time time in steps.Times)
             {
                 long mtime = mt.InternalToMidi(time.TotalSubdivs);
-
+ Order by timestamp
                 foreach (Step step in steps.GetSteps(time))
                 {
                     MidiEvent evt = null;
@@ -710,8 +718,6 @@ namespace ClipExplorer
             }
 
             NAudio.Midi.MidiFile.Export(midiFileName, events);
-
-
 */
         }
         #endregion
