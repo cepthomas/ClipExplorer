@@ -64,6 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.cs" />
+    <Compile Include="IPlayer.cs" />
+    <Compile Include="MidiDefs.cs" />
     <Compile Include="MidiFile.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -171,9 +173,6 @@
     <None Include="Resources\glyphicons-440-wrench.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\gm_defs.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Resources\zebra.ico" />
   </ItemGroup>
   <ItemGroup>

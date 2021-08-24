@@ -11,18 +11,21 @@ using System.Windows.Forms;
 
 namespace ClipExplorer
 {
-    /// <summary>Reads in and processes standard midi or yahama style files.</summary>
+    /// <summary>Reads in and processes standard midi or yahama style files. Timestamps are from original file.</summary>
     public class MidiFile
     {
         #region Properties gleaned from the file
-        /// <summary>Channel info: key is number, value is name.</summary>
-        public Dictionary<int, string> Channels { get; private set; } = new Dictionary<int, string>();
+        /// <summary>What is it.</summary>
+        public int MidiFileType { get; private set; } = 0;
+
+        /// <summary>How many tracks.</summary>
+        public int Tracks { get; private set; } = 0;
 
         /// <summary>Resolution for all events.</summary>
         public int DeltaTicksPerQuarterNote { get; private set; } = 0;
 
         /// <summary>Tempo, if supplied by file. Defaults to 100 if missing.</summary>
-        public double Tempo { get; private set; } = 100.0;
+        public double Tempo { get; set; } = 100.0;
 
         /// <summary>Time signature, if supplied by file.</summary>
         public string TimeSig { get; private set; } = "";
@@ -30,19 +33,27 @@ namespace ClipExplorer
         /// <summary>Key signature, if supplied by file.</summary>
         public string KeySig { get; private set; } = "";
 
-        /// <summary>File contents in order.</summary>
-        public List<string> AllFileContents { get; private set; } = new List<string>();
+        /// <summary>Channel info: key is number, value is patch.</summary>
+        public Dictionary<int, int> Channels { get; private set; } = new Dictionary<int, int>();
 
         /// <summary>All patterns in the file.</summary>
         public List<string> AllPatterns { get; private set; } = new List<string>();
         #endregion
 
+        #region Properties set by client
+        /// <summary>Sometimes drums are not on the default channel.</summary>
+        public int DrumChannel { get; set; } = MidiDefs.DEFAULT_DRUM_CHANNEL;
+        #endregion
+
         #region Fields
         /// <summary>All the midi events by pattern/channel groups. This is the verbatim content of the file with no processing.</summary>
-        List<(string pattern, int channel, MidiEvent evt)> _midiEvents = new List<(string pattern, int channel, MidiEvent evt)>();
+        readonly List<(string pattern, int channel, MidiEvent evt)> _midiEvents = new List<(string pattern, int channel, MidiEvent evt)>();
 
         /// <summary>Current pattern.</summary>
         string _currentPattern = "";
+
+        /// <summary>File contents in readable form as they appear in order. Useful for debug.</summary>
+        readonly List<string> _allContents = new List<string>();
 
         /// <summary>Save this for maybe logging.</summary>
         long _lastPos = 0;
@@ -57,10 +68,16 @@ namespace ClipExplorer
         {
             // Init everything.
             _midiEvents.Clear();
+            AllPatterns.Clear();
+            //Patches.ForEach(p => p = -1);
+            Channels.Clear();
             DeltaTicksPerQuarterNote = 0;
             Tempo = 100;
             TimeSig = "";
             KeySig = "";
+
+            _allContents.Clear();
+            _allContents.Add($"Timestamp,Type,Pattern,Channel,FilePos,Content");
 
             using (var br = new BinaryReader(File.OpenRead(fileName)))
             {
@@ -70,7 +87,7 @@ namespace ClipExplorer
                 {
                     var sectionName = Encoding.UTF8.GetString(br.ReadBytes(4));
 
-                    Loggo(-1, "Section", sectionName);
+                    Capture(-1, "Section", -1, sectionName);
 
                     switch (sectionName)
                     {
@@ -106,12 +123,12 @@ namespace ClipExplorer
                             ReadOTSc(br);
                             break;
 
-                        case "FNRc": // MDB(Music Finder) section
+                        case "FNRc": // MDB (Music Finder) section
                             ReadFNRc(br);
                             break;
 
                         default:
-                            Loggo(-1, "Done", "!!!");
+                            Capture(-1, "Done", -1, "!!!");
                             done = true;
                             break;
                     }
@@ -122,15 +139,18 @@ namespace ClipExplorer
         /// <summary>
         /// Helper to get an event collection.
         /// </summary>
-        /// <param name="channel"></param>
+        /// <param name="channel">Specific channel or empty/null for all.</param>
         /// <returns>The collection or null if invalid.</returns>
         public IEnumerable<MidiEvent> GetEvents(string pattern, int channel)
         {
-            return _midiEvents.Where(v => v.pattern == pattern && v.channel == channel).Select(v => v.evt);
+            IEnumerable<MidiEvent> ret = string.IsNullOrEmpty(pattern) ?
+                _midiEvents.Where(v => v.channel == channel).Select(v => v.evt) :
+                _midiEvents.Where(v => v.pattern == pattern && v.channel == channel).Select(v => v.evt);
+            return ret;
         }
         #endregion
 
-        #region Section parsers
+        #region Section readers
         /// <summary>
         /// Read the midi header section of a style file.
         /// </summary>
@@ -144,19 +164,19 @@ namespace ClipExplorer
                 throw new FormatException("Unexpected header chunk length");
             }
 
-            uint fileFormat = Read(br, 2);
+            MidiFileType = (int)Read(br, 2);
 
             // Style midi section is always type 0 - only one track.
-            if (fileFormat != 0)
+            if (MidiFileType != 0)
             {
-                throw new FormatException($"This is type {fileFormat} - must be 0");
+                throw new FormatException($"This is type {MidiFileType} - must be 0");
             }
 
             // Midi type 0 - only one track.
-            uint tracks = Read(br, 2);
-            if (tracks != 1)
+            Tracks = (int)Read(br, 2);
+            if (Tracks != 1)
             {
-                throw new FormatException($"This has {tracks} tracks - must be 1");
+                throw new FormatException($"This has {Tracks} tracks - must be 1");
             }
 
             DeltaTicksPerQuarterNote = (int)Read(br, 2);
@@ -171,7 +191,7 @@ namespace ClipExplorer
         {
             // Defaults.
             int chnum = 0;
-            string chdesc = "???";
+            //string chdesc = "???";
 
             uint chunkSize = Read(br, 4);
             long startPos = br.BaseStream.Position;
@@ -186,6 +206,10 @@ namespace ClipExplorer
                 me = MidiEvent.ReadNextEvent(br, me);
                 absoluteTime += me.DeltaTime;
                 me.AbsoluteTime = absoluteTime;
+                if(!Channels.ContainsKey(me.Channel))
+                {
+                    Channels.Add(me.Channel, -1);
+                }
 
                 switch (me.CommandCode)
                 {
@@ -194,7 +218,7 @@ namespace ClipExplorer
                         {
                             NoteOnEvent evt = me as NoteOnEvent;
                             AddMidiEvent(evt);
-                            Loggo(evt.AbsoluteTime, "NoteOn", evt.ToString());
+                            Capture(evt.AbsoluteTime, "NoteOn", evt.Channel, evt.ToString());
                         }
                         break;
 
@@ -202,7 +226,7 @@ namespace ClipExplorer
                         {
                             NoteEvent evt = me as NoteEvent;
                             AddMidiEvent(evt);
-                            Loggo(evt.AbsoluteTime, "NoteOff", evt.ToString());
+                            Capture(evt.AbsoluteTime, "NoteOff", evt.Channel, evt.ToString());
                         }
                         break;
 
@@ -210,7 +234,7 @@ namespace ClipExplorer
                         {
                             ControlChangeEvent evt = me as ControlChangeEvent;
                             AddMidiEvent(evt);
-                            Loggo(evt.AbsoluteTime, "ControlChange", evt.ToString());
+                            Capture(evt.AbsoluteTime, "ControlChange", evt.Channel, evt.ToString());
                         }
                         break;
 
@@ -224,9 +248,10 @@ namespace ClipExplorer
                     case MidiCommandCode.PatchChange:
                         {
                             PatchChangeEvent evt = me as PatchChangeEvent;
-                            chdesc = PatchChangeEvent.GetPatchName(evt.Patch);
+                            //chdesc = PatchChangeEvent.GetPatchName(evt.Patch);
+                            Channels[evt.Channel] = evt.Patch;
                             AddMidiEvent(evt);
-                            Loggo(evt.AbsoluteTime, "PatchChangeEvent", evt.ToString());
+                            Capture(evt.AbsoluteTime, "PatchChangeEvent", evt.Channel, evt.ToString());
                         }
                         break;
 
@@ -234,7 +259,7 @@ namespace ClipExplorer
                         {
                             SysexEvent evt = me as SysexEvent;
                             string s = evt.ToString().Replace(Environment.NewLine, " ");
-                            Loggo(evt.AbsoluteTime, "Sysex", s);
+                            Capture(evt.AbsoluteTime, "Sysex", evt.Channel, s);
                         }
                         break;
 
@@ -243,14 +268,14 @@ namespace ClipExplorer
                         {
                             TrackSequenceNumberEvent evt = me as TrackSequenceNumberEvent;
                             chnum = evt.Channel;
-                            Loggo(evt.AbsoluteTime, "TrackSequenceNumber", evt.ToString());
+                            Capture(evt.AbsoluteTime, "TrackSequenceNumber", evt.Channel, evt.ToString());
                         }
                         break;
 
                     case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.SequenceTrackName:
                         {
                             TextEvent evt = me as TextEvent;
-                            Loggo(evt.AbsoluteTime, "SequenceTrackName", evt.Text);
+                            Capture(evt.AbsoluteTime, "SequenceTrackName", evt.Channel, evt.Text);
                         }
                         break;
 
@@ -258,7 +283,7 @@ namespace ClipExplorer
                         {
                             // Indicates start of a new midi pattern.
                             TextEvent evt = me as TextEvent;
-                            Loggo(evt.AbsoluteTime, "Marker", evt.Text);
+                            Capture(evt.AbsoluteTime, "Marker", evt.Channel, evt.Text);
                             _currentPattern = evt.Text;
                             AllPatterns.Add(_currentPattern);
                             absoluteTime = 0;
@@ -269,7 +294,8 @@ namespace ClipExplorer
                         {
                             // Indicates end of current midi track.
                             MetaEvent evt = me as MetaEvent;
-                            Loggo(evt.AbsoluteTime, "EndTrack", evt.ToString());
+                            Capture(evt.AbsoluteTime, "EndTrack", evt.Channel, evt.ToString());
+                            _currentPattern = "";
                         }
                         break;
 
@@ -277,7 +303,7 @@ namespace ClipExplorer
                         {
                             TempoEvent evt = me as TempoEvent;
                             Tempo = evt.Tempo;
-                            Loggo(evt.AbsoluteTime, "SetTempo", evt.Tempo.ToString());
+                            Capture(evt.AbsoluteTime, "SetTempo", evt.Channel, evt.Tempo.ToString());
                         }
                         break;
 
@@ -285,7 +311,7 @@ namespace ClipExplorer
                         {
                             TimeSignatureEvent evt = me as TimeSignatureEvent;
                             TimeSig = evt.TimeSignature;
-                            Loggo(evt.AbsoluteTime, "TimeSignature", evt.TimeSignature);
+                            Capture(evt.AbsoluteTime, "TimeSignature", evt.Channel, evt.TimeSignature);
                         }
                         break;
 
@@ -293,62 +319,28 @@ namespace ClipExplorer
                         {
                             KeySignatureEvent evt = me as KeySignatureEvent;
                             KeySig = evt.ToString();
-                            Loggo(evt.AbsoluteTime, "KeySignature", evt.ToString());
+                            Capture(evt.AbsoluteTime, "KeySignature", evt.Channel, evt.ToString());
                         }
                         break;
 
                     case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.TextEvent:
                         {
                             TextEvent evt = me as TextEvent;
-                            Loggo(evt.AbsoluteTime, "TextEvent", evt.Text);
+                            Capture(evt.AbsoluteTime, "TextEvent", evt.Channel, evt.Text);
                         }
                         break;
 
                     default:
-                        //Other MidiCommandCodes:
-                        //AutoSensing = 254,
-                        //ChannelAfterTouch = 208,
-                        //ContinueSequence = 251,
-                        //Eox = 247,
-                        //KeyAfterTouch = 160,
-                        //StartSequence = 250,
-                        //StopSequence = 252,
-                        //TimingClock = 248,
-
-                        // Other MetaEventType:
-                        //Copyright = 2,
-                        //CuePoint = 7,
-                        //DeviceName = 9,
-                        //Lyric = 5,
-                        //MidiChannel = 32,
-                        //MidiPort = 33,
-                        //ProgramName = 8,
-                        //SequencerSpecific = 127
-                        //SmpteOffset = 84,
-                        //TrackInstrumentName = 4,
-
-                        Loggo(-1, "Other", $"{me.GetType()} {me}");
+                        // Other MidiCommandCodes: AutoSensing, ChannelAfterTouch, ContinueSequence, Eox, KeyAfterTouch, StartSequence, StopSequence, TimingClock
+                        // Other MetaEventType: Copyright, CuePoint, DeviceName, Lyric, MidiChannel, MidiPort, ProgramName, SequencerSpecific, SmpteOffset, TrackInstrumentName
+                        Capture(-1, "Other", -1, $"{me.GetType()} {me}");
                         break;
                 }
-
-                //_currentPart
             }
 
             ///// Local function. /////
             void AddMidiEvent(MidiEvent evt)
             {
-                //if (!_events.ContainsKey(evt.Channel))
-                //{
-                //    _events.Add(evt.Channel, new List<MidiEvent>());
-                //}
-
-                if (!Channels.ContainsKey(evt.Channel))
-                {
-                    Channels.Add(evt.Channel, evt.Channel == 10 ? "Drums" : chdesc);
-                }
-
-                //_events[evt.Channel].Add(evt);
-
                 _midiEvents.Add((_currentPattern, evt.Channel, evt));
             }
 
@@ -361,24 +353,6 @@ namespace ClipExplorer
         /// <param name="br"></param>
         void ReadCASM(BinaryReader br)
         {
-            // The information in the CASM section is necessary if the midi section does not follow the rules
-            // for “simple” style files, which do not necessarily need a CASM section (see chapter 5.2.1 for
-            // the rules). The CASM section gives instructions to the instrument on how to deal with the midi data.
-            // This includes:
-            // - Assigning the sixteen possible midi channels to 8 accompaniment channels which are
-            //   available to a style in the instrument (9 = sub rhythm, 10 = rhythm, 11 = bass, 12 = chord 1,
-            //   13 = chord 2, 14 = pad, 15 = phrase 1, 16 = phrase 2). More than one midi channel
-            //   may be assigned to an accompaniment channel.
-            // - Allowing the PSR to edit the source channel in StyleCreator. This setting is overridden by
-            //   the instrument if the style has > 1 midi source channel assigned to an accompaniment
-            //   channel. In this case the source channels are not editable.
-            // - Muting/enabling specific notes or chords to trigger the accompaniment. In practice, only
-            //   chord choices are used.
-            // - The key that is used in the midi channel. Styles often use different keys for the midi data.
-            //   Styles without a CASM must be in the key of CMaj7.
-            // - How the chords and notes are transposed as chords are changed and how notes held
-            //   through chord changes are reproduced.
-            // - The range of notes generated by the style.
             uint chunkSize = Read(br, 4);
         }
 
@@ -398,7 +372,6 @@ namespace ClipExplorer
         void ReadSdec(BinaryReader br)
         {
             uint chunkSize = Read(br, 4);
-            // swallow for now
             br.ReadBytes((int)chunkSize);
         }
 
@@ -410,7 +383,6 @@ namespace ClipExplorer
         {
             // Has some key and chord info.
             uint chunkSize = Read(br, 4);
-            // swallow for now
             br.ReadBytes((int)chunkSize);
         }
 
@@ -421,7 +393,6 @@ namespace ClipExplorer
         void ReadCntt(BinaryReader br)
         {
             uint chunkSize = Read(br, 4);
-            // swallow for now
             br.ReadBytes((int)chunkSize);
         }
 
@@ -432,7 +403,6 @@ namespace ClipExplorer
         void ReadOTSc(BinaryReader br)
         {
             uint chunkSize = Read(br, 4);
-            // swallow for now
             br.ReadBytes((int)chunkSize);
         }
 
@@ -443,21 +413,320 @@ namespace ClipExplorer
         void ReadFNRc(BinaryReader br)
         {
             uint chunkSize = Read(br, 4);
-            // swallow for now
             br.ReadBytes((int)chunkSize);
+        }
+        #endregion
+
+        #region Output formatters
+        /// <summary>
+        /// Dump the contents in a readable form. This is as they appear in the original file.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetReadableContents()
+        {
+            return  _allContents;
+        }
+
+        /// <summary>
+        /// Makes csv dumps of events grouped by pattern/channel.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetReadableGrouped()
+        {
+            List<string> ret = new List<string>();
+            bool includeNoisy = false;
+
+            List<string> meta = new List<string>
+            {
+                $"---Meta---",
+                $"Meta,Value",
+                $"MidiFileType,{MidiFileType}",
+                $"DeltaTicksPerQuarterNote,{DeltaTicksPerQuarterNote}",
+                //$"StartAbsoluteTime,{StartAbsoluteTime}",
+                $"Tracks,{Tracks}"
+            };
+
+            List<string> notes = new List<string>()
+            {
+                $"",
+                $"---Notes---",
+                "Time,Event,Channel,Pattern,NoteNum,NoteName,Velocity,Duration",
+            };
+
+            List<string> other = new List<string>()
+            {
+                $"",
+                $"---Other---",
+                "Time,Event,Channel,Pattern,Val1,Val2,Val3",
+            };
+
+            foreach (var me in _midiEvents)
+            {
+                // Boilerplate.
+                string ntype = me.evt.GetType().ToString().Replace("NAudio.Midi.", "");
+                string sc = $"{me.evt.AbsoluteTime},{ntype},{me.evt.Channel},{me.pattern}";
+
+                switch (me.evt)
+                {
+                    case NoteOnEvent evt:
+                        int len = evt.OffEvent == null ? 0 : evt.NoteLength; // NAudio NoteLength bug.
+                        string nname = evt.Channel == DrumChannel ? $"{MidiDefs.GetDrumDef(evt.NoteNumber)}" : $"{MidiDefs.NoteNumberToName(evt.NoteNumber)}";
+                        notes.Add($"{sc},{evt.NoteNumber},{nname},{evt.Velocity},{len}");
+                        break;
+
+                    case NoteEvent evt: // used for NoteOff
+                        notes.Add($"{sc},{evt.NoteNumber},,{evt.Velocity},");
+                        break;
+
+                    case TempoEvent evt:
+                        meta.Add($"Tempo,{evt.Tempo}");
+                        other.Add($"{sc},{evt.Tempo},{evt.MicrosecondsPerQuarterNote}");
+                        break;
+
+                    case TimeSignatureEvent evt:
+                        other.Add($"{sc},{evt.TimeSignature},,");
+                        break;
+
+                    case KeySignatureEvent evt:
+                        other.Add($"{sc},{evt.SharpsFlats},{evt.MajorMinor},");
+                        break;
+
+                    case PatchChangeEvent evt:
+                        other.Add($"{sc},{evt.Patch},{MidiDefs.GetInstrumentDef(evt.Patch)},");
+                        break;
+
+                    case ControlChangeEvent evt:
+                        if(includeNoisy)
+                        {
+                            other.Add($"{sc},{(int)evt.Controller},{MidiDefs.GetControllerDef((int)evt.Controller)},{evt.ControllerValue}");
+                        }
+                        break;
+
+                    case PitchWheelChangeEvent evt:
+                        if (includeNoisy)
+                        {
+                            other.Add($"{sc},{evt.Pitch},,");
+                        }
+                        break;
+
+                    case TextEvent evt:
+                        other.Add($"{sc},{evt.Text},,,");
+                        break;
+
+                    //case ChannelAfterTouchEvent:
+                    //case SysexEvent:
+                    //case MetaEvent:
+                    //case RawMetaEvent:
+                    //case SequencerSpecificEvent:
+                    //case SmpteOffsetEvent:
+                    //case TrackSequenceNumberEvent:
+                    default:
+                        break;
+                }
+            }
+
+            ret.AddRange(meta);
+            ret.AddRange(notes);
+            ret.AddRange(other);
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Convert neb steps to midi file.
+        /// </summary>
+        /// <param name="midiFileName">Where to put the midi.</param>
+        /// <param name="info">Extra info to add to midi file.</param>
+        public void ExportMidi(string midiFileName, string info)
+        {
+            if(AllPatterns.Count > 0)
+            {
+                ExportOneMidi(midiFileName, "", info);
+            }
+            else
+            {
+                AllPatterns.ForEach(p => ExportOneMidi(midiFileName, p, info));
+            }
+        }
+
+        public void ExportOneMidi(string midiFileName, string pattern, string info)
+        {
+            // Timestamp,Type             ,Content
+            // -1       ,Section          ,MThd
+            // -1       ,Section          ,MTrk
+            // 0        ,TimeSignature    ,4/4
+            // 0        ,SetTempo         ,70.00007000007
+            // 0        ,PatchChangeEvent ,0 PatchChange Ch: 13 String Ensemble 1
+            // 0        ,PatchChangeEvent ,0 PatchChange Ch: 11 String Ensemble 1
+            //.................
+            // 0        ,NoteOn           ,0 NoteOn Ch: 3 C2 Vel:100 Len: ?
+            // 0        ,NoteOn           ,0 NoteOn Ch: 4 A#4 Vel:53 Len: ?
+            // 0        ,NoteOn           ,0 NoteOn Ch: 4 D#5 Vel:65 Len: ?
+            // 0        ,NoteOn           ,0 NoteOn Ch: 4 F5 Vel:66 Len: ?
+            // 0        ,NoteOn           ,0 NoteOn Ch: 7 C5 Vel:60 Len: ?
+            // 0        ,NoteOn           ,0 NoteOn Ch: 9 A5 Vel:40 Len: ?
+            // 0        ,NoteOn           ,0 NoteOn Ch: 10 Bass Drum 1 Vel:72 Len: ?
+            // 20       ,NoteOn           ,20 NoteOn Ch: 5 C5 Vel:47 Len: ?
+            // 20       ,ControlChange    ,20 ControlChange Ch: 5 Controller Expression Value 98
+            // 20       ,NoteOff          ,20 NoteOff Ch: 9 A5 Vel:64
+            // 20       ,NoteOff          ,20 NoteOff Ch: 10 Bass Drum 1 Vel:64
+            // 20       ,NoteOn           ,20 NoteOn Ch: 11 F4 Vel:47 Len: ?
+            // 20       ,NoteOn           ,20 NoteOn Ch: 11 A#4 Vel:47 Len: ?
+            // 20       ,NoteOn           ,20 NoteOn Ch: 11 D#5 Vel:48 Len: ?
+            // 20       ,ControlChange    ,20 ControlChange Ch: 11 Controller Expression Value 98
+            // ..............
+            // 5760     ,NoteOn           ,5760 NoteOn Ch: 10 Electric Snare Vel:88 Len: ?
+            // 5760     ,NoteOn           ,5760 NoteOn Ch: 10 Pedal Hi-Hat Vel:53 Len: ?
+            // 5780     ,NoteOff          ,5780 NoteOff Ch: 10 Electric Snare Vel:64
+            // 5780     ,NoteOff          ,5780 NoteOff Ch: 10 Pedal Hi-Hat Vel:64
+            // 6720     ,NoteOn           ,6720 NoteOn Ch: 10 Electric Snare Vel:72 Len: ?
+            // 6740     ,NoteOff          ,6740 NoteOff Ch: 10 Electric Snare Vel:64
+            // 7200     ,NoteOn           ,7200 NoteOn Ch: 10 High Floor Tom Vel:73 Len: ?
+            // 7220     ,NoteOff          ,7220 NoteOff Ch: 10 High Floor Tom Vel:64
+            // 7660     ,NoteOn           ,7660 NoteOn Ch: 10 Crash Cymbal 1 Vel:58 Len: ?
+            // 7680     ,NoteOff          ,7680 NoteOff Ch: 10 Crash Cymbal 1 Vel:64
+            // 7680     ,EndTrack         ,7680 EndTrack
+
+
+
+
+            int exportPpq = 96; // arbitrary
+            MidiEventCollection events = new MidiEventCollection(1, exportPpq);
+
+            ///// Header chunk stuff.
+            IList<MidiEvent> lhdr = events.AddTrack();
+
+            //lhdr.Add(new TimeSignatureEvent(0, 4, 2, (int)ticksPerClick, 8));
+            //TimeSignatureEvent me = new TimeSignatureEvent(long absoluteTime, int numerator, int denominator, int ticksInMetronomeClick, int no32ndNotesInQuarterNote);
+            //  - numerator of the time signature (as notated).
+            //  - denominator of the time signature as a negative power of 2 (ie 2 represents a quarter-note, 3 represents an eighth-note, etc).
+            //  - number of MIDI clocks between metronome clicks.
+            //  - number of notated 32nd-notes in a MIDI quarter-note (24 MIDI Clocks). The usual value for this parameter is 8.
+
+            //lhdr.Add(new KeySignatureEvent(0, 0, 0));
+            //  - number of flats (-ve) or sharps (+ve) that identifies the key signature (-7 = 7 flats, -1 = 1 //flat, 0 = key of C, 1 = 1 sharp, etc).
+            //  - major (0) or minor (1) key.
+            //  - abs time.
+
+            // Tempo.
+            lhdr.Add(new TempoEvent(0, 0) { Tempo = Tempo });
+
+            // General info.
+            lhdr.Add(new TextEvent(info, MetaEventType.TextEvent, 0));
+
+            // Patches.
+            // !!!!!!!!!!!!!!
+
+
+            ///// Make one midi event collection per track.
+            //foreach (int channel in channels.Keys)
+            //{
+            //    IList<MidiEvent> le = events.AddTrack();
+            //    trackEvents.Add(channel, le);
+            //    le.Add(new TextEvent(channels[channel], MetaEventType.SequenceTrackName, 0));
+            //    // >> 0 SequenceTrackName G.MIDI Acou Bass
+            //}
+
+/*
+            // Run through the main steps and create a midi event per.
+            foreach (Time time in steps.Times)
+            {
+                long mtime = mt.InternalToMidi(time.TotalSubdivs);
+
+                foreach (Step step in steps.GetSteps(time))
+                {
+                    MidiEvent evt = null;
+
+                    switch (step)
+                    {
+                        case StepNoteOn stt:
+                            evt = new NoteEvent(mtime,
+                                stt.ChannelNumber,
+                                MidiCommandCode.NoteOn,
+                                (int)MathUtils.Constrain(stt.NoteNumber, 0, MidiUtils.MAX_MIDI),
+                                (int)(MathUtils.Constrain(stt.VelocityToPlay, 0, 1.0) * MidiUtils.MAX_MIDI));
+                            trackEvents[step.ChannelNumber].Add(evt);
+
+                            if (stt.Duration.TotalSubdivs > 0) // specific duration
+                            {
+                                evt = new NoteEvent(mtime + mt.InternalToMidi(stt.Duration.TotalSubdivs),
+                                    stt.ChannelNumber,
+                                    MidiCommandCode.NoteOff,
+                                    (int)MathUtils.Constrain(stt.NoteNumber, 0, MidiUtils.MAX_MIDI),
+                                    0);
+                                trackEvents[step.ChannelNumber].Add(evt);
+                            }
+                            break;
+
+                        case StepNoteOff stt:
+                            evt = new NoteEvent(mtime,
+                                stt.ChannelNumber,
+                                MidiCommandCode.NoteOff,
+                                (int)MathUtils.Constrain(stt.NoteNumber, 0, MidiUtils.MAX_MIDI),
+                                0);
+                            trackEvents[step.ChannelNumber].Add(evt);
+                            break;
+
+                        case StepControllerChange stt:
+                            if (stt.ControllerId == ScriptDefinitions.TheDefinitions.NoteControl)
+                            {
+                                // Shouldn't happen, ignore.
+                            }
+                            else if (stt.ControllerId == ScriptDefinitions.TheDefinitions.PitchControl)
+                            {
+                                evt = new PitchWheelChangeEvent(mtime,
+                                    stt.ChannelNumber,
+                                    (int)MathUtils.Constrain(stt.Value, 0, MidiUtils.MAX_MIDI));
+                                trackEvents[step.ChannelNumber].Add(evt);
+                            }
+                            else // CC
+                            {
+                                evt = new ControlChangeEvent(mtime,
+                                    stt.ChannelNumber,
+                                    (MidiController)stt.ControllerId,
+                                    (int)MathUtils.Constrain(stt.Value, 0, MidiUtils.MAX_MIDI));
+                                trackEvents[step.ChannelNumber].Add(evt);
+                            }
+                            break;
+
+                        case StepPatch stt:
+                            evt = new PatchChangeEvent(mtime,
+                                stt.ChannelNumber,
+                                stt.PatchNumber);
+                            trackEvents[step.ChannelNumber].Add(evt);
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // Finish up channels with end marker.
+            foreach (IList<MidiEvent> let in trackEvents.Values)
+            {
+                long ltime = let.Last().AbsoluteTime;
+                let.Add(new MetaEvent(MetaEventType.EndTrack, 0, ltime));
+            }
+
+            NAudio.Midi.MidiFile.Export(midiFileName, events);
+
+
+*/
         }
         #endregion
 
         #region Helpers
         /// <summary>
-        /// 
+        /// Save an event.
         /// </summary>
         /// <param name="timestamp"></param>
         /// <param name="etype"></param>
+        /// <param name="channel"></param>
         /// <param name="content"></param>
-        void Loggo(long timestamp, string etype, string content)
+        void Capture(long timestamp, string etype, int channel, string content)
         {
-            AllFileContents.Add($"{timestamp}:::{etype}:::{_lastPos}:::{content}");
+            _allContents.Add($"{timestamp},{etype},{_currentPattern},{channel},{_lastPos},{content.Replace(',', '_')}");
         }
 
         /// <summary>

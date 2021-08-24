@@ -25,17 +25,11 @@ namespace ClipExplorer
     public partial class MidiPlayer : UserControl, IPlayer
     {
         #region Constants
-        /// <summary>Midi caps.</summary>
-        const int NUM_CHANNELS = 16;
-
         /// <summary>Only 4/4 time supported.</summary>
         const int BEATS_PER_BAR = 4;
 
         /// <summary>Our internal ppq aka resolution.</summary>
         const int PPQ = 32;
-
-        /// <summary>The normal drum channel.</summary>
-        const int DEFAULT_DRUM_CHANNEL = 10;
         #endregion
 
         #region Fields
@@ -52,22 +46,13 @@ namespace ClipExplorer
         MidiFile _mfile;
 
         /// <summary>All the channels.</summary>
-        readonly PlayChannel[] _playChannels = new PlayChannel[NUM_CHANNELS];
+        readonly PlayChannel[] _playChannels = new PlayChannel[MidiDefs.NUM_CHANNELS];
 
         /// <summary>Requested tempo from file. Use default if not supplied.</summary>
         double _tempo = Common.Settings.DefaultTempo;
 
         /// <summary>Some midi files have drums on a different channel so allow the user to re-map.</summary>
-        int _drumChannel = DEFAULT_DRUM_CHANNEL;
-
-        /// <summary>The midi instrument definitions.</summary>
-        readonly Dictionary<int, string> _instrumentDefs = new Dictionary<int, string>();
-
-        /// <summary>The midi drum definitions.</summary>
-        readonly Dictionary<int, string> _drumDefs = new Dictionary<int, string>();
-
-        /// <summary>The midi controller definitions.</summary>
-        readonly Dictionary<int, string> _controllerDefs = new Dictionary<int, string>();
+        int _drumChannel = MidiDefs.DEFAULT_DRUM_CHANNEL;
         #endregion
 
         #region Events
@@ -99,8 +84,6 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void MidiPlayer_Load(object sender, EventArgs e)
         {
-            LoadMidiDefs();
-
             // Init internal structure.
             for (int i = 0; i < _playChannels.Count(); i++)
             {
@@ -108,9 +91,9 @@ namespace ClipExplorer
             }
 
             // Fill patch list.
-            foreach (var kv in _instrumentDefs)
+            for (int i = 0; i <= MidiDefs.MAX_MIDI; i++)
             {
-                cmbPatchList.Items.Add(kv.Value);
+                cmbPatchList.Items.Add(MidiDefs.GetInstrumentDef(i));
             }
             cmbPatchList.SelectedIndex = 0;
 
@@ -184,6 +167,8 @@ namespace ClipExplorer
                 _mfile = new MidiFile();
                 _mfile.ProcessFile(fn);
 
+                // Do things with things.
+                _mfile.Channels.ForEach(ch => _playChannels[ch.Key].Patch = ch.Value);
                 _tempo = _mfile.Tempo;
 
                 lbPatterns.Items.Clear();
@@ -191,10 +176,10 @@ namespace ClipExplorer
                 {
                     switch(p)
                     {
-                        case "SFF1":
-                        case "SFF2":
-                        case "SInt":
-                            break;
+                        //case "SFF1": TODO patches here
+                        //case "SFF2":
+                        //case "SInt":
+                        //    break;
 
                         default:
                             lbPatterns.Items.Add(p);
@@ -208,7 +193,7 @@ namespace ClipExplorer
                 }
                 else
                 {
-                    ShowEvents("");
+                    GetPatternEvents(null);
                 }
 
                 InitChannelsGrid();
@@ -225,7 +210,7 @@ namespace ClipExplorer
             // Start or restart?
             if(!_running)
             {
-                // Calculate the actual period.
+                // Downshift to time increments compatible with this system.
                 MidiTime mt = new MidiTime()
                 {
                     InternalPpq = PPQ,
@@ -288,110 +273,9 @@ namespace ClipExplorer
         /// <inheritdoc />
         public List<string> Dump()
         {
-            List<string> ret = new List<string>();
-
-/*  TODO
-            if(_sourceEvents != null)
-            {
-                List<string> meta = new List<string>
-                {
-                    $"Meta,Value",
-                    $"MidiFileType,{_sourceEvents.MidiFileType}",
-                    $"DeltaTicksPerQuarterNote,{_sourceEvents.DeltaTicksPerQuarterNote}",
-                    $"StartAbsoluteTime,{_sourceEvents.StartAbsoluteTime}",
-                    $"Tracks,{_sourceEvents.Tracks}"
-                };
-
-                List<string> notes = new List<string>()
-                {
-                    "",
-                    "Time,Track,Channel,Note,Velocity,Duration",
-                };
-
-                List<string> other = new List<string>()
-                {
-                    "",
-                    "Time,Track,Channel,Event,Val1,Val2",
-                };
-
-                for (int trk = 0; trk < _sourceEvents.Tracks; trk++)
-                {
-                    var trackEvents = _sourceEvents.GetTrackEvents(trk);
-
-                    foreach(var te in trackEvents)
-                    {
-                        string ntype = te.GetType().ToString().Replace("NAudio.Midi.", "");
-                        switch (te)
-                        {
-                            case NoteOnEvent evt:
-                                int len = evt.OffEvent == null ? 0 : evt.NoteLength;
-                                string nnum = $"{evt.NoteNumber}";
-                                if(te.Channel == _drumChannel && _drumDefs.ContainsKey(evt.NoteNumber))
-                                {
-                                    nnum += $"_{_drumDefs[evt.NoteNumber]}";
-                                }
-                                notes.Add($"{te.AbsoluteTime},{trk},{te.Channel},{nnum},{evt.Velocity},{len}");
-                                break;
-
-                            case TempoEvent evt:
-                                _tempo = (int)evt.Tempo;
-                                meta.Add($"Tempo,{evt.Tempo}");
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Tempo},{evt.MicrosecondsPerQuarterNote}");
-                                break;
-
-                            case TimeSignatureEvent evt:
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.TimeSignature},NA");
-                                break;
-
-                            case KeySignatureEvent evt:
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.SharpsFlats},{evt.MajorMinor}");
-                                break;
-
-                            case PatchChangeEvent evt:
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Patch},NA");
-                                break;
-
-                            case ControlChangeEvent evt:
-                                //other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Controller},{evt.ControllerValue}");
-                                break;
-
-                            case PitchWheelChangeEvent evt:
-                                //other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Pitch},NA");
-                                break;
-
-                            case TextEvent evt:
-                                other.Add($"{evt.AbsoluteTime},{trk},{evt.Channel},{ntype},{evt.Text},{evt.Data.Length}");
-                                break;
-
-                            case NoteEvent evt:
-                                // skip
-                                break;
-
-                            //case ChannelAfterTouchEvent:
-                            //case SysexEvent:
-                            //case MetaEvent:
-                            //case RawMetaEvent:
-                            //case SequencerSpecificEvent:
-                            //case SmpteOffsetEvent:
-                            //case TrackSequenceNumberEvent:
-                            default:
-                                //other.Add($"{te.AbsoluteTime},{trk},{te.Channel},{ntype},{te}");
-                                break;
-                        }
-                    }
-                }
-
-                ret.AddRange(meta);
-                ret.AddRange(notes);
-                ret.AddRange(other);
-            }
-            else
-            {
-                LogMessage("ERROR", "Midi file not open");
-                ret.Clear();
-            }
-*/
-            return ret;
+            _mfile.DrumChannel = _drumChannel;
+            return _mfile.GetReadableGrouped();
+            //return _mfile.GetReadableContents();
         }
         #endregion
 
@@ -431,7 +315,7 @@ namespace ClipExplorer
                                                 // Adjust volume and maybe drum channel. Also NAudio NoteLength bug.
                                                 NoteOnEvent ne = new NoteOnEvent(
                                                     evt.AbsoluteTime,
-                                                    ch.ChannelNumber == _drumChannel ? DEFAULT_DRUM_CHANNEL : evt.Channel,
+                                                    ch.ChannelNumber == _drumChannel ? MidiDefs.DEFAULT_DRUM_CHANNEL : evt.Channel,
                                                     evt.NoteNumber,
                                                     (int)(evt.Velocity * Volume),
                                                     evt.OffEvent == null ? 0 : evt.NoteLength);
@@ -490,15 +374,12 @@ namespace ClipExplorer
         /// Get requested events.
         /// </summary>
         /// <param name="pattern">Specific pattern.</param>
-        void ShowEvents(string pattern)
+        void GetPatternEvents(string pattern)
         {
             // Init internal structure.
-            for (int i = 0; i < _playChannels.Count(); i++)
-            {
-                _playChannels[i].Events.Clear();
-            }
+            _playChannels.ForEach(pc => pc.Reset());
 
-            // Scale times to internal ppq.
+            // Downshift to time increments compatible with this system.
             MidiTime mt = new MidiTime()
             {
                 InternalPpq = PPQ,
@@ -509,27 +390,14 @@ namespace ClipExplorer
             // Bin events by channel. Scale to internal ppq.
             foreach (var ch in _mfile.Channels)
             {
-                var vvv = _mfile.GetEvents(pattern, ch.Key);
+                _playChannels[ch.Key].Patch = ch.Value;
 
                 foreach (var te in _mfile.GetEvents(pattern, ch.Key))
                 {
-                    if (te.Channel - 1 < NUM_CHANNELS) // midi is one-based
+                    if (te.Channel - 1 < MidiDefs.NUM_CHANNELS) // midi is one-based
                     {
-                        // Do some miscellaneous fixups.
-
                         // Scale to internal.
                         long subdiv = mt.MidiToInternal(te.AbsoluteTime);
-
-                        // Other ops.
-                        switch (te)
-                        {
-                            case NoteOnEvent non:
-                                break;
-
-                            case PatchChangeEvent evt:
-                                _playChannels[te.Channel - 1].Patch = evt.Patch;
-                                break;
-                        }
 
                         // Add to our collection.
                         _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
@@ -572,47 +440,6 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Load midi definitions from md file.
-        /// </summary>
-        void LoadMidiDefs()
-        {
-            _instrumentDefs.Clear();
-            _drumDefs.Clear();
-            _controllerDefs.Clear();
-
-            // Read the file.
-            object section = null;
-
-            string fpath = Path.Combine(MiscUtils.GetExeDir(), @"Resources\gm_defs.md");
-            foreach (string sl in File.ReadAllLines(fpath))
-            {
-                List<string> parts = sl.SplitByToken("|");
-
-                if (parts.Count > 1 && !parts[0].StartsWith("#"))
-                {
-                    switch (parts[0])
-                    {
-                        case "Instrument":
-                            section = _instrumentDefs;
-                            break;
-
-                        case "Drum":
-                            section = _drumDefs;
-                            break;
-
-                        case "Controller":
-                            section = _controllerDefs;
-                            break;
-
-                        case string s when !s.StartsWith("---"):
-                            (section as Dictionary<int, string>)[int.Parse(parts[1])] = parts[0];
-                            break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Populate the click grid.
         /// </summary>
         void InitChannelsGrid()
@@ -634,13 +461,9 @@ namespace ClipExplorer
                 {
                     pc.Name += $"NoPatch";
                 }
-                else if (_instrumentDefs.ContainsKey(pc.Patch))
-                {
-                    pc.Name += $"{_instrumentDefs[pc.Patch]}";
-                }
                 else
                 {
-                    pc.Name += $"Patch:{pc.Patch}";
+                    pc.Name += MidiDefs.GetInstrumentDef(pc.Patch);
                 }
 
                 // Maybe add to UI.
@@ -671,7 +494,7 @@ namespace ClipExplorer
                 case PlayChannel.PlayMode.Normal:
                     pch.Mode = PlayChannel.PlayMode.Solo;
                     // Mute any other non-solo channels.
-                    for (int i = 0; i < NUM_CHANNELS; i++)
+                    for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
                     {
                         if (i != channel && _playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
                         {
@@ -725,7 +548,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void DrumsOn1_CheckedChanged(object sender, EventArgs e)
         {
-            _drumChannel = chkDrumsOn1.Checked ? 1 : 10;
+            _drumChannel = chkDrumsOn1.Checked ? 1 : MidiDefs.DEFAULT_DRUM_CHANNEL;
 
             // Update UI.
             InitChannelsGrid();
@@ -739,7 +562,7 @@ namespace ClipExplorer
         void Patch_Click(object sender, EventArgs e)
         {
             bool valid = int.TryParse(txtPatchChannel.Text, out int pch);
-            if (valid && pch >= 1 && pch <= 16)
+            if (valid && pch >= 1 && pch <= MidiDefs.NUM_CHANNELS)
             {
                 PatchChangeEvent evt = new PatchChangeEvent(0, pch, cmbPatchList.SelectedIndex);
                 MidiSend(evt);
@@ -762,7 +585,10 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Patterns_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ShowEvents(lbPatterns.SelectedItem.ToString());
+            GetPatternEvents(lbPatterns.SelectedItem.ToString());
+            InitChannelsGrid();
+            Rewind();
+            Play();
         }
     }
     #endregion
@@ -790,7 +616,7 @@ namespace ClipExplorer
         /// <summary>Optional patch.</summary>
         public int Patch { get; set; } = -1;
 
-        ///<summary>The main collection of Steps. The key is the subdiv/time.</summary>
+        ///<summary>The main collection of events. The key is the subdiv/time.</summary>
         public Dictionary<int, List<MidiEvent>> Events { get; set; } = new Dictionary<int, List<MidiEvent>>();
 
         ///<summary>The duration of the whole channel.</summary>
@@ -809,6 +635,16 @@ namespace ClipExplorer
             Events[subdiv].Add(evt);
             MaxSubdiv = Math.Max(MaxSubdiv, subdiv);
             HasNotes |= evt is NoteEvent;
+        }
+
+        /// <summary>
+        /// Clean up before reading another pattern.
+        /// </summary>
+        public void Reset()
+        {
+            HasNotes = false;
+            Events.Clear();
+            MaxSubdiv = 0;
         }
 
         /// <summary>For viewing pleasure.</summary>

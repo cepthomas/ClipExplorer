@@ -295,14 +295,7 @@ namespace ClipExplorer
 
                 while (num != 0)
                 {
-                    // TODO This throws for flac and m4a files - unknown reason - but works ok.
-                    //at NAudio.Wave.SampleProviders.Pcm16BitToSampleProvider.Read(Single[] buffer, Int32 offset, Int32 count)
-                    //at NAudio.Wave.SampleProviders.MeteringSampleProvider.Read(Single[] buffer, Int32 offset, Int32 count)
-                    //at NAudio.Wave.SampleProviders.VolumeSampleProvider.Read(Single[] buffer, Int32 offset, Int32 sampleCount)
-                    //at NAudio.Wave.SampleProviders.SampleChannel.Read(Single[] buffer, Int32 offset, Int32 sampleCount)
-                    //at NAudio.Wave.AudioFileReader.Read(Single[] buffer, Int32 offset, Int32 count)
-                    //at ClipExplorer.WavePlayer.ShowClip() in C:\Dev\repos\ClipExplorer\WavePlayer.cs:line 296
-
+                    // This throws for flac and m4a files for unknown reason but works ok.
                     try
                     {
                         num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
