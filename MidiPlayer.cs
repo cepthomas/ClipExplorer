@@ -164,8 +164,7 @@ namespace ClipExplorer
                 Rewind();
 
                 // Process the file.
-                _mfile = new MidiFile();
-                _mfile.IgnoreNoisy = true;
+                _mfile = new MidiFile { IgnoreNoisy = true };
                 _mfile.ProcessFile(fn);
 
                 // Do things with things.
@@ -277,6 +276,34 @@ namespace ClipExplorer
             _mfile.DrumChannel = _drumChannel;
             //return _mfile.GetReadableGrouped();
             return _mfile.GetReadableContents();
+        }
+
+        /// <inheritdoc />
+        public void Export() //TODO
+        {
+            string newfn = "";
+            string pattern = "";
+            string info = "";
+
+            if (_mfile.Filename.EndsWith(".sty"))
+            {
+                pattern = lbPatterns.SelectedItem.ToString();
+                newfn = _mfile.Filename.Replace(".sty", $"_{pattern}.sty");
+                info = $"Export {pattern} from {_mfile.Filename}";
+            }
+            else // .mid
+            {
+                newfn = _mfile.Filename.Replace(".mid", $"_exp.mid");
+                info = $"Export from {_mfile.Filename}";
+            }
+
+            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Export midi", FileName = newfn })
+            {
+                if (dumpDlg.ShowDialog() == DialogResult.OK)
+                {
+                    _mfile.ExportMidi(newfn, pattern, info);
+                }
+            }
         }
         #endregion
 

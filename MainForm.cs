@@ -354,7 +354,7 @@ namespace ClipExplorer
             var ds = _player.Dump();
             if (ds.Count > 0)
             {
-                if (Common.Settings.DumpToClip)//TODO maybe remove this - separate menu items.
+                if (Common.Settings.DumpToClip)
                 {
                     Clipboard.SetText(string.Join(Environment.NewLine, ds));
                     LogMessage(this, "INFO", "File dumped to clipboard");

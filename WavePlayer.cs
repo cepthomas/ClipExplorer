@@ -164,6 +164,12 @@ namespace ClipExplorer
 
             return ok;
         }
+
+        /// <inheritdoc />
+        public void Export()
+        {
+            LogMessage("INFO", "Sorry, not supported");
+        }
         #endregion
 
         #region Play functions

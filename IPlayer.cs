@@ -40,9 +40,11 @@ namespace ClipExplorer
         /// <summary>Settings have been edited.</summary>
         bool SettingsChanged();
 
-        /// <summary>Utility.</summary>
-        /// <param name="fn">Output filename</param>
-        /// <returns>Formatted content. Empty if there was an error.</returns>
+        /// <summary>Export to binary content. Depends on type.</summary>
+        void Export();
+
+        /// <summary>Formatted/readable content.</summary>
+        /// <returns>Content. Empty if there was an error.</returns>
         List<string> Dump();
         #endregion
     }
