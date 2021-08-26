@@ -546,16 +546,16 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Convert neb steps to midi file.
+        /// Output part or all of the file to a new midi file.
         /// </summary>
         /// <param name="fn">Where to put the midi.</param>
         /// <param name="pattern">Specific pattern if a style file.</param>
         /// <param name="info">Extra info to add to midi file.</param>
         public void ExportMidi(string fn, string pattern, string info)
         {
-            int exportPpq = 96; // arbitrary
+            //int exportPpq = 96; // arbitrary
 
-            MidiEventCollection mecoll = new MidiEventCollection(1, exportPpq);
+            MidiEventCollection mecoll = new MidiEventCollection(1, DeltaTicksPerQuarterNote);
 
             IList<MidiEvent> mevents = mecoll.AddTrack();
 

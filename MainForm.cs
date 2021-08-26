@@ -220,6 +220,7 @@ namespace ClipExplorer
             // Always:
             fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Open...", null, Open_Click));
             fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Dump...", null, Dump_Click));
+            fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export...", null, Export_Click));
             fileDropDownButton.DropDownItems.Add(new ToolStripSeparator());
 
             Common.Settings.RecentFiles.ForEach(f =>
@@ -371,6 +372,16 @@ namespace ClipExplorer
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Export_Click(object sender, EventArgs e)
+        {
+            _player.Export();
+        }
         #endregion
 
         #region Transport control
@@ -457,6 +468,11 @@ namespace ClipExplorer
 
                 case Keys.C:
                     txtViewer.Clear();
+                    e.Handled = true;
+                    break;
+
+                case Keys.W:
+                    txtViewer.WordWrap = !txtViewer.WordWrap;
                     e.Handled = true;
                     break;
             }

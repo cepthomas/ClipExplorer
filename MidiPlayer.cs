@@ -28,7 +28,7 @@ namespace ClipExplorer
         /// <summary>Only 4/4 time supported.</summary>
         const int BEATS_PER_BAR = 4;
 
-        /// <summary>Our internal ppq aka resolution.</summary>
+        /// <summary>Our internal ppq aka resolution - used for sending realtime midi messages.</summary>
         const int PPQ = 32;
         #endregion
 
@@ -279,21 +279,22 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public void Export() //TODO
+        public void Export()
         {
-            string newfn = "";
-            string pattern = "";
-            string info = "";
+            string newfn;
+            string pattern;
+            string info;
 
             if (_mfile.Filename.EndsWith(".sty"))
             {
-                pattern = lbPatterns.SelectedItem.ToString();
-                newfn = _mfile.Filename.Replace(".sty", $"_{pattern}.sty");
+                pattern = lbPatterns.SelectedItem.ToString().Replace(' ', '_');
+                newfn = _mfile.Filename.Replace(".sty", $"_{pattern}.mid");
                 info = $"Export {pattern} from {_mfile.Filename}";
             }
             else // .mid
             {
-                newfn = _mfile.Filename.Replace(".mid", $"_exp.mid");
+                pattern = "";
+                newfn = _mfile.Filename.Replace(".mid", $"_export.mid");
                 info = $"Export from {_mfile.Filename}";
             }
 
