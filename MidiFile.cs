@@ -13,7 +13,7 @@ namespace ClipExplorer
 {
     /// <summary>
     /// Reads in and processes standard midi or yahama style files. Timestamps are from original file.
-    /// TODO Doesn't support multiple tracks. Would it be useful?
+    /// FUTURE Doesn't support multiple tracks. Would it be useful?
     /// </summary>
     public class MidiFile
     {
@@ -553,10 +553,7 @@ namespace ClipExplorer
         /// <param name="info">Extra info to add to midi file.</param>
         public void ExportMidi(string fn, string pattern, string info)
         {
-            //int exportPpq = 96; // arbitrary
-
             MidiEventCollection mecoll = new MidiEventCollection(1, DeltaTicksPerQuarterNote);
-
             IList<MidiEvent> mevents = mecoll.AddTrack();
 
             // Tempo.

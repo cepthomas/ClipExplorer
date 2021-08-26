@@ -87,7 +87,7 @@ namespace ClipExplorer
 
             waveViewerL.DrawColor = Color.Black;
             waveViewerR.DrawColor = Color.Black;
-            levelL.DrawColor = Common.Settings.MeterColor; //TODO remove these.
+            levelL.DrawColor = Common.Settings.MeterColor;
             levelR.DrawColor = Common.Settings.MeterColor;
             timeBar.ProgressColor = Common.Settings.BarColor;
         }
@@ -142,14 +142,7 @@ namespace ClipExplorer
                     _waveOut.Init(postVolumeMeter);
                     _waveOut.Volume = (float)Common.Settings.Volume;
 
-                    try
-                    {
-                        ShowClip();
-                    }
-                    catch
-                    {
-                        LogMessage("ERROR", "TODO - error on load");
-                    }
+                    ShowClip();
                 }
                 else
                 {
@@ -404,7 +397,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
         {
-            levelL.AddValue(e.MaxSampleValues[0]);//TODO: wave player levels in waveform display.
+            levelL.AddValue(e.MaxSampleValues[0]);
             levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
             timeBar.Current = _audioFileReader.CurrentTime;
         }

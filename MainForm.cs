@@ -58,7 +58,7 @@ namespace ClipExplorer
             UserSettings.Load(appDir);
 
             // The text output.
-            txtViewer.WordWrap = true;//TODO need button and/or setting.
+            txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
             txtViewer.Colors.Add("ERROR", Color.LightPink);
             //txtViewer.Colors.Add("WARN:", Color.Plum);

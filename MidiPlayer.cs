@@ -281,24 +281,25 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Export()
         {
-            string newfn;
+            string dir = Path.GetDirectoryName(_mfile.Filename);
+            string newfn = Path.GetFileNameWithoutExtension(_mfile.Filename);
             string pattern;
             string info;
 
             if (_mfile.Filename.EndsWith(".sty"))
             {
                 pattern = lbPatterns.SelectedItem.ToString().Replace(' ', '_');
-                newfn = _mfile.Filename.Replace(".sty", $"_{pattern}.mid");
+                newfn = $"{newfn}_{pattern}.mid";
                 info = $"Export {pattern} from {_mfile.Filename}";
             }
             else // .mid
             {
                 pattern = "";
-                newfn = _mfile.Filename.Replace(".mid", $"_export.mid");
+                newfn = $"{newfn}_export.mid";
                 info = $"Export from {_mfile.Filename}";
             }
 
-            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Export midi", FileName = newfn })
+            using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Export midi", FileName = newfn, InitialDirectory = dir })
             {
                 if (dumpDlg.ShowDialog() == DialogResult.OK)
                 {
