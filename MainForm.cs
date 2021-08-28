@@ -84,7 +84,7 @@ namespace ClipExplorer
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = Common.Settings.Volume;
-            sldVolume.DrawColor = Common.Settings.SliderColor;
+            sldVolume.DrawColor = Common.Settings.ControlColor;
 
             InitNavigator();
 

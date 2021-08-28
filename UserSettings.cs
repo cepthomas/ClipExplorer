@@ -71,23 +71,11 @@ namespace ClipExplorer
         [Browsable(true)]
         public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;
 
-        [DisplayName("Slider Color")]
+        [DisplayName("Control Color")]
         [Description("Pick what you like.")]
         [Category("Cosmetics")]
         [Browsable(true)]
-        public Color SliderColor { get; set; } = Color.MediumOrchid;
-
-        [DisplayName("Meter Color")]
-        [Description("Pick what you like.")]
-        [Category("Cosmetics")]
-        [Browsable(true)]
-        public Color MeterColor { get; set; } = Color.LimeGreen;
-
-        [DisplayName("Bar Color")]
-        [Description("Pick what you like.")]
-        [Category("Cosmetics")]
-        [Browsable(true)]
-        public Color BarColor { get; set; } = Color.Aqua;
+        public Color ControlColor { get; set; } = Color.MediumOrchid;
         #endregion
 
         #region Persisted Non-editable Properties

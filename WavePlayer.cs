@@ -108,9 +108,9 @@ namespace ClipExplorer
 
             waveViewerL.DrawColor = Color.Black;
             waveViewerR.DrawColor = Color.Black;
-            levelL.DrawColor = Common.Settings.MeterColor;
-            levelR.DrawColor = Common.Settings.MeterColor;
-            timeBar.ProgressColor = Common.Settings.BarColor;
+            levelL.DrawColor = Common.Settings.ControlColor;
+            levelR.DrawColor = Common.Settings.ControlColor;
+            timeBar.ProgressColor = Common.Settings.ControlColor;
         }
         #endregion
 

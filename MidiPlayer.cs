@@ -119,10 +119,13 @@ namespace ClipExplorer
             cgChannels.AddStateType((int)PlayChannel.PlayMode.Solo, Color.Black, Color.LightGreen);
             cgChannels.AddStateType((int)PlayChannel.PlayMode.Mute, Color.Black, Color.Salmon);
 
-            barBar.ProgressColor = Common.Settings.BarColor;
+            barBar.ProgressColor = Common.Settings.ControlColor;
             barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
 
-            sldTempo.DrawColor = Common.Settings.SliderColor;
+            sldTempo.DrawColor = Common.Settings.ControlColor;
+
+            chkDrumsOn1.FlatAppearance.CheckedBackColor = Common.Settings.ControlColor;
+            chkLogMidi.FlatAppearance.CheckedBackColor = Common.Settings.ControlColor;
         }
 
         /// <summary> 
@@ -162,8 +165,6 @@ namespace ClipExplorer
                 // Clean up first.
                 cgChannels.Clear();
                 Rewind();
-                _drumChannel = MidiDefs.DEFAULT_DRUM_CHANNEL;
-                chkDrumsOn1.Checked = false;
 
                 // Process the file.
                 _mfile = new MidiFile { IgnoreNoisy = true };

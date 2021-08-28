@@ -42,7 +42,6 @@ namespace ClipExplorer
             this.barBar.Location = new System.Drawing.Point(4, 0);
             this.barBar.MarkerColor = System.Drawing.Color.Black;
             this.barBar.Name = "barBar";
-            this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(677, 50);
             this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
             this.barBar.SubdivsPerBeat = 8;
@@ -66,7 +65,6 @@ namespace ClipExplorer
             // 
             this.sldTempo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.sldTempo.DecPlaces = 0;
-            this.sldTempo.DrawColor = System.Drawing.Color.PaleGreen;
             this.sldTempo.Label = "BPM";
             this.sldTempo.Location = new System.Drawing.Point(4, 56);
             this.sldTempo.Maximum = 200D;
@@ -106,6 +104,7 @@ namespace ClipExplorer
             // 
             this.chkDrumsOn1.Appearance = System.Windows.Forms.Appearance.Button;
             this.chkDrumsOn1.AutoSize = true;
+            this.chkDrumsOn1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkDrumsOn1.Location = new System.Drawing.Point(4, 109);
             this.chkDrumsOn1.Name = "chkDrumsOn1";
             this.chkDrumsOn1.Size = new System.Drawing.Size(36, 27);
@@ -153,7 +152,8 @@ namespace ClipExplorer
             // chkLogMidi
             // 
             this.chkLogMidi.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkLogMidi.Image = global::ClipExplorer.Properties.Resources.glyphicons_88_log_book;
+            this.chkLogMidi.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.chkLogMidi.Image = global::ClipExplorer.Properties.Resources.glyphicons_170_record;
             this.chkLogMidi.Location = new System.Drawing.Point(4, 205);
             this.chkLogMidi.Name = "chkLogMidi";
             this.chkLogMidi.Size = new System.Drawing.Size(32, 32);
