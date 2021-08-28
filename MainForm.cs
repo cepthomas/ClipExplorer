@@ -159,7 +159,7 @@ namespace ClipExplorer
                 f.ShowDialog();
 
                 // Figure out what changed - each handled differently.
-                if(restart)
+                if (restart)
                 {
                     MessageBox.Show("Restart required for device changes to take effect");
                 }
@@ -169,7 +169,7 @@ namespace ClipExplorer
                     _player.SettingsChanged();
                 }
 
-                if(navChange)
+                if (navChange)
                 {
                     InitNavigator();
                 }
@@ -237,7 +237,7 @@ namespace ClipExplorer
         {
             //ToolStripMenuItem item = sender as ToolStripMenuItem;
             string fn = sender.ToString();
-            if(fn != _fn)
+            if (fn != _fn)
             {
                 OpenFile(fn);
                 _fn = fn;
@@ -312,7 +312,7 @@ namespace ClipExplorer
                                 break;
                         }
 
-                        if(ok)
+                        if (ok)
                         {
                             ok = _player.OpenFile(fn);
                             if (Common.Settings.Autoplay)
@@ -458,7 +458,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
-            switch(e.KeyCode)
+            switch (e.KeyCode)
             {
                 case Keys.Space:
                     // Toggle.
@@ -527,7 +527,7 @@ namespace ClipExplorer
         {
             float vol = (float)sldVolume.Value;
             Common.Settings.Volume = vol;
-            if(_player is null)
+            if (_player is null)
             {
                 _midiPlayer.Volume = vol;
                 _wavePlayer.Volume = vol;

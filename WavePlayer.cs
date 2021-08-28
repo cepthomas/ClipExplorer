@@ -46,7 +46,7 @@ namespace ClipExplorer
         public double Volume
         {
             get { return _volume; }
-            set { _volume = MathUtils.Constrain(value, 0, 1); if(_waveOut != null) _waveOut.Volume = (float)_volume; }
+            set { _volume = MathUtils.Constrain(value, 0, 1); if (_waveOut != null) _waveOut.Volume = (float)_volume; }
         }
         #endregion
 
@@ -71,8 +71,13 @@ namespace ClipExplorer
             }
 
             // My stuff here.
-            CloseAudio();
-            
+            _waveOut?.Stop();
+            _waveOut?.Dispose();
+            _waveOut = null;
+
+            _audioFileReader?.Dispose();
+            _audioFileReader = null;
+
             base.Dispose(disposing);
         }
 
@@ -84,6 +89,22 @@ namespace ClipExplorer
         private void WavePlayer_Load(object sender, EventArgs e)
         {
             ResetMeters();
+
+            // Create output device.
+            for (int id = -1; id < WaveOut.DeviceCount; id++)
+            {
+                var cap = WaveOut.GetCapabilities(id);
+                if (Common.Settings.WavOutDevice == cap.ProductName)
+                {
+                    _waveOut = new WaveOut
+                    {
+                        DeviceNumber = id,
+                        DesiredLatency = int.Parse(Common.Settings.Latency)
+                    };
+                    _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
+                    break;
+                }
+            }
 
             waveViewerL.DrawColor = Color.Black;
             waveViewerR.DrawColor = Color.Black;
@@ -102,57 +123,36 @@ namespace ClipExplorer
             using (new WaitCursor())
             {
                 // Clean up first.
-                CloseAudio();
+                _audioFileReader?.Dispose();
+                _audioFileReader = null;
                 waveViewerL.Reset();
                 waveViewerR.Reset();
 
-                // Create output device.
-                for (int id = -1; id < WaveOut.DeviceCount; id++)
-                {
-                    var cap = WaveOut.GetCapabilities(id);
-                    if (Common.Settings.WavOutDevice == cap.ProductName)
-                    {
-                        _waveOut = new WaveOut
-                        {
-                            DeviceNumber = id,
-                            DesiredLatency = int.Parse(Common.Settings.Latency)
-                        };
-                        _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
-                        break;
-                    }
-                }
-
                 // Create input device.
-                if (_waveOut != null)
-                {
-                    _audioFileReader = new AudioFileReader(fn);
+                _audioFileReader = new AudioFileReader(fn);
 
-                    timeBar.Length = _audioFileReader.TotalTime;
-                    timeBar.Start = TimeSpan.Zero;
-                    timeBar.End = TimeSpan.Zero;
-                    timeBar.Current = TimeSpan.Zero;
+                timeBar.Length = _audioFileReader.TotalTime;
+                timeBar.Start = TimeSpan.Zero;
+                timeBar.End = TimeSpan.Zero;
+                timeBar.Current = TimeSpan.Zero;
 
-                    // Create reader.
-                    var sampleChannel = new SampleChannel(_audioFileReader, false);
-                    sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+                // Create reader.
+                var sampleChannel = new SampleChannel(_audioFileReader, false);
+                sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
 
-                    var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                    postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+                var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
+                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                    _waveOut.Init(postVolumeMeter);
-                    _waveOut.Volume = (float)Common.Settings.Volume;
+                _waveOut.Init(postVolumeMeter);
+                _waveOut.Volume = (float)Common.Settings.Volume;
 
-                    ShowClip();
-                }
-                else
-                {
-                    ok = false;
-                }
+                ShowClip();
             }
 
             if (!ok)
             {
-                CloseAudio();
+                _audioFileReader?.Dispose();
+                _audioFileReader = null;
             }
 
             return ok;
@@ -169,7 +169,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
-            if (_waveOut != null && _audioFileReader != null)
+            if (_audioFileReader != null)
             {
                 _waveOut.Play();
             }
@@ -178,7 +178,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Stop()
         {
-            if (_waveOut != null && _audioFileReader != null)
+            if (_audioFileReader != null)
             {
                 _waveOut.Pause(); // or Stop?
                 ResetMeters();
@@ -188,7 +188,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Rewind()
         {
-            if (_waveOut != null && _audioFileReader != null)
+            if (_audioFileReader != null)
             {
                 _audioFileReader.Position = 0;
                 timeBar.Current = TimeSpan.Zero;
@@ -264,19 +264,6 @@ namespace ClipExplorer
 
         #region Private functions
         /// <summary>
-        /// 
-        /// </summary>
-        void CloseAudio()
-        {
-            _waveOut?.Stop();
-            _waveOut?.Dispose();
-            _waveOut = null;
-
-            _audioFileReader?.Dispose();
-            _audioFileReader = null;
-        }
-
-        /// <summary>
         /// Show a clip waveform.
         /// </summary>
         void ShowClip()
@@ -310,8 +297,8 @@ namespace ClipExplorer
                     long stlen = len / 2;
                     var dataL = new float[stlen];
                     var dataR = new float[stlen];
-                    
-                    for(long i = 0; i < stlen; i++)
+
+                    for (long i = 0; i < stlen; i++)
                     {
                         dataL[i] = data[i * 2];
                         dataR[i] = data[i * 2 + 1];

@@ -24,10 +24,11 @@ namespace ClipExplorer
             this.txtPatchChannel = new System.Windows.Forms.TextBox();
             this.cmbPatchList = new System.Windows.Forms.ComboBox();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.chkLogMidi = new System.Windows.Forms.CheckBox();
             this.chkDrumsOn1 = new System.Windows.Forms.CheckBox();
             this.btnPatch = new System.Windows.Forms.Button();
             this.lbPatterns = new System.Windows.Forms.ListBox();
+            this.btnKill = new System.Windows.Forms.Button();
+            this.chkLogMidi = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // barBar
@@ -75,6 +76,7 @@ namespace ClipExplorer
             this.sldTempo.ResetValue = 50D;
             this.sldTempo.Size = new System.Drawing.Size(98, 43);
             this.sldTempo.TabIndex = 63;
+            this.toolTip.SetToolTip(this.sldTempo, "Tempo adjuster");
             this.sldTempo.Value = 100D;
             this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
             // 
@@ -82,11 +84,11 @@ namespace ClipExplorer
             // 
             this.txtPatchChannel.BackColor = System.Drawing.SystemColors.Control;
             this.txtPatchChannel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPatchChannel.Location = new System.Drawing.Point(66, 136);
+            this.txtPatchChannel.Location = new System.Drawing.Point(46, 171);
             this.txtPatchChannel.Name = "txtPatchChannel";
             this.txtPatchChannel.Size = new System.Drawing.Size(34, 22);
             this.txtPatchChannel.TabIndex = 73;
-            this.toolTip.SetToolTip(this.txtPatchChannel, "Patch channel number");
+            this.toolTip.SetToolTip(this.txtPatchChannel, "Channel number");
             // 
             // cmbPatchList
             // 
@@ -94,43 +96,32 @@ namespace ClipExplorer
             this.cmbPatchList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPatchList.DropDownWidth = 150;
             this.cmbPatchList.FormattingEnabled = true;
-            this.cmbPatchList.Location = new System.Drawing.Point(3, 166);
+            this.cmbPatchList.Location = new System.Drawing.Point(4, 142);
             this.cmbPatchList.Name = "cmbPatchList";
             this.cmbPatchList.Size = new System.Drawing.Size(98, 24);
             this.cmbPatchList.TabIndex = 74;
             this.toolTip.SetToolTip(this.cmbPatchList, "Patch name");
             // 
-            // chkLogMidi
-            // 
-            this.chkLogMidi.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkLogMidi.AutoSize = true;
-            this.chkLogMidi.Location = new System.Drawing.Point(4, 212);
-            this.chkLogMidi.Name = "chkLogMidi";
-            this.chkLogMidi.Size = new System.Drawing.Size(71, 27);
-            this.chkLogMidi.TabIndex = 76;
-            this.chkLogMidi.Text = "Log Midi";
-            this.toolTip.SetToolTip(this.chkLogMidi, "Enable logging midi events");
-            this.chkLogMidi.UseVisualStyleBackColor = true;
-            // 
             // chkDrumsOn1
             // 
+            this.chkDrumsOn1.Appearance = System.Windows.Forms.Appearance.Button;
             this.chkDrumsOn1.AutoSize = true;
             this.chkDrumsOn1.Location = new System.Drawing.Point(4, 109);
             this.chkDrumsOn1.Name = "chkDrumsOn1";
-            this.chkDrumsOn1.Size = new System.Drawing.Size(77, 21);
+            this.chkDrumsOn1.Size = new System.Drawing.Size(36, 27);
             this.chkDrumsOn1.TabIndex = 77;
-            this.chkDrumsOn1.Text = "Dr on 1";
+            this.chkDrumsOn1.Text = "D1";
             this.toolTip.SetToolTip(this.chkDrumsOn1, "Drums are on channel 1");
             this.chkDrumsOn1.UseVisualStyleBackColor = true;
             this.chkDrumsOn1.CheckedChanged += new System.EventHandler(this.DrumsOn1_CheckedChanged);
             // 
             // btnPatch
             // 
-            this.btnPatch.Location = new System.Drawing.Point(3, 136);
+            this.btnPatch.Location = new System.Drawing.Point(3, 171);
             this.btnPatch.Name = "btnPatch";
-            this.btnPatch.Size = new System.Drawing.Size(57, 23);
+            this.btnPatch.Size = new System.Drawing.Size(37, 23);
             this.btnPatch.TabIndex = 75;
-            this.btnPatch.Text = "Patch";
+            this.btnPatch.Text = "->";
             this.toolTip.SetToolTip(this.btnPatch, "Send the patch to channel");
             this.btnPatch.UseVisualStyleBackColor = true;
             this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
@@ -145,12 +136,36 @@ namespace ClipExplorer
             this.lbPatterns.Name = "lbPatterns";
             this.lbPatterns.Size = new System.Drawing.Size(131, 178);
             this.lbPatterns.TabIndex = 78;
+            this.toolTip.SetToolTip(this.lbPatterns, "All patterns in style file");
             this.lbPatterns.SelectedIndexChanged += new System.EventHandler(this.Patterns_SelectedIndexChanged);
+            // 
+            // btnKill
+            // 
+            this.btnKill.Image = global::ClipExplorer.Properties.Resources.glyphicons_242_flash;
+            this.btnKill.Location = new System.Drawing.Point(46, 205);
+            this.btnKill.Name = "btnKill";
+            this.btnKill.Size = new System.Drawing.Size(32, 32);
+            this.btnKill.TabIndex = 79;
+            this.toolTip.SetToolTip(this.btnKill, "Kill all midi channels");
+            this.btnKill.UseVisualStyleBackColor = true;
+            this.btnKill.Click += new System.EventHandler(this.Kill_Click);
+            // 
+            // chkLogMidi
+            // 
+            this.chkLogMidi.Appearance = System.Windows.Forms.Appearance.Button;
+            this.chkLogMidi.Image = global::ClipExplorer.Properties.Resources.glyphicons_88_log_book;
+            this.chkLogMidi.Location = new System.Drawing.Point(4, 205);
+            this.chkLogMidi.Name = "chkLogMidi";
+            this.chkLogMidi.Size = new System.Drawing.Size(32, 32);
+            this.chkLogMidi.TabIndex = 76;
+            this.toolTip.SetToolTip(this.chkLogMidi, "Enable logging midi events");
+            this.chkLogMidi.UseVisualStyleBackColor = true;
             // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.btnKill);
             this.Controls.Add(this.lbPatterns);
             this.Controls.Add(this.chkDrumsOn1);
             this.Controls.Add(this.chkLogMidi);
@@ -161,7 +176,7 @@ namespace ClipExplorer
             this.Controls.Add(this.cgChannels);
             this.Controls.Add(this.sldTempo);
             this.Name = "MidiPlayer";
-            this.Size = new System.Drawing.Size(695, 249);
+            this.Size = new System.Drawing.Size(695, 243);
             this.Load += new System.EventHandler(this.MidiPlayer_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -179,5 +194,6 @@ namespace ClipExplorer
         private CheckBox chkDrumsOn1;
         private Button btnPatch;
         private ListBox lbPatterns;
+        private Button btnKill;
     }
 }

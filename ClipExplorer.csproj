@@ -178,5 +178,14 @@
   <ItemGroup>
     <None Include="Resources\glyphicons-37-file.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\glyphicons-242-flash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\glyphicons-701-ear.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\glyphicons-88-log-book.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

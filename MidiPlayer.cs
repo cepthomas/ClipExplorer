@@ -12,7 +12,7 @@ using NBagOfTricks;
 using NBagOfTricks.UI;
 
 
-// FUTURE solo/mute individual drums.
+// FUTURE solo/mute individual drums. Channel volumes.
 
 
 namespace ClipExplorer
@@ -45,7 +45,7 @@ namespace ClipExplorer
         /// <summary>Midi events from the input file.</summary>
         MidiFile _mfile;
 
-        /// <summary>All the channels.</summary>
+        /// <summary>All the channels. Index is 0-based channel number.</summary>
         readonly PlayChannel[] _playChannels = new PlayChannel[MidiDefs.NUM_CHANNELS];
 
         /// <summary>Requested tempo from file. Use default if not supplied.</summary>
@@ -109,7 +109,7 @@ namespace ClipExplorer
                 }
             }
 
-            if(_midiOut == null)
+            if (_midiOut == null)
             {
                 MessageBox.Show($"Invalid midi device: {Common.Settings.MidiOutDevice}");
             }
@@ -162,19 +162,21 @@ namespace ClipExplorer
                 // Clean up first.
                 cgChannels.Clear();
                 Rewind();
+                _drumChannel = MidiDefs.DEFAULT_DRUM_CHANNEL;
+                chkDrumsOn1.Checked = false;
 
                 // Process the file.
                 _mfile = new MidiFile { IgnoreNoisy = true };
                 _mfile.ProcessFile(fn);
 
                 // Do things with things.
-                _mfile.Channels.ForEach(ch => _playChannels[ch.Key].Patch = ch.Value);
+                _mfile.Channels.ForEach(ch => _playChannels[ch.Key - 1].Patch = ch.Value);
                 _tempo = _mfile.Tempo;
 
                 lbPatterns.Items.Clear();
-                foreach(var p in _mfile.AllPatterns)
+                foreach (var p in _mfile.AllPatterns)
                 {
-                    switch(p)
+                    switch (p)
                     {
                         case "SFF1": // patches in here
                         case "SFF2":
@@ -208,7 +210,7 @@ namespace ClipExplorer
         public void Play()
         {
             // Start or restart?
-            if(!_running)
+            if (!_running)
             {
                 // Downshift to time increments compatible with this system.
                 MidiTime mt = new MidiTime()
@@ -217,7 +219,7 @@ namespace ClipExplorer
                     MidiPpq = _mfile.DeltaTicksPerQuarterNote,
                     Tempo = _tempo
                 };
-                
+
                 //msecPerSubdiv = 60.0 / _tempo;
                 int period = mt.RoundedInternalPeriod();
 
@@ -241,13 +243,7 @@ namespace ClipExplorer
             _mmTimer.Stop();
 
             // Send midi stop all notes just in case.
-            for (int i = 0; i < _playChannels.Count(); i++)
-            {
-                if (_playChannels[i] != null && _playChannels[i].Valid)
-                {
-                    Kill(i);
-                }
-            }
+            KillAll();
         }
 
         /// <inheritdoc />
@@ -323,7 +319,7 @@ namespace ClipExplorer
                 // Process each channel.
                 foreach (var ch in _playChannels)
                 {
-                    if(ch.Valid)
+                    if (ch.Valid)
                     {
                         // Look for events to send.
                         if (ch.Mode == PlayChannel.PlayMode.Solo || (!solo && ch.Mode == PlayChannel.PlayMode.Normal))
@@ -355,7 +351,7 @@ namespace ClipExplorer
                                             break;
 
                                         case NoteEvent evt:
-                                            if(ch.ChannelNumber == _drumChannel)
+                                            if (ch.ChannelNumber == _drumChannel)
                                             {
                                                 // Skip drum noteoffs as windows GM doesn't like them.
                                             }
@@ -376,7 +372,7 @@ namespace ClipExplorer
                 }
 
                 // Bump time. Check for end of play. Client will take care of transport control.
-                if(barBar.IncrementCurrent(1))
+                if (barBar.IncrementCurrent(1))
                 {
                     _running = false;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
@@ -409,7 +405,7 @@ namespace ClipExplorer
             // Init internal structure.
             _playChannels.ForEach(pc => pc.Reset());
 
-            // Downshift to time increments compatible with this system.
+            // Downshift to time increments compatible with this application.
             MidiTime mt = new MidiTime()
             {
                 InternalPpq = PPQ,
@@ -420,9 +416,10 @@ namespace ClipExplorer
             // Bin events by channel. Scale to internal ppq.
             foreach (var ch in _mfile.Channels)
             {
-                _playChannels[ch.Key].Patch = ch.Value;
+                _playChannels[ch.Key - 1].Patch = ch.Value;
+                var pevts = _mfile.GetEvents(pattern, ch.Key);
 
-                foreach (var te in _mfile.GetEvents(pattern, ch.Key))
+                foreach (var te in pevts)
                 {
                     if (te.Channel - 1 < MidiDefs.NUM_CHANNELS) // midi is one-based
                     {
@@ -464,9 +461,23 @@ namespace ClipExplorer
         /// <param name="channel"></param>
         void Kill(int channel)
         {
-            //LogMessage($"Kill:{channel}");
             ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
             MidiSend(nevt);
+        }
+
+        /// <summary>
+        /// Send all notes off.
+        /// </summary>
+        void KillAll()
+        {
+            // Send midi stop all notes just in case.
+            for (int i = 0; i < _playChannels.Count(); i++)
+            {
+                if (_playChannels[i] != null && _playChannels[i].Valid)
+                {
+                    Kill(i);
+                }
+            }
         }
 
         /// <summary>
@@ -517,7 +528,6 @@ namespace ClipExplorer
         {
             int channel = e.Id;
             PlayChannel pch = _playChannels[channel];
-            //LogMessage($"Click:{channel}");
 
             switch (pch.Mode)
             {
@@ -535,7 +545,6 @@ namespace ClipExplorer
 
                 case PlayChannel.PlayMode.Solo:
                     pch.Mode = PlayChannel.PlayMode.Mute;
-                    // Mute this channel.
                     Kill(channel);
                     break;
 
@@ -613,15 +622,25 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        void Kill_Click(object sender, EventArgs e)
+        {
+            KillAll();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void Patterns_SelectedIndexChanged(object sender, EventArgs e)
         {
             GetPatternEvents(lbPatterns.SelectedItem.ToString());
             InitChannelsGrid();
 
             // Might need to update the patches.
-            foreach(var ch in _mfile.Channels)
+            foreach (var ch in _mfile.Channels)
             {
-                if(ch.Value != -1)
+                if (ch.Value != -1)
                 {
                     PatchChangeEvent evt = new PatchChangeEvent(0, ch.Key, ch.Value);
                     MidiSend(evt);
@@ -638,7 +657,7 @@ namespace ClipExplorer
     public class PlayChannel
     {
         #region Properties
-        /// <summary>For UI.</summary>
+        /// <summary>Actual 1-based midi channel number for UI.</summary>
         public int ChannelNumber { get; set; } = -1;
 
         /// <summary>For UI.</summary>

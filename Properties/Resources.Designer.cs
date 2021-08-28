@@ -183,6 +183,16 @@ namespace ClipExplorer.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap glyphicons_242_flash {
+            get {
+                object obj = ResourceManager.GetObject("glyphicons_242_flash", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap glyphicons_366_restart {
             get {
                 object obj = ResourceManager.GetObject("glyphicons_366_restart", resourceCulture);
@@ -213,6 +223,16 @@ namespace ClipExplorer.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap glyphicons_701_ear {
+            get {
+                object obj = ResourceManager.GetObject("glyphicons_701_ear", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap glyphicons_82_refresh {
             get {
                 object obj = ResourceManager.GetObject("glyphicons_82_refresh", resourceCulture);
@@ -226,6 +246,16 @@ namespace ClipExplorer.Properties {
         internal static System.Drawing.Bitmap glyphicons_86_repeat {
             get {
                 object obj = ResourceManager.GetObject("glyphicons_86_repeat", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap glyphicons_88_log_book {
+            get {
+                object obj = ResourceManager.GetObject("glyphicons_88_log_book", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

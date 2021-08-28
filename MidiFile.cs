@@ -13,6 +13,7 @@ namespace ClipExplorer
 {
     /// <summary>
     /// Reads in and processes standard midi or yahama style files. Timestamps are from original file.
+    /// Note: NAudio midi event channel numbers are 1-based.
     /// FUTURE Doesn't support multiple tracks. Would it be useful?
     /// </summary>
     public class MidiFile
@@ -39,7 +40,7 @@ namespace ClipExplorer
         /// <summary>Key signature, if supplied by file.</summary>
         public string KeySig { get; private set; } = "";
 
-        /// <summary>Channel info: key is number, value is patch.</summary>
+        /// <summary>Channel/patch info: key is 1-based channel number, value is 0-based patch.</summary>
         public Dictionary<int, int> Channels { get; private set; } = new Dictionary<int, int>();
 
         /// <summary>All patterns in the file.</summary>
@@ -79,7 +80,6 @@ namespace ClipExplorer
             _midiEvents.Clear();
             Filename = fn;
             AllPatterns.Clear();
-            //Patches.ForEach(p => p = -1);
             Channels.Clear();
             DeltaTicksPerQuarterNote = 0;
             Tempo = 100;
@@ -176,7 +176,7 @@ namespace ClipExplorer
 
             MidiFileType = (int)Read(br, 2);
 
-            //// Style midi section is always type 0.
+            // Style midi section is always type 0.
             //if (MidiFileType != 0)
             //{
             //    throw new FormatException($"This is type {MidiFileType} - must be 0");
@@ -184,10 +184,10 @@ namespace ClipExplorer
 
             // Midi file type.
             Tracks = (int)Read(br, 2);
-            if (Tracks != 1)
-            {
-                //throw new FormatException($"This has {Tracks} tracks - must be 1");
-            }
+            // if (Tracks != 1)
+            // {
+            //     throw new FormatException($"This has {Tracks} tracks - must be 1");
+            // }
 
             DeltaTicksPerQuarterNote = (int)Read(br, 2);
         }
@@ -216,7 +216,8 @@ namespace ClipExplorer
                 me = MidiEvent.ReadNextEvent(br, me);
                 absoluteTime += me.DeltaTime;
                 me.AbsoluteTime = absoluteTime;
-                if(!Channels.ContainsKey(me.Channel))
+
+                if (!Channels.ContainsKey(me.Channel))
                 {
                     Channels.Add(me.Channel, -1);
                 }
@@ -273,7 +274,7 @@ namespace ClipExplorer
 
                     case MidiCommandCode.Sysex:
                         {
-                            if(!IgnoreNoisy)
+                            if (!IgnoreNoisy)
                             {
                                 SysexEvent evt = me as SysexEvent;
                                 string s = evt.ToString().Replace(Environment.NewLine, " ");
