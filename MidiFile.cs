@@ -487,7 +487,7 @@ namespace ClipExplorer
                 switch (me.evt)
                 {
                     case NoteOnEvent evt:
-                        int len = evt.OffEvent == null ? 0 : evt.NoteLength; // NAudio NoteLength bug.
+                        int len = evt.OffEvent is null ? 0 : evt.NoteLength; // NAudio NoteLength bug.
                         string nname = evt.Channel == DrumChannel ? $"{MidiDefs.GetDrumDef(evt.NoteNumber)}" : $"{MidiDefs.NoteNumberToName(evt.NoteNumber)}";
                         notes.Add($"{sc},{evt.NoteNumber},{nname},{evt.Velocity},{len}");
                         break;
