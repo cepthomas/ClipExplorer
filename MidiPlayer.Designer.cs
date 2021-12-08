@@ -18,9 +18,9 @@ namespace ClipExplorer
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.barBar = new NBagOfTricks.UI.BarBar();
-            this.cgChannels = new NBagOfTricks.UI.ClickGrid();
-            this.sldTempo = new NBagOfTricks.UI.Slider();
+            this.barBar = new NBagOfUis.BarBar();
+            this.cgChannels = new NBagOfUis.ClickGrid();
+            this.sldTempo = new NBagOfUis.Slider();
             this.txtPatchChannel = new System.Windows.Forms.TextBox();
             this.cmbPatchList = new System.Windows.Forms.ComboBox();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
@@ -43,7 +43,7 @@ namespace ClipExplorer
             this.barBar.MarkerColor = System.Drawing.Color.Black;
             this.barBar.Name = "barBar";
             this.barBar.Size = new System.Drawing.Size(677, 50);
-            this.barBar.Snap = NBagOfTricks.UI.BarBar.SnapType.Bar;
+            this.barBar.Snap = NBagOfUis.BarBar.SnapType.Bar;
             this.barBar.SubdivsPerBeat = 8;
             this.barBar.TabIndex = 70;
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
@@ -59,7 +59,7 @@ namespace ClipExplorer
             this.cgChannels.Size = new System.Drawing.Size(422, 178);
             this.cgChannels.TabIndex = 69;
             this.toolTip.SetToolTip(this.cgChannels, "Midi channels with mute/solo");
-            this.cgChannels.IndicatorEvent += new System.EventHandler<NBagOfTricks.UI.IndicatorEventArgs>(this.Channels_IndicatorEvent);
+            this.cgChannels.IndicatorEvent += new System.EventHandler<NBagOfUis.IndicatorEventArgs>(this.Channels_IndicatorEvent);
             // 
             // sldTempo
             // 
@@ -184,9 +184,9 @@ namespace ClipExplorer
         }
         #endregion
 
-        private NBagOfTricks.UI.Slider sldTempo;
-        private NBagOfTricks.UI.ClickGrid cgChannels;
-        private NBagOfTricks.UI.BarBar barBar;
+        private NBagOfUis.Slider sldTempo;
+        private NBagOfUis.ClickGrid cgChannels;
+        private NBagOfUis.BarBar barBar;
         private TextBox txtPatchChannel;
         private ComboBox cmbPatchList;
         private ToolTip toolTip;

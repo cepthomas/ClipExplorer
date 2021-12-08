@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using NAudio.Midi;
 using NBagOfTricks;
-using NBagOfTricks.UI;
+using NBagOfUis;
 
 
 // FUTURE solo/mute individual drums. Channel volumes.

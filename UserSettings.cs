@@ -10,7 +10,7 @@ using System.Windows.Forms.Design;
 using Newtonsoft.Json;
 using NAudio.Wave;
 using NAudio.Midi;
-using NBagOfTricks.UI;
+using NBagOfUis;
 
 
 namespace ClipExplorer

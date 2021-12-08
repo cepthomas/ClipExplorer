@@ -33,11 +33,11 @@
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.ftree = new NBagOfTricks.UI.FilTree();
-            this.txtViewer = new NBagOfTricks.UI.TextViewer();
+            this.ftree = new NBagOfUis.FilTree();
+            this.txtViewer = new NBagOfUis.TextViewer();
             this.lblMark = new System.Windows.Forms.Label();
             this.chkLoop = new System.Windows.Forms.CheckBox();
-            this.sldVolume = new NBagOfTricks.UI.Slider();
+            this.sldVolume = new NBagOfUis.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.toolStrip1.SuspendLayout();
@@ -130,12 +130,13 @@
             this.txtViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtViewer.Font = new System.Drawing.Font("Consolas", 10F);
             this.txtViewer.Location = new System.Drawing.Point(2, 318);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
             this.txtViewer.Size = new System.Drawing.Size(709, 335);
             this.txtViewer.TabIndex = 58;
-            this.txtViewer.WordWrap = true;
+            this.txtViewer.Text = "";
             // 
             // lblMark
             // 
@@ -232,15 +233,15 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripDropDownButton fileDropDownButton;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private NBagOfTricks.UI.Slider sldVolume;
+        private NBagOfUis.Slider sldVolume;
         private System.Windows.Forms.Button btnRewind;
         private System.Windows.Forms.CheckBox chkPlay;
-        private NBagOfTricks.UI.FilTree ftree;
+        private NBagOfUis.FilTree ftree;
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
         private System.Windows.Forms.Label lblMark;
-        private NBagOfTricks.UI.TextViewer txtViewer;
+        private NBagOfUis.TextViewer txtViewer;
     }
 }
 

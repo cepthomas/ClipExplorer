@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 using NBagOfTricks;
-using NBagOfTricks.UI;
+using NBagOfUis;
 
 
 
@@ -20,7 +20,7 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Supported file types..</summary>
-        string[] _fileTypes = new[] { ".mid", ".sty", ".wav", ".mp3", ".m4a", ".flac" };
+        readonly string[] _fileTypes = new[] { ".mid", ".sty", ".wav", ".mp3", ".m4a", ".flac" };
 
         /// <summary>Audio device.</summary>
         WavePlayer _wavePlayer = null;

@@ -12,7 +12,7 @@ using System.Diagnostics;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NBagOfTricks;
-using NBagOfTricks.UI;
+using NBagOfUis;
 
 
 namespace ClipExplorer

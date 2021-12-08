@@ -1,4 +1,4 @@
-using NBagOfTricks.UI;
+using NBagOfUis;
 
 namespace ClipExplorer
 {
@@ -19,11 +19,11 @@ namespace ClipExplorer
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.waveViewerL = new NBagOfTricks.UI.WaveViewer();
-            this.levelR = new NBagOfTricks.UI.Meter();
-            this.levelL = new NBagOfTricks.UI.Meter();
-            this.waveViewerR = new NBagOfTricks.UI.WaveViewer();
-            this.timeBar = new NBagOfTricks.UI.TimeBar();
+            this.waveViewerL = new NBagOfUis.WaveViewer();
+            this.levelR = new NBagOfUis.Meter();
+            this.levelL = new NBagOfUis.Meter();
+            this.waveViewerR = new NBagOfUis.WaveViewer();
+            this.timeBar = new NBagOfUis.TimeBar();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
@@ -35,7 +35,7 @@ namespace ClipExplorer
             this.waveViewerL.Location = new System.Drawing.Point(0, 55);
             this.waveViewerL.Marker1 = -1;
             this.waveViewerL.Marker2 = -1;
-            this.waveViewerL.Mode = NBagOfTricks.UI.WaveViewer.DrawMode.Envelope;
+            this.waveViewerL.Mode = NBagOfUis.WaveViewer.DrawMode.Envelope;
             this.waveViewerL.Name = "waveViewerL";
             this.waveViewerL.Size = new System.Drawing.Size(697, 50);
             this.waveViewerL.TabIndex = 67;
@@ -47,7 +47,7 @@ namespace ClipExplorer
             this.levelR.Label = "R";
             this.levelR.Location = new System.Drawing.Point(119, 177);
             this.levelR.Maximum = 3D;
-            this.levelR.MeterType = NBagOfTricks.UI.MeterType.Log;
+            this.levelR.MeterType = NBagOfUis.MeterType.Log;
             this.levelR.Minimum = -60D;
             this.levelR.Name = "levelR";
             this.levelR.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -61,7 +61,7 @@ namespace ClipExplorer
             this.levelL.Label = "L";
             this.levelL.Location = new System.Drawing.Point(0, 177);
             this.levelL.Maximum = 3D;
-            this.levelL.MeterType = NBagOfTricks.UI.MeterType.Log;
+            this.levelL.MeterType = NBagOfUis.MeterType.Log;
             this.levelL.Minimum = -60D;
             this.levelL.Name = "levelL";
             this.levelL.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -77,7 +77,7 @@ namespace ClipExplorer
             this.waveViewerR.Location = new System.Drawing.Point(0, 111);
             this.waveViewerR.Marker1 = -1;
             this.waveViewerR.Marker2 = -1;
-            this.waveViewerR.Mode = NBagOfTricks.UI.WaveViewer.DrawMode.Envelope;
+            this.waveViewerR.Mode = NBagOfUis.WaveViewer.DrawMode.Envelope;
             this.waveViewerR.Name = "waveViewerR";
             this.waveViewerR.Size = new System.Drawing.Size(697, 50);
             this.waveViewerR.TabIndex = 68;

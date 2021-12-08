@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Forms;
 using NAudio.Midi;
 using NBagOfTricks;
-using System.Windows.Forms;
 
 
 namespace ClipExplorer
