@@ -194,6 +194,7 @@ namespace ClipExplorer
                 timeBar.Current = TimeSpan.Zero;
             }
         }
+        #endregion
 
         #region Misc functions
         /// <inheritdoc />
@@ -259,7 +260,6 @@ namespace ClipExplorer
 
             return ret;
         }
-        #endregion
         #endregion
 
         #region Private functions
@@ -387,6 +387,9 @@ namespace ClipExplorer
             levelL.AddValue(e.MaxSampleValues[0]);
             levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
             timeBar.Current = _audioFileReader.CurrentTime;
+
+            //waveViewerL.Marker1 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
+            //waveViewerR.Marker2 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
         }
         #endregion
     }

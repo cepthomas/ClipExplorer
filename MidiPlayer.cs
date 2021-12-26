@@ -472,13 +472,19 @@ namespace ClipExplorer
         void KillAll()
         {
             // Send midi stop all notes just in case.
-            for (int i = 0; i < _playChannels.Count(); i++)
+            for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
             {
-                if (_playChannels[i] != null && _playChannels[i].Valid)
-                {
-                    Kill(i);
-                }
+                Kill(i);
             }
+
+            //// Send midi stop all notes just in case.
+            //for (int i = 0; i < _playChannels.Count(); i++)
+            //{
+            //    if (_playChannels[i] != null && _playChannels[i].Valid)
+            //    {
+            //        Kill(i);
+            //    }
+            //}
         }
 
         /// <summary>
