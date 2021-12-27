@@ -13,7 +13,6 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-
 namespace ClipExplorer
 {
     public partial class MainForm : Form

@@ -42,6 +42,7 @@ namespace ClipExplorer
             this.barBar.Location = new System.Drawing.Point(4, 0);
             this.barBar.MarkerColor = System.Drawing.Color.Black;
             this.barBar.Name = "barBar";
+            this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(677, 50);
             this.barBar.Snap = NBagOfUis.BarBar.SnapType.Bar;
             this.barBar.SubdivsPerBeat = 8;
@@ -65,6 +66,7 @@ namespace ClipExplorer
             // 
             this.sldTempo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.sldTempo.DecPlaces = 0;
+            this.sldTempo.DrawColor = System.Drawing.Color.White;
             this.sldTempo.Label = "BPM";
             this.sldTempo.Location = new System.Drawing.Point(4, 56);
             this.sldTempo.Maximum = 200D;
@@ -82,9 +84,9 @@ namespace ClipExplorer
             // 
             this.txtPatchChannel.BackColor = System.Drawing.SystemColors.Control;
             this.txtPatchChannel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPatchChannel.Location = new System.Drawing.Point(46, 171);
+            this.txtPatchChannel.Location = new System.Drawing.Point(72, 144);
             this.txtPatchChannel.Name = "txtPatchChannel";
-            this.txtPatchChannel.Size = new System.Drawing.Size(34, 22);
+            this.txtPatchChannel.Size = new System.Drawing.Size(30, 22);
             this.txtPatchChannel.TabIndex = 73;
             this.toolTip.SetToolTip(this.txtPatchChannel, "Channel number");
             // 
@@ -94,7 +96,7 @@ namespace ClipExplorer
             this.cmbPatchList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbPatchList.DropDownWidth = 150;
             this.cmbPatchList.FormattingEnabled = true;
-            this.cmbPatchList.Location = new System.Drawing.Point(4, 142);
+            this.cmbPatchList.Location = new System.Drawing.Point(4, 172);
             this.cmbPatchList.Name = "cmbPatchList";
             this.cmbPatchList.Size = new System.Drawing.Size(98, 24);
             this.cmbPatchList.TabIndex = 74;
@@ -103,24 +105,23 @@ namespace ClipExplorer
             // chkDrumsOn1
             // 
             this.chkDrumsOn1.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkDrumsOn1.AutoSize = true;
             this.chkDrumsOn1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkDrumsOn1.Location = new System.Drawing.Point(4, 109);
             this.chkDrumsOn1.Name = "chkDrumsOn1";
-            this.chkDrumsOn1.Size = new System.Drawing.Size(36, 27);
+            this.chkDrumsOn1.Size = new System.Drawing.Size(98, 27);
             this.chkDrumsOn1.TabIndex = 77;
-            this.chkDrumsOn1.Text = "D1";
+            this.chkDrumsOn1.Text = "Drums on 1";
             this.toolTip.SetToolTip(this.chkDrumsOn1, "Drums are on channel 1");
             this.chkDrumsOn1.UseVisualStyleBackColor = true;
             this.chkDrumsOn1.CheckedChanged += new System.EventHandler(this.DrumsOn1_CheckedChanged);
             // 
             // btnPatch
             // 
-            this.btnPatch.Location = new System.Drawing.Point(3, 171);
+            this.btnPatch.Location = new System.Drawing.Point(3, 144);
             this.btnPatch.Name = "btnPatch";
-            this.btnPatch.Size = new System.Drawing.Size(37, 23);
+            this.btnPatch.Size = new System.Drawing.Size(65, 23);
             this.btnPatch.TabIndex = 75;
-            this.btnPatch.Text = "->";
+            this.btnPatch.Text = "Patch->";
             this.toolTip.SetToolTip(this.btnPatch, "Send the patch to channel");
             this.btnPatch.UseVisualStyleBackColor = true;
             this.btnPatch.Click += new System.EventHandler(this.Patch_Click);

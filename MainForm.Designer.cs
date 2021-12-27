@@ -56,7 +56,7 @@
             this.btnAbout});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1395, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1395, 31);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -66,7 +66,7 @@
             this.fileDropDownButton.Image = global::ClipExplorer.Properties.Resources.glyphicons_37_file;
             this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDownButton.Name = "fileDropDownButton";
-            this.fileDropDownButton.Size = new System.Drawing.Size(34, 24);
+            this.fileDropDownButton.Size = new System.Drawing.Size(34, 28);
             this.fileDropDownButton.Text = "File";
             this.fileDropDownButton.ToolTipText = "File operations";
             this.fileDropDownButton.DropDownOpening += new System.EventHandler(this.File_DropDownOpening);
@@ -77,7 +77,7 @@
             this.btnSettings.Image = global::ClipExplorer.Properties.Resources.glyphicons_137_cogwheel;
             this.btnSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSettings.Name = "btnSettings";
-            this.btnSettings.Size = new System.Drawing.Size(29, 24);
+            this.btnSettings.Size = new System.Drawing.Size(29, 28);
             this.btnSettings.Text = "toolStripButton1";
             this.btnSettings.ToolTipText = "Make it your own";
             this.btnSettings.Click += new System.EventHandler(this.Settings_Click);
@@ -88,7 +88,7 @@
             this.btnAbout.Image = global::ClipExplorer.Properties.Resources.glyphicons_195_question_sign;
             this.btnAbout.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnAbout.Name = "btnAbout";
-            this.btnAbout.Size = new System.Drawing.Size(29, 24);
+            this.btnAbout.Size = new System.Drawing.Size(29, 28);
             this.btnAbout.Text = "toolStripButton1";
             this.btnAbout.ToolTipText = "Get some info";
             this.btnAbout.Click += new System.EventHandler(this.About_Click);
@@ -96,7 +96,7 @@
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 27);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 31);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -111,7 +111,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
-            this.splitContainer1.Size = new System.Drawing.Size(1395, 656);
+            this.splitContainer1.Size = new System.Drawing.Size(1395, 652);
             this.splitContainer1.SplitterDistance = 677;
             this.splitContainer1.TabIndex = 1;
             // 
@@ -121,7 +121,7 @@
             this.ftree.DoubleClickSelect = false;
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Name = "ftree";
-            this.ftree.Size = new System.Drawing.Size(677, 656);
+            this.ftree.Size = new System.Drawing.Size(677, 652);
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
@@ -134,7 +134,7 @@
             this.txtViewer.Location = new System.Drawing.Point(2, 318);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(709, 335);
+            this.txtViewer.Size = new System.Drawing.Size(709, 331);
             this.txtViewer.TabIndex = 58;
             this.txtViewer.Text = "";
             // 
