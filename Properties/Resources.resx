@@ -124,32 +124,11 @@
   <data name="glyphicons_170_record" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-170-record.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="glyphicons_171_step_backward" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-171-step-backward.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_172_fast_backward" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-172-fast-backward.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="glyphicons_173_rewind" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-173-rewind.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="glyphicons_174_play" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-174-play.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_175_pause" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-175-pause.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_176_stop" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-176-stop.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_177_forward" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-177-forward.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_178_fast_forward" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-178-fast-forward.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_179_step_forward" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-179-step-forward.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="glyphicons_195_question_sign" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-195-question-sign.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -157,26 +136,11 @@
   <data name="glyphicons_242_flash" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-242-flash.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="glyphicons_366_restart" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-366-restart.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="glyphicons_37_file" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-37-file.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="glyphicons_440_wrench" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-440-wrench.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_701_ear" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-701-ear.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="glyphicons_82_refresh" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\glyphicons-82-refresh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_86_repeat" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-86-repeat.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="glyphicons_88_log_book" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\glyphicons-88-log-book.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="zebra" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\zebra.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
