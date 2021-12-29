@@ -32,18 +32,21 @@ namespace ClipExplorer
             this.waveViewerL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveViewerL.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.waveViewerL.DrawColor = System.Drawing.Color.Black;
             this.waveViewerL.Location = new System.Drawing.Point(0, 55);
             this.waveViewerL.Marker1 = -1;
             this.waveViewerL.Marker2 = -1;
+            this.waveViewerL.MarkerColor = System.Drawing.Color.Black;
             this.waveViewerL.Mode = NBagOfUis.WaveViewer.DrawMode.Envelope;
             this.waveViewerL.Name = "waveViewerL";
-            this.waveViewerL.Size = new System.Drawing.Size(697, 50);
+            this.waveViewerL.Size = new System.Drawing.Size(589, 50);
             this.waveViewerL.TabIndex = 67;
             this.toolTip.SetToolTip(this.waveViewerL, "Left waveform");
             // 
             // levelR
             // 
             this.levelR.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.levelR.DrawColor = System.Drawing.Color.White;
             this.levelR.Label = "R";
             this.levelR.Location = new System.Drawing.Point(119, 177);
             this.levelR.Maximum = 3D;
@@ -58,6 +61,7 @@ namespace ClipExplorer
             // levelL
             // 
             this.levelL.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.levelL.DrawColor = System.Drawing.Color.White;
             this.levelL.Label = "L";
             this.levelL.Location = new System.Drawing.Point(0, 177);
             this.levelL.Maximum = 3D;
@@ -74,12 +78,14 @@ namespace ClipExplorer
             this.waveViewerR.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveViewerR.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.waveViewerR.DrawColor = System.Drawing.Color.Black;
             this.waveViewerR.Location = new System.Drawing.Point(0, 111);
             this.waveViewerR.Marker1 = -1;
             this.waveViewerR.Marker2 = -1;
+            this.waveViewerR.MarkerColor = System.Drawing.Color.Black;
             this.waveViewerR.Mode = NBagOfUis.WaveViewer.DrawMode.Envelope;
             this.waveViewerR.Name = "waveViewerR";
-            this.waveViewerR.Size = new System.Drawing.Size(697, 50);
+            this.waveViewerR.Size = new System.Drawing.Size(589, 50);
             this.waveViewerR.TabIndex = 68;
             this.toolTip.SetToolTip(this.waveViewerR, "Right waveform");
             // 
@@ -94,7 +100,8 @@ namespace ClipExplorer
             this.timeBar.Location = new System.Drawing.Point(0, 0);
             this.timeBar.MarkerColor = System.Drawing.Color.Black;
             this.timeBar.Name = "timeBar";
-            this.timeBar.Size = new System.Drawing.Size(697, 50);
+            this.timeBar.ProgressColor = System.Drawing.Color.White;
+            this.timeBar.Size = new System.Drawing.Size(589, 50);
             this.timeBar.SnapMsec = 0;
             this.timeBar.TabIndex = 69;
             this.toolTip.SetToolTip(this.timeBar, "Time in min:sec:msec");
@@ -110,7 +117,7 @@ namespace ClipExplorer
             this.Controls.Add(this.levelR);
             this.Controls.Add(this.levelL);
             this.Name = "WavePlayer";
-            this.Size = new System.Drawing.Size(697, 222);
+            this.Size = new System.Drawing.Size(589, 222);
             this.Load += new System.EventHandler(this.WavePlayer_Load);
             this.ResumeLayout(false);
 

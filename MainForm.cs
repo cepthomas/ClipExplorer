@@ -19,7 +19,7 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Supported file types..</summary>
-        readonly string[] _fileTypes = new[] { ".mid", ".sty", ".wav", ".mp3", ".m4a", ".flac" };
+        readonly string[] _fileTypes = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
 
         /// <summary>Audio device.</summary>
         WavePlayer _wavePlayer = null;
@@ -59,8 +59,8 @@ namespace ClipExplorer
             // The text output.
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
-            txtViewer.Colors.Add("ERROR", Color.LightPink);
-            //txtViewer.Colors.Add("WARN:", Color.Plum);
+            txtViewer.Colors.Add("ERR", Color.LightPink);
+            //txtViewer.Colors.Add("WRN:", Color.Plum);
             txtViewer.Font = new Font("Lucida Console", 9);
 
             // Create devices.
@@ -194,7 +194,7 @@ namespace ClipExplorer
         /// <param name="ea"></param>
         void LogMessage(object sender, string cat, string msg)
         {
-            int catSize = 5;
+            int catSize = 3;
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
 
             // May come from a different thread.
@@ -279,7 +279,7 @@ namespace ClipExplorer
 
             Stop();
 
-            LogMessage(this, "INFO", $"Opening file: {fn}");
+            LogMessage(this, "INF", $"Opening file: {fn}");
 
             using (new WaitCursor())
             {
@@ -299,14 +299,13 @@ namespace ClipExplorer
                                 break;
 
                             case ".mid":
-                            case ".sty":
                                 _wavePlayer.Visible = false;
                                 _midiPlayer.Visible = true;
                                 _player = _midiPlayer;
                                 break;
 
                             default:
-                                LogMessage(this, "ERROR", $"Invalid file type: {fn}");
+                                LogMessage(this, "ERR", $"Invalid file type: {fn}");
                                 ok = false;
                                 break;
                         }
@@ -322,13 +321,13 @@ namespace ClipExplorer
                     }
                     else
                     {
-                        LogMessage(this, "ERROR", $"Invalid file: {fn}");
+                        LogMessage(this, "ERR", $"Invalid file: {fn}");
                         ok = false;
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage(this, "ERROR", $"Couldn't open the file: {fn} because: {ex.Message}");
+                    LogMessage(this, "ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
                     ok = false;
                 }
             }
@@ -357,7 +356,7 @@ namespace ClipExplorer
                 if (Common.Settings.DumpToClip)
                 {
                     Clipboard.SetText(string.Join(Environment.NewLine, ds));
-                    LogMessage(this, "INFO", "File dumped to clipboard");
+                    LogMessage(this, "INF", "File dumped to clipboard");
                 }
                 else
                 {

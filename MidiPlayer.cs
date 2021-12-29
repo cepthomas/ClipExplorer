@@ -12,7 +12,8 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-// FUTURE solo/mute individual drums. Channel volumes.
+//this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
+//this.lbPatterns.SelectedIndexChanged += new System.EventHandler(this.Patterns_SelectedIndexChanged);
 
 
 namespace ClipExplorer
@@ -89,13 +90,6 @@ namespace ClipExplorer
             {
                 _playChannels[i] = new PlayChannel() { ChannelNumber = i + 1 };
             }
-
-            // Fill patch list.
-            for (int i = 0; i <= MidiDefs.MAX_MIDI; i++)
-            {
-                cmbPatchList.Items.Add(MidiDefs.GetInstrumentDef(i));
-            }
-            cmbPatchList.SelectedIndex = 0;
 
             SettingsChanged();
 
@@ -174,31 +168,7 @@ namespace ClipExplorer
                 _mfile.Channels.ForEach(ch => _playChannels[ch.Key - 1].Patch = ch.Value);
                 _tempo = _mfile.Tempo;
 
-                lbPatterns.Items.Clear();
-                foreach (var p in _mfile.AllPatterns)
-                {
-                    switch (p)
-                    {
-                        case "SFF1": // patches in here
-                        case "SFF2":
-                        case "SInt":
-                            break;
-
-                        default:
-                            lbPatterns.Items.Add(p);
-                            break;
-                    }
-                }
-
-                if (lbPatterns.Items.Count > 0)
-                {
-                    lbPatterns.SelectedIndex = 0;
-                }
-                else
-                {
-                    GetPatternEvents(null);
-                }
-
+                GetEvents();
                 InitChannelsGrid();
             }
 
@@ -280,27 +250,16 @@ namespace ClipExplorer
         {
             string dir = Path.GetDirectoryName(_mfile.Filename);
             string newfn = Path.GetFileNameWithoutExtension(_mfile.Filename);
-            string pattern;
             string info;
 
-            if (_mfile.Filename.EndsWith(".sty"))
-            {
-                pattern = lbPatterns.SelectedItem.ToString().Replace(' ', '_');
-                newfn = $"{newfn}_{pattern}.mid";
-                info = $"Export {pattern} from {_mfile.Filename}";
-            }
-            else // .mid
-            {
-                pattern = "";
-                newfn = $"{newfn}_export.mid";
-                info = $"Export from {_mfile.Filename}";
-            }
+            newfn = $"{newfn}_export.mid";
+            info = $"Export from {_mfile.Filename}";
 
             using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Export midi", FileName = newfn, InitialDirectory = dir })
             {
                 if (dumpDlg.ShowDialog() == DialogResult.OK)
                 {
-                    _mfile.ExportMidi(newfn, pattern, info);
+                    _mfile.ExportMidi(newfn, info);
                 }
             }
         }
@@ -391,7 +350,7 @@ namespace ClipExplorer
 
             if (chkLogMidi.Checked)
             {
-                LogMessage("MIDI_SEND", evt.ToString());
+                LogMessage("SND", evt.ToString());
             }
         }
         #endregion
@@ -400,8 +359,7 @@ namespace ClipExplorer
         /// <summary>
         /// Get requested events.
         /// </summary>
-        /// <param name="pattern">Specific pattern.</param>
-        void GetPatternEvents(string pattern)
+        void GetEvents()
         {
             // Init internal structure.
             _playChannels.ForEach(pc => pc.Reset());
@@ -418,7 +376,7 @@ namespace ClipExplorer
             foreach (var ch in _mfile.Channels)
             {
                 _playChannels[ch.Key - 1].Patch = ch.Value;
-                var pevts = _mfile.GetEvents(pattern, ch.Key);
+                var pevts = _mfile.GetEvents(ch.Key);
 
                 foreach (var te in pevts)
                 {
@@ -601,30 +559,6 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Validate selections and send patch now.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Patch_Click(object sender, EventArgs e)
-        {
-            bool valid = int.TryParse(txtPatchChannel.Text, out int pch);
-            if (valid && pch >= 1 && pch <= MidiDefs.NUM_CHANNELS)
-            {
-                PatchChangeEvent evt = new PatchChangeEvent(0, pch, cmbPatchList.SelectedIndex);
-                MidiSend(evt);
-
-                // Update UI.
-                _playChannels[pch - 1].Patch = cmbPatchList.SelectedIndex;
-                InitChannelsGrid();
-            }
-            else
-            {
-                //txtPatchChannel.Text = "";
-                LogMessage("ERROR", "Invalid patch channel");
-            }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
@@ -632,30 +566,6 @@ namespace ClipExplorer
         void Kill_Click(object sender, EventArgs e)
         {
             KillAll();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Patterns_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            GetPatternEvents(lbPatterns.SelectedItem.ToString());
-            InitChannelsGrid();
-
-            // Might need to update the patches.
-            foreach (var ch in _mfile.Channels)
-            {
-                if (ch.Value != -1)
-                {
-                    PatchChangeEvent evt = new PatchChangeEvent(0, ch.Key, ch.Value);
-                    MidiSend(evt);
-                }
-            }
-
-            Rewind();
-            Play();
         }
     }
     #endregion
@@ -705,7 +615,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Clean up before reading another pattern.
+        /// Clean up before reading again.
         /// </summary>
         public void Reset()
         {

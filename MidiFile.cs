@@ -12,7 +12,7 @@ using NBagOfTricks;
 namespace ClipExplorer
 {
     /// <summary>
-    /// Reads in and processes standard midi or yahama style files. Timestamps are from original file.
+    /// Reads in and processes standard midi files. Timestamps are from original file.
     /// Note: NAudio midi event channel numbers are 1-based.
     /// FUTURE Doesn't support multiple tracks. Would it be useful?
     /// </summary>
@@ -42,9 +42,6 @@ namespace ClipExplorer
 
         /// <summary>Channel/patch info: key is 1-based channel number, value is 0-based patch.</summary>
         public Dictionary<int, int> Channels { get; private set; } = new Dictionary<int, int>();
-
-        /// <summary>All patterns in the file.</summary>
-        public List<string> AllPatterns { get; private set; } = new List<string>();
         #endregion
 
         #region Properties set by client
@@ -56,11 +53,8 @@ namespace ClipExplorer
         #endregion
 
         #region Fields
-        /// <summary>All the midi events by pattern/channel groups. This is the verbatim content of the file with no processing.</summary>
-        readonly List<(string pattern, int channel, MidiEvent evt)> _midiEvents = new List<(string pattern, int channel, MidiEvent evt)>();
-
-        /// <summary>Current pattern.</summary>
-        string _currentPattern = "";
+        /// <summary>All the midi events by channel. This is the verbatim content of the file with no processing.</summary>
+        readonly List<(int channel, MidiEvent evt)> _midiEvents = new List<(int channel, MidiEvent evt)>();
 
         /// <summary>File contents in readable form as they appear in order. Useful for debug.</summary>
         readonly List<string> _allContents = new List<string>();
@@ -79,7 +73,6 @@ namespace ClipExplorer
             // Init everything.
             _midiEvents.Clear();
             Filename = fn;
-            AllPatterns.Clear();
             Channels.Clear();
             DeltaTicksPerQuarterNote = 0;
             Tempo = 100;
@@ -87,7 +80,7 @@ namespace ClipExplorer
             KeySig = "";
 
             _allContents.Clear();
-            _allContents.Add($"Timestamp,Type,Pattern,Channel,FilePos,Content");
+            _allContents.Add($"Timestamp,Type,Channel,FilePos,Content");
 
             using (var br = new BinaryReader(File.OpenRead(fn)))
             {
@@ -109,34 +102,6 @@ namespace ClipExplorer
                             ReadMTrk(br);
                             break;
 
-                        case "CASM":
-                            ReadCASM(br);
-                            break;
-
-                        case "CSEG":
-                            ReadCSEG(br);
-                            break;
-
-                        case "Sdec":
-                            ReadSdec(br);
-                            break;
-
-                        case "Ctab":
-                            ReadCtab(br);
-                            break;
-
-                        case "Cntt":
-                            ReadCntt(br);
-                            break;
-
-                        case "OTSc": // One Touch Setting section
-                            ReadOTSc(br);
-                            break;
-
-                        case "FNRc": // MDB (Music Finder) section
-                            ReadFNRc(br);
-                            break;
-
                         default:
                             Capture(-1, "Done", -1, "!!!");
                             done = true;
@@ -149,13 +114,11 @@ namespace ClipExplorer
         /// <summary>
         /// Helper to get an event collection.
         /// </summary>
-        /// <param name="channel">Specific channel or empty/null for all.</param>
+        /// <param name="channel">Specific channel.</param>
         /// <returns>The collection or null if invalid.</returns>
-        public IEnumerable<MidiEvent> GetEvents(string pattern, int channel)
+        public IEnumerable<MidiEvent> GetEvents(int channel)
         {
-            IEnumerable<MidiEvent> ret = string.IsNullOrEmpty(pattern) ?
-                _midiEvents.Where(v => v.channel == channel).Select(v => v.evt) :
-                _midiEvents.Where(v => v.pattern == pattern && v.channel == channel).Select(v => v.evt);
+            IEnumerable<MidiEvent> ret = _midiEvents.Where(v => v.channel == channel).Select(v => v.evt);
             return ret;
         }
         #endregion
@@ -304,8 +267,6 @@ namespace ClipExplorer
                             // Indicates start of a new midi pattern.
                             TextEvent evt = me as TextEvent;
                             Capture(evt.AbsoluteTime, "Marker", evt.Channel, evt.Text);
-                            _currentPattern = evt.Text;
-                            AllPatterns.Add(_currentPattern);
                             absoluteTime = 0;
                         }
                         break;
@@ -315,7 +276,6 @@ namespace ClipExplorer
                             // Indicates end of current midi track.
                             MetaEvent evt = me as MetaEvent;
                             Capture(evt.AbsoluteTime, "EndTrack", evt.Channel, evt.ToString());
-                            _currentPattern = "";
                         }
                         break;
 
@@ -361,79 +321,10 @@ namespace ClipExplorer
             ///// Local function. /////
             void AddMidiEvent(MidiEvent evt)
             {
-                _midiEvents.Add((_currentPattern, evt.Channel, evt));
+                _midiEvents.Add((evt.Channel, evt));
             }
 
             return absoluteTime;
-        }
-
-        /// <summary>
-        /// Read the CASM section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadCASM(BinaryReader br)
-        {
-            uint chunkSize = Read(br, 4);
-        }
-
-        /// <summary>
-        /// Read the CSEG section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadCSEG(BinaryReader br)
-        {
-            uint chunkSize = Read(br, 4);
-        }
-
-        /// <summary>
-        /// Read the Sdec section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadSdec(BinaryReader br)
-        {
-            uint chunkSize = Read(br, 4);
-            br.ReadBytes((int)chunkSize);
-        }
-
-        /// <summary>
-        /// Read the Ctab section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadCtab(BinaryReader br)
-        {
-            // Has some key and chord info.
-            uint chunkSize = Read(br, 4);
-            br.ReadBytes((int)chunkSize);
-        }
-
-        /// <summary>
-        /// Read the Cntt section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadCntt(BinaryReader br)
-        {
-            uint chunkSize = Read(br, 4);
-            br.ReadBytes((int)chunkSize);
-        }
-
-        /// <summary>
-        /// Read the OTSc section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadOTSc(BinaryReader br)
-        {
-            uint chunkSize = Read(br, 4);
-            br.ReadBytes((int)chunkSize);
-        }
-
-        /// <summary>
-        /// Read the FNRc section of a style file.
-        /// </summary>
-        /// <param name="br"></param>
-        void ReadFNRc(BinaryReader br)
-        {
-            uint chunkSize = Read(br, 4);
-            br.ReadBytes((int)chunkSize);
         }
         #endregion
 
@@ -449,7 +340,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Makes csv dumps of some events grouped by pattern/channel.
+        /// Makes csv dumps of some events grouped by channel.
         /// </summary>
         /// <returns></returns>
         public List<string> GetReadableGrouped()
@@ -482,7 +373,7 @@ namespace ClipExplorer
             {
                 // Boilerplate.
                 string ntype = me.evt.GetType().ToString().Replace("NAudio.Midi.", "");
-                string sc = $"{me.evt.AbsoluteTime},{ntype},{me.evt.Channel},{me.pattern}";
+                string sc = $"{me.evt.AbsoluteTime},{ntype},{me.evt.Channel}";
 
                 switch (me.evt)
                 {
@@ -550,9 +441,8 @@ namespace ClipExplorer
         /// Output part or all of the file to a new midi file.
         /// </summary>
         /// <param name="fn">Where to put the midi.</param>
-        /// <param name="pattern">Specific pattern if a style file.</param>
         /// <param name="info">Extra info to add to midi file.</param>
-        public void ExportMidi(string fn, string pattern, string info)
+        public void ExportMidi(string fn, string info)
         {
             MidiEventCollection mecoll = new MidiEventCollection(1, DeltaTicksPerQuarterNote);
             IList<MidiEvent> mevents = mecoll.AddTrack();
@@ -570,10 +460,8 @@ namespace ClipExplorer
             // Patches.
             Channels.Where(c => c.Value != -1).ForEach(c => mevents.Add(new PatchChangeEvent(0, c.Key, c.Value)));
 
-            // Collect the midi events for this pattern ordered by timestamp.
-            IEnumerable<MidiEvent> evts = string.IsNullOrEmpty(pattern) ?
-                _midiEvents.Select(v => v.evt).OrderBy(v => v.AbsoluteTime) :
-                _midiEvents.Where(v => v.pattern == pattern).Select(v => v.evt).OrderBy(v => v.AbsoluteTime);
+            // Collect the midi events ordered by timestamp.
+            IEnumerable<MidiEvent> evts = _midiEvents.Select(v => v.evt).OrderBy(v => v.AbsoluteTime);
             long ltime = evts.Last().AbsoluteTime;
 
             // Copy to output.
@@ -597,7 +485,7 @@ namespace ClipExplorer
         /// <param name="content"></param>
         void Capture(long timestamp, string etype, int channel, string content)
         {
-            _allContents.Add($"{timestamp},{etype},{_currentPattern},{channel},{_lastPos},{content.Replace(',', '_')}");
+            _allContents.Add($"{timestamp},{etype},{channel},{_lastPos},{content.Replace(',', '_')}");
         }
 
         /// <summary>

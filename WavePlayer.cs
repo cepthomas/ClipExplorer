@@ -161,7 +161,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Export()
         {
-            LogMessage("INFO", "Sorry, not supported");
+            LogMessage("INF", "Sorry, not supported");
         }
         #endregion
 
@@ -254,7 +254,7 @@ namespace ClipExplorer
             }
             else
             {
-                LogMessage("ERROR", "Audio file not open");
+                LogMessage("ERR", "Audio file not open");
                 ret.Clear();
             }
 
@@ -360,7 +360,7 @@ namespace ClipExplorer
         {
             if (e.Exception != null)
             {
-                LogMessage("ERROR", e.Exception.Message);
+                LogMessage("ERR", e.Exception.Message);
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
