@@ -417,10 +417,10 @@ namespace ClipExplorer
         /// <summary>
         /// Send all notes off.
         /// </summary>
-        /// <param name="channel"></param>
+        /// <param name="channel">1-based channel</param>
         void Kill(int channel)
         {
-            ControlChangeEvent nevt = new ControlChangeEvent(0, channel + 1, MidiController.AllNotesOff, 0);
+            ControlChangeEvent nevt = new ControlChangeEvent(0, channel, MidiController.AllNotesOff, 0);
             MidiSend(nevt);
         }
 
@@ -432,7 +432,7 @@ namespace ClipExplorer
             // Send midi stop all notes just in case.
             for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
             {
-                Kill(i);
+                Kill(i + 1);
             }
 
             //// Send midi stop all notes just in case.
@@ -503,14 +503,14 @@ namespace ClipExplorer
                     {
                         if (i != channel && _playChannels[i].Valid && _playChannels[i].Mode != PlayChannel.PlayMode.Solo)
                         {
-                            Kill(i);
+                            Kill(i + 1);
                         }
                     }
                     break;
 
                 case PlayChannel.PlayMode.Solo:
                     pch.Mode = PlayChannel.PlayMode.Mute;
-                    Kill(channel);
+                    Kill(channel + 1);
                     break;
 
                 case PlayChannel.PlayMode.Mute:
