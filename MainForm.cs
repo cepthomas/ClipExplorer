@@ -22,16 +22,16 @@ namespace ClipExplorer
         readonly string[] _fileTypes = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
 
         /// <summary>Audio device.</summary>
-        WavePlayer _wavePlayer = null;
+        WavePlayer? _wavePlayer = null;
 
         /// <summary>Midi device.</summary>
-        MidiPlayer _midiPlayer = null;
+        MidiPlayer? _midiPlayer = null;
 
         /// <summary>Current file.</summary>
         string _fn = "";
 
         /// <summary>Current play device.</summary>
-        IPlayer _player = null;
+        IPlayer? _player = null;
         #endregion
 
         #region Lifecycle
@@ -46,13 +46,11 @@ namespace ClipExplorer
         /// <summary>
         /// Initialize form controls.
         /// </summary>
-        void MainForm_Load(object sender, EventArgs e)
+        void MainForm_Load(object? sender, EventArgs e)
         {
-            Icon = Properties.Resources.zebra;
-
             // Get the settings.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
-            DirectoryInfo di = new DirectoryInfo(appDir);
+            DirectoryInfo di = new(appDir);
             di.Create();
             UserSettings.Load(appDir);
 
@@ -61,25 +59,24 @@ namespace ClipExplorer
             txtViewer.BackColor = Color.Cornsilk;
             txtViewer.Colors.Add("ERR", Color.LightPink);
             //txtViewer.Colors.Add("WRN:", Color.Plum);
-            txtViewer.Font = new Font("Lucida Console", 9);
+            txtViewer.Font = new("Lucida Console", 9);
 
             // Create devices.
-            lblMark.Visible = false;
             _wavePlayer = new WavePlayer() { Visible = false };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            _wavePlayer.Location = new Point(lblMark.Left, lblMark.Top);
+            _wavePlayer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
             _midiPlayer = new MidiPlayer() { Visible = false };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            _midiPlayer.Location = new Point(lblMark.Left, lblMark.Top);
+            _midiPlayer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
             // Init UI from settings
-            Location = new Point(Common.Settings.MainFormInfo.X, Common.Settings.MainFormInfo.Y);
-            Size = new Size(Common.Settings.MainFormInfo.Width, Common.Settings.MainFormInfo.Height);
+            Location = new(Common.Settings.MainFormInfo.X, Common.Settings.MainFormInfo.Y);
+            Size = new(Common.Settings.MainFormInfo.Width, Common.Settings.MainFormInfo.Height);
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = Common.Settings.Volume;
@@ -93,12 +90,12 @@ namespace ClipExplorer
         /// <summary>
         /// Clean up on shutdown. Dispose() will get the rest.
         /// </summary>
-        void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
             SaveSettings();
 
-            _wavePlayer.Dispose();
-            _midiPlayer.Dispose();
+            _wavePlayer?.Dispose();
+            _midiPlayer?.Dispose();
         }
         #endregion
 
@@ -120,9 +117,9 @@ namespace ClipExplorer
         /// <summary>
         /// Edit the common options in a property grid.
         /// </summary>
-        void Settings_Click(object sender, EventArgs e)
+        void Settings_Click(object? sender, EventArgs e)
         {
-            using (Form f = new Form()
+            using Form f = new()
             {
                 Text = "User Settings",
                 Size = new Size(450, 450),
@@ -131,50 +128,49 @@ namespace ClipExplorer
                 FormBorderStyle = FormBorderStyle.FixedToolWindow,
                 ShowIcon = false,
                 ShowInTaskbar = false
-            })
+            };
+
+            PropertyGridEx pg = new()
             {
-                PropertyGridEx pg = new PropertyGridEx()
-                {
-                    Dock = DockStyle.Fill,
-                    PropertySort = PropertySort.Categorized,
-                    SelectedObject = Common.Settings
-                };
+                Dock = DockStyle.Fill,
+                PropertySort = PropertySort.Categorized,
+                SelectedObject = Common.Settings
+            };
 
-                // Detect changes of interest.
-                bool midiChange = false;
-                bool audioChange = false;
-                bool navChange = false;
-                bool restart = false;
+            // Detect changes of interest.
+            bool midiChange = false;
+            bool audioChange = false;
+            bool navChange = false;
+            bool restart = false;
 
-                pg.PropertyValueChanged += (sdr, args) =>
-                {
-                    restart |= args.ChangedItem.PropertyDescriptor.Name.EndsWith("Device");
-                    midiChange |= args.ChangedItem.PropertyDescriptor.Category == "Midi";
-                    audioChange |= args.ChangedItem.PropertyDescriptor.Category == "Audio";
-                    navChange |= args.ChangedItem.PropertyDescriptor.Category == "Navigator";
-                };
+            pg.PropertyValueChanged += (sdr, args) =>
+            {
+                restart |= args.ChangedItem.PropertyDescriptor.Name.EndsWith("Device");
+                midiChange |= args.ChangedItem.PropertyDescriptor.Category == "Midi";
+                audioChange |= args.ChangedItem.PropertyDescriptor.Category == "Audio";
+                navChange |= args.ChangedItem.PropertyDescriptor.Category == "Navigator";
+            };
 
-                f.Controls.Add(pg);
-                f.ShowDialog();
+            f.Controls.Add(pg);
+            f.ShowDialog();
 
-                // Figure out what changed - each handled differently.
-                if (restart)
-                {
-                    MessageBox.Show("Restart required for device changes to take effect");
-                }
-
-                if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
-                {
-                    _player.SettingsChanged();
-                }
-
-                if (navChange)
-                {
-                    InitNavigator();
-                }
-
-                SaveSettings();
+            // Figure out what changed - each handled differently.
+            if (restart)
+            {
+                MessageBox.Show("Restart required for device changes to take effect");
             }
+
+            if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
+            {
+                _player.SettingsChanged();
+            }
+
+            if (navChange)
+            {
+                InitNavigator();
+            }
+
+            SaveSettings();
         }
         #endregion
 
@@ -182,7 +178,7 @@ namespace ClipExplorer
         /// <summary>
         /// All about me.
         /// </summary>
-        void About_Click(object sender, EventArgs e)
+        void About_Click(object? sender, EventArgs e)
         {
             Tools.MarkdownToHtml(File.ReadAllLines(@".\README.md").ToList(), "lightcyan", "helvetica", true);
         }
@@ -192,7 +188,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="ea"></param>
-        void LogMessage(object sender, string cat, string msg)
+        void LogMessage(object? sender, string cat, string msg)
         {
             int catSize = 3;
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
@@ -200,7 +196,7 @@ namespace ClipExplorer
             // May come from a different thread.
             this.InvokeIfRequired(_ =>
             {
-                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({(sender as Control).Name}) {msg}";
+                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
                 txtViewer.AddLine(s);
             });
         }
@@ -212,7 +208,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void File_DropDownOpening(object sender, EventArgs e)
+        void File_DropDownOpening(object? sender, EventArgs e)
         {
             fileDropDownButton.DropDownItems.Clear();
 
@@ -224,7 +220,7 @@ namespace ClipExplorer
 
             Common.Settings.RecentFiles.ForEach(f =>
             {
-                ToolStripMenuItem menuItem = new ToolStripMenuItem(f, null, new EventHandler(Recent_Click));
+                ToolStripMenuItem menuItem = new(f, null, new EventHandler(Recent_Click));
                 fileDropDownButton.DropDownItems.Add(menuItem);
             });
         }
@@ -232,10 +228,10 @@ namespace ClipExplorer
         /// <summary>
         /// The user has asked to open a recent file.
         /// </summary>
-        void Recent_Click(object sender, EventArgs e)
+        void Recent_Click(object? sender, EventArgs e)
         {
             //ToolStripMenuItem item = sender as ToolStripMenuItem;
-            string fn = sender.ToString();
+            string fn = sender!.ToString()!;
             if (fn != _fn)
             {
                 OpenFile(fn);
@@ -246,7 +242,7 @@ namespace ClipExplorer
         /// <summary>
         /// Allows the user to select an audio clip or midi from file system.
         /// </summary>
-        void Open_Click(object sender, EventArgs e)
+        void Open_Click(object? sender, EventArgs e)
         {
             string sext = "Clip Files | ";
             foreach (string ext in _fileTypes)
@@ -254,17 +250,16 @@ namespace ClipExplorer
                 sext += $"*{ext}; ";
             }
 
-            using (OpenFileDialog openDlg = new OpenFileDialog()
+            using OpenFileDialog openDlg = new()
             {
                 Filter = sext,
                 Title = "Select a file"
-            })
+            };
+
+            if (openDlg.ShowDialog() == DialogResult.OK && openDlg.FileName != _fn)
             {
-                if (openDlg.ShowDialog() == DialogResult.OK && openDlg.FileName != _fn)
-                {
-                    OpenFile(openDlg.FileName);
-                    _fn = openDlg.FileName;
-                }
+                OpenFile(openDlg.FileName);
+                _fn = openDlg.FileName;
             }
         }
 
@@ -293,14 +288,14 @@ namespace ClipExplorer
                             case ".mp3":
                             case ".m4a":
                             case ".flac":
-                                _wavePlayer.Visible = true;
-                                _midiPlayer.Visible = false;
+                                _wavePlayer!.Visible = true;
+                                _midiPlayer!.Visible = false;
                                 _player = _wavePlayer;
                                 break;
 
                             case ".mid":
-                                _wavePlayer.Visible = false;
-                                _midiPlayer.Visible = true;
+                                _wavePlayer!.Visible = false;
+                                _midiPlayer!.Visible = true;
                                 _player = _midiPlayer;
                                 break;
 
@@ -312,7 +307,7 @@ namespace ClipExplorer
 
                         if (ok)
                         {
-                            ok = _player.OpenFile(fn);
+                            ok = _player!.OpenFile(fn);
                             if (Common.Settings.Autoplay)
                             {
                                 Start();
@@ -348,9 +343,9 @@ namespace ClipExplorer
         /// <summary>
         /// Dump current file.
         /// </summary>
-        void Dump_Click(object sender, EventArgs e)
+        void Dump_Click(object? sender, EventArgs e)
         {
-            var ds = _player.Dump();
+            var ds = _player!.Dump();
             if (ds.Count > 0)
             {
                 if (Common.Settings.DumpToClip)
@@ -360,12 +355,11 @@ namespace ClipExplorer
                 }
                 else
                 {
-                    using (SaveFileDialog dumpDlg = new SaveFileDialog() { Title = "Dump to file", FileName = "dump.csv" })
+                    using SaveFileDialog dumpDlg = new() { Title = "Dump to file", FileName = "dump.csv" };
+
+                    if (dumpDlg.ShowDialog() == DialogResult.OK)
                     {
-                        if (dumpDlg.ShowDialog() == DialogResult.OK)
-                        {
-                            File.WriteAllLines(dumpDlg.FileName, ds.ToArray());
-                        }
+                        File.WriteAllLines(dumpDlg.FileName, ds.ToArray());
                     }
                 }
             }
@@ -376,9 +370,9 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Export_Click(object sender, EventArgs e)
+        void Export_Click(object? sender, EventArgs e)
         {
-            _player.Export();
+            _player!.Export();
         }
         #endregion
 
@@ -422,7 +416,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Play_CheckedChanged(object sender, EventArgs e)
+        void Play_CheckedChanged(object? sender, EventArgs e)
         {
             var _ = chkPlay.Checked ? Start() : Stop();
         }
@@ -432,7 +426,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Player_PlaybackCompleted(object sender, EventArgs e)
+        void Player_PlaybackCompleted(object? sender, EventArgs e)
         {
             // Usually comes from a different thread.
             this.InvokeIfRequired(_ =>
@@ -444,7 +438,7 @@ namespace ClipExplorer
                 else
                 {
                     Stop();
-                    _player.Rewind();
+                    _player!.Rewind();
                 }
             });
         }
@@ -454,7 +448,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MainForm_KeyDown(object sender, KeyEventArgs e)
+        void MainForm_KeyDown(object? sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -481,10 +475,10 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Rewind_Click(object sender, EventArgs e)
+        void Rewind_Click(object? sender, EventArgs e)
         {
             Stop();
-            _player.Rewind();
+            _player!.Rewind();
         }
         #endregion
 
@@ -508,7 +502,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="fn"></param>
-        void Navigator_FileSelectedEvent(object sender, string fn)
+        void Navigator_FileSelectedEvent(object? sender, string fn)
         {
             OpenFile(fn);
             _fn = fn;
@@ -521,14 +515,14 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Volume_ValueChanged(object sender, EventArgs e)
+        void Volume_ValueChanged(object? sender, EventArgs e)
         {
             float vol = (float)sldVolume.Value;
             Common.Settings.Volume = vol;
             if (_player is null)
             {
-                _midiPlayer.Volume = vol;
-                _wavePlayer.Volume = vol;
+                _midiPlayer!.Volume = vol;
+                _wavePlayer!.Volume = vol;
             }
             else
             {

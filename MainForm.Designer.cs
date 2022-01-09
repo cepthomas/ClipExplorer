@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
@@ -35,7 +36,6 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfUis.FilTree();
             this.txtViewer = new NBagOfUis.TextViewer();
-            this.lblMark = new System.Windows.Forms.Label();
             this.chkLoop = new System.Windows.Forms.CheckBox();
             this.sldVolume = new NBagOfUis.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
@@ -97,6 +97,7 @@
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 27);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -106,12 +107,11 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtViewer);
-            this.splitContainer1.Panel2.Controls.Add(this.lblMark);
             this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
-            this.splitContainer1.Size = new System.Drawing.Size(1395, 656);
+            this.splitContainer1.Size = new System.Drawing.Size(1395, 827);
             this.splitContainer1.SplitterDistance = 677;
             this.splitContainer1.TabIndex = 1;
             // 
@@ -120,8 +120,9 @@
             this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ftree.DoubleClickSelect = false;
             this.ftree.Location = new System.Drawing.Point(0, 0);
+            this.ftree.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.ftree.Name = "ftree";
-            this.ftree.Size = new System.Drawing.Size(677, 656);
+            this.ftree.Size = new System.Drawing.Size(677, 827);
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
@@ -130,22 +131,14 @@
             this.txtViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtViewer.Font = new System.Drawing.Font("Consolas", 10F);
-            this.txtViewer.Location = new System.Drawing.Point(2, 318);
+            this.txtViewer.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtViewer.Location = new System.Drawing.Point(2, 398);
+            this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(709, 335);
+            this.txtViewer.Size = new System.Drawing.Size(709, 425);
             this.txtViewer.TabIndex = 58;
             this.txtViewer.Text = "";
-            // 
-            // lblMark
-            // 
-            this.lblMark.AutoSize = true;
-            this.lblMark.Location = new System.Drawing.Point(14, 57);
-            this.lblMark.Name = "lblMark";
-            this.lblMark.Size = new System.Drawing.Size(46, 17);
-            this.lblMark.TabIndex = 57;
-            this.lblMark.Text = "label1";
             // 
             // chkLoop
             // 
@@ -153,10 +146,10 @@
             this.chkLoop.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkLoop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_82_refresh;
-            this.chkLoop.Location = new System.Drawing.Point(112, 6);
-            this.chkLoop.Margin = new System.Windows.Forms.Padding(4);
+            this.chkLoop.Location = new System.Drawing.Point(112, 8);
+            this.chkLoop.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkLoop.Name = "chkLoop";
-            this.chkLoop.Size = new System.Drawing.Size(43, 39);
+            this.chkLoop.Size = new System.Drawing.Size(43, 49);
             this.chkLoop.TabIndex = 55;
             this.chkLoop.UseVisualStyleBackColor = false;
             // 
@@ -166,14 +159,14 @@
             this.sldVolume.DecPlaces = 1;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(169, 6);
-            this.sldVolume.Margin = new System.Windows.Forms.Padding(4);
+            this.sldVolume.Location = new System.Drawing.Point(169, 8);
+            this.sldVolume.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.sldVolume.Maximum = 1D;
             this.sldVolume.Minimum = 0D;
             this.sldVolume.Name = "sldVolume";
             this.sldVolume.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.sldVolume.ResetValue = 0D;
-            this.sldVolume.Size = new System.Drawing.Size(100, 40);
+            this.sldVolume.Size = new System.Drawing.Size(100, 50);
             this.sldVolume.TabIndex = 42;
             this.sldVolume.Value = 0.5D;
             this.sldVolume.ValueChanged += new System.EventHandler(this.Volume_ValueChanged);
@@ -182,10 +175,10 @@
             // 
             this.btnRewind.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRewind.Image = global::ClipExplorer.Properties.Resources.glyphicons_173_rewind;
-            this.btnRewind.Location = new System.Drawing.Point(61, 6);
-            this.btnRewind.Margin = new System.Windows.Forms.Padding(4);
+            this.btnRewind.Location = new System.Drawing.Point(61, 8);
+            this.btnRewind.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnRewind.Name = "btnRewind";
-            this.btnRewind.Size = new System.Drawing.Size(43, 39);
+            this.btnRewind.Size = new System.Drawing.Size(43, 49);
             this.btnRewind.TabIndex = 39;
             this.btnRewind.UseVisualStyleBackColor = false;
             this.btnRewind.Click += new System.EventHandler(this.Rewind_Click);
@@ -196,21 +189,23 @@
             this.chkPlay.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.chkPlay.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkPlay.Image = global::ClipExplorer.Properties.Resources.glyphicons_174_play;
-            this.chkPlay.Location = new System.Drawing.Point(10, 6);
-            this.chkPlay.Margin = new System.Windows.Forms.Padding(4);
+            this.chkPlay.Location = new System.Drawing.Point(10, 8);
+            this.chkPlay.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkPlay.Name = "chkPlay";
-            this.chkPlay.Size = new System.Drawing.Size(43, 39);
+            this.chkPlay.Size = new System.Drawing.Size(43, 49);
             this.chkPlay.TabIndex = 41;
             this.chkPlay.UseVisualStyleBackColor = false;
             this.chkPlay.CheckedChanged += new System.EventHandler(this.Play_CheckedChanged);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1395, 683);
+            this.ClientSize = new System.Drawing.Size(1395, 854);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainForm";
             this.Text = "Clip Explorer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
@@ -220,7 +215,6 @@
             this.toolStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
-            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -240,7 +234,6 @@
         private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
-        private System.Windows.Forms.Label lblMark;
         private NBagOfUis.TextViewer txtViewer;
     }
 }

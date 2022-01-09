@@ -21,10 +21,10 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Wave output play device.</summary>
-        WaveOut _waveOut = null;
+        WaveOut? _waveOut = null;
 
         /// <summary>Input device for playing wav file.</summary>
-        AudioFileReader _audioFileReader = null;
+        AudioFileReader? _audioFileReader = null;
 
         /// <summary>Stream read chunk.</summary>
         const int READ_BUFF_SIZE = 1000000;
@@ -35,10 +35,10 @@ namespace ClipExplorer
 
         #region Events
         /// <inheritdoc />
-        public event EventHandler PlaybackCompleted;
+        public event EventHandler? PlaybackCompleted;
 
         /// <inheritdoc />
-        public event EventHandler<LogEventArgs> Log;
+        public event EventHandler<LogEventArgs>? Log;
         #endregion
 
         #region Properties
@@ -86,7 +86,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void WavePlayer_Load(object sender, EventArgs e)
+        private void WavePlayer_Load(object? sender, EventArgs e)
         {
             ResetMeters();
 
@@ -143,8 +143,8 @@ namespace ClipExplorer
                 var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
                 postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                _waveOut.Init(postVolumeMeter);
-                _waveOut.Volume = (float)Common.Settings.Volume;
+                _waveOut!.Init(postVolumeMeter);
+                _waveOut!.Volume = (float)Common.Settings.Volume;
 
                 ShowClip();
             }
@@ -171,7 +171,7 @@ namespace ClipExplorer
         {
             if (_audioFileReader != null)
             {
-                _waveOut.Play();
+                _waveOut!.Play();
             }
         }
 
@@ -180,7 +180,7 @@ namespace ClipExplorer
         {
             if (_audioFileReader != null)
             {
-                _waveOut.Pause(); // or Stop?
+                _waveOut!.Pause(); // or Stop?
                 ResetMeters();
             }
         }
@@ -207,11 +207,11 @@ namespace ClipExplorer
         /// <inheritdoc />
         public List<string> Dump()
         {
-            List<string> ret = new List<string>();
+            List<string> ret = new();
 
             if (_audioFileReader != null)
             {
-                _audioFileReader.Position = 0; // rewind
+                _audioFileReader!.Position = 0; // rewind
                 var sampleChannel = new SampleChannel(_audioFileReader, false);
 
                 // Read all data.
@@ -346,7 +346,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void TimeBar_CurrentTimeChanged(object sender, EventArgs e)
+        void TimeBar_CurrentTimeChanged(object? sender, EventArgs e)
         {
             //CurrentTime = timeBar.Current;
         }
@@ -356,7 +356,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void WaveOut_PlaybackStopped(object sender, StoppedEventArgs e)
+        void WaveOut_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -371,7 +371,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void SampleChannel_PreVolumeMeter(object sender, StreamVolumeEventArgs e)
+        void SampleChannel_PreVolumeMeter(object? sender, StreamVolumeEventArgs e)
         {
             //waveformPainterL.AddMax(e.MaxSampleValues[0]);
             //waveformPainterR.AddMax(e.MaxSampleValues[1]);
@@ -382,11 +382,11 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void PostVolumeMeter_StreamVolume(object sender, StreamVolumeEventArgs e)
+        void PostVolumeMeter_StreamVolume(object? sender, StreamVolumeEventArgs e)
         {
             levelL.AddValue(e.MaxSampleValues[0]);
-            levelR.AddValue(e.MaxSampleValues.Count() > 1 ? e.MaxSampleValues[1] : 0); // stereo?
-            timeBar.Current = _audioFileReader.CurrentTime;
+            levelR.AddValue(e.MaxSampleValues.Length > 1 ? e.MaxSampleValues[1] : 0); // stereo?
+            timeBar.Current = _audioFileReader!.CurrentTime;
 
             //waveViewerL.Marker1 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
             //waveViewerR.Marker2 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);

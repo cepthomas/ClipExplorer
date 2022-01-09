@@ -7,9 +7,11 @@ using System.Drawing;
 using System.Drawing.Design;
 using System.ComponentModel.Design;
 using System.Windows.Forms.Design;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using NAudio.Wave;
 using NAudio.Midi;
+using NBagOfTricks;
 using NBagOfUis;
 
 
@@ -75,6 +77,7 @@ namespace ClipExplorer
         [Description("Pick what you like.")]
         [Category("Cosmetics")]
         [Browsable(true)]
+        [JsonConverter(typeof(JsonColorConverter))]
         public Color ControlColor { get; set; } = Color.MediumOrchid;
         #endregion
 
@@ -104,20 +107,21 @@ namespace ClipExplorer
         /// <summary>Save object to file.</summary>
         public void Save()
         {
-            string json = JsonConvert.SerializeObject(this, Formatting.Indented);
+            JsonSerializerOptions opts = new() { WriteIndented = true };
+            string json = JsonSerializer.Serialize(this, opts);
             File.WriteAllText(_fn, json);
         }
 
         /// <summary>Create object from file.</summary>
         public static void Load(string appDir)
         {
-            Common.Settings = null;
             string fn = Path.Combine(appDir, "settings.json");
 
             if (File.Exists(fn))
             {
                 string json = File.ReadAllText(fn);
-                Common.Settings = JsonConvert.DeserializeObject<UserSettings>(json);
+                UserSettings? set = JsonSerializer.Deserialize<UserSettings>(json);
+                Common.Settings = set ?? new();
 
                 // Clean up any bad file names.
                 Common.Settings.RecentFiles.RemoveAll(f => !File.Exists(f));
@@ -145,7 +149,7 @@ namespace ClipExplorer
         // Get the specific list based on the property name.
         public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
         {
-            List<string> rec = null;
+            List<string>? rec = null;
 
             switch (context.PropertyDescriptor.Name)
             {

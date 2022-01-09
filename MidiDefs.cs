@@ -35,7 +35,7 @@ namespace ClipExplorer
         {
             if(which < 0 || which > MAX_MIDI)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(which));
             }
 
             return _instrumentDefs[which];
@@ -50,7 +50,7 @@ namespace ClipExplorer
         {
             if (which < 0 || which > MAX_MIDI)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(which));
             }
 
             return _drumDefs[which];
@@ -65,7 +65,7 @@ namespace ClipExplorer
         {
             if (which < 0 || which > MAX_MIDI)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(which));
             }
 
             return _controllerDefs[which];

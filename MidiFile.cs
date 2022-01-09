@@ -41,7 +41,7 @@ namespace ClipExplorer
         public string KeySig { get; private set; } = "";
 
         /// <summary>Channel/patch info: key is 1-based channel number, value is 0-based patch.</summary>
-        public Dictionary<int, int> Channels { get; private set; } = new Dictionary<int, int>();
+        public Dictionary<int, int> Channels { get; private set; } = new();
         #endregion
 
         #region Properties set by client
@@ -54,10 +54,10 @@ namespace ClipExplorer
 
         #region Fields
         /// <summary>All the midi events by channel. This is the verbatim content of the file with no processing.</summary>
-        readonly List<(int channel, MidiEvent evt)> _midiEvents = new List<(int channel, MidiEvent evt)>();
+        readonly List<(int channel, MidiEvent evt)> _midiEvents = new();
 
         /// <summary>File contents in readable form as they appear in order. Useful for debug.</summary>
-        readonly List<string> _allContents = new List<string>();
+        readonly List<string> _allContents = new();
 
         /// <summary>Save this for maybe logging.</summary>
         long _lastPos = 0;
@@ -82,31 +82,29 @@ namespace ClipExplorer
             _allContents.Clear();
             _allContents.Add($"Timestamp,Type,Channel,FilePos,Content");
 
-            using (var br = new BinaryReader(File.OpenRead(fn)))
+            using var br = new BinaryReader(File.OpenRead(fn));
+            bool done = false;
+
+            while (!done)
             {
-                bool done = false;
+                var sectionName = Encoding.UTF8.GetString(br.ReadBytes(4));
 
-                while (!done)
+                Capture(-1, "Section", -1, sectionName);
+
+                switch (sectionName)
                 {
-                    var sectionName = Encoding.UTF8.GetString(br.ReadBytes(4));
+                    case "MThd":
+                        ReadMThd(br);
+                        break;
 
-                    Capture(-1, "Section", -1, sectionName);
+                    case "MTrk":
+                        ReadMTrk(br);
+                        break;
 
-                    switch (sectionName)
-                    {
-                        case "MThd":
-                            ReadMThd(br);
-                            break;
-
-                        case "MTrk":
-                            ReadMTrk(br);
-                            break;
-
-                        default:
-                            Capture(-1, "Done", -1, "!!!");
-                            done = true;
-                            break;
-                    }
+                    default:
+                        Capture(-1, "Done", -1, "!!!");
+                        done = true;
+                        break;
                 }
             }
         }
@@ -162,16 +160,12 @@ namespace ClipExplorer
         /// <returns></returns>
         int ReadMTrk(BinaryReader br)
         {
-            // Defaults.
-            int chnum = 0;
-            //string chdesc = "???";
-
             uint chunkSize = Read(br, 4);
             long startPos = br.BaseStream.Position;
             int absoluteTime = 0;
 
             // Read all midi events.
-            MidiEvent me = null; // current
+            MidiEvent? me = null; // current
             while (br.BaseStream.Position < startPos + chunkSize)
             {
                 _lastPos = br.BaseStream.Position;
@@ -185,129 +179,45 @@ namespace ClipExplorer
                     Channels.Add(me.Channel, -1);
                 }
 
-                switch (me.CommandCode)
+                switch (me)
                 {
                     ///// Standard midi events /////
-                    case MidiCommandCode.NoteOn:
+                    case NoteOnEvent evt:
+                        AddMidiEvent(evt);
+                        Capture(evt.AbsoluteTime, "NoteOn", evt.Channel, evt.ToString());
+                        break;
+
+                    case NoteEvent evt:
+                        AddMidiEvent(evt);
+                        Capture(evt.AbsoluteTime, "NoteOff", evt.Channel, evt.ToString());
+                        break;
+
+                    case ControlChangeEvent evt:
+                        if (!IgnoreNoisy)
                         {
-                            NoteOnEvent evt = me as NoteOnEvent;
                             AddMidiEvent(evt);
-                            Capture(evt.AbsoluteTime, "NoteOn", evt.Channel, evt.ToString());
+                            Capture(evt.AbsoluteTime, "ControlChange", evt.Channel, evt.ToString());
                         }
                         break;
 
-                    case MidiCommandCode.NoteOff:
+                    case PitchWheelChangeEvent evt:
+                        if (!IgnoreNoisy)
                         {
-                            NoteEvent evt = me as NoteEvent;
-                            AddMidiEvent(evt);
-                            Capture(evt.AbsoluteTime, "NoteOff", evt.Channel, evt.ToString());
+                            
+                            //AddMidiEvent(evt);
                         }
                         break;
 
-                    case MidiCommandCode.ControlChange:
-                        {
-                            if (!IgnoreNoisy)
-                            {
-                                ControlChangeEvent evt = me as ControlChangeEvent;
-                                AddMidiEvent(evt);
-                                Capture(evt.AbsoluteTime, "ControlChange", evt.Channel, evt.ToString());
-                            }
-                        }
+                    case PatchChangeEvent evt:
+                        Channels[evt.Channel] = evt.Patch;
+                        AddMidiEvent(evt);
+                        Capture(evt.AbsoluteTime, "PatchChangeEvent", evt.Channel, evt.ToString());
                         break;
 
-                    case MidiCommandCode.PitchWheelChange:
-                        {
-                            if (!IgnoreNoisy)
-                            {
-                                PitchWheelChangeEvent evt = me as PitchWheelChangeEvent;
-                                //AddMidiEvent(evt);
-                            }
-                        }
-                        break;
-
-                    case MidiCommandCode.PatchChange:
-                        {
-                            PatchChangeEvent evt = me as PatchChangeEvent;
-                            //chdesc = PatchChangeEvent.GetPatchName(evt.Patch);
-                            Channels[evt.Channel] = evt.Patch;
-                            AddMidiEvent(evt);
-                            Capture(evt.AbsoluteTime, "PatchChangeEvent", evt.Channel, evt.ToString());
-                        }
-                        break;
-
-                    case MidiCommandCode.Sysex:
-                        {
-                            if (!IgnoreNoisy)
-                            {
-                                SysexEvent evt = me as SysexEvent;
-                                string s = evt.ToString().Replace(Environment.NewLine, " ");
-                                Capture(evt.AbsoluteTime, "Sysex", evt.Channel, s);
-                            }
-                        }
-                        break;
-
-                    ///// Meta events /////
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.TrackSequenceNumber:
-                        {
-                            TrackSequenceNumberEvent evt = me as TrackSequenceNumberEvent;
-                            chnum = evt.Channel;
-                            Capture(evt.AbsoluteTime, "TrackSequenceNumber", evt.Channel, evt.ToString());
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.SequenceTrackName:
-                        {
-                            TextEvent evt = me as TextEvent;
-                            Capture(evt.AbsoluteTime, "SequenceTrackName", evt.Channel, evt.Text);
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.Marker:
-                        {
-                            // Indicates start of a new midi pattern.
-                            TextEvent evt = me as TextEvent;
-                            Capture(evt.AbsoluteTime, "Marker", evt.Channel, evt.Text);
-                            absoluteTime = 0;
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.EndTrack:
-                        {
-                            // Indicates end of current midi track.
-                            MetaEvent evt = me as MetaEvent;
-                            Capture(evt.AbsoluteTime, "EndTrack", evt.Channel, evt.ToString());
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.SetTempo:
-                        {
-                            TempoEvent evt = me as TempoEvent;
-                            Tempo = evt.Tempo;
-                            Capture(evt.AbsoluteTime, "SetTempo", evt.Channel, evt.Tempo.ToString());
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.TimeSignature:
-                        {
-                            TimeSignatureEvent evt = me as TimeSignatureEvent;
-                            TimeSig = evt.TimeSignature;
-                            Capture(evt.AbsoluteTime, "TimeSignature", evt.Channel, evt.TimeSignature);
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.KeySignature:
-                        {
-                            KeySignatureEvent evt = me as KeySignatureEvent;
-                            KeySig = evt.ToString();
-                            Capture(evt.AbsoluteTime, "KeySignature", evt.Channel, evt.ToString());
-                        }
-                        break;
-
-                    case MidiCommandCode.MetaEvent when (me as MetaEvent).MetaEventType == MetaEventType.TextEvent:
-                        {
-                            TextEvent evt = me as TextEvent;
-                            Capture(evt.AbsoluteTime, "TextEvent", evt.Channel, evt.Text);
-                        }
+                    case TempoEvent evt:
+                        Tempo = (int)Math.Round(evt.Tempo);
+                        Capture(evt.AbsoluteTime, "SetTempo", evt.Channel, evt.Tempo.ToString());
+                        AddMidiEvent(evt);
                         break;
 
                     default:
@@ -345,7 +255,7 @@ namespace ClipExplorer
         /// <returns></returns>
         public List<string> GetReadableGrouped()
         {
-            List<string> meta = new List<string>
+            List<string> meta = new()
             {
                 $"---Meta---",
                 $"Meta,Value",
@@ -355,14 +265,14 @@ namespace ClipExplorer
                 $"Tracks,{Tracks}"
             };
 
-            List<string> notes = new List<string>()
+            List<string> notes = new()
             {
                 $"",
                 $"---Notes---",
                 "Time,Event,Channel,Pattern,NoteNum,NoteName,Velocity,Duration",
             };
 
-            List<string> other = new List<string>()
+            List<string> other = new()
             {
                 $"",
                 $"---Other---",
@@ -429,7 +339,7 @@ namespace ClipExplorer
                 }
             }
 
-            List<string> ret = new List<string>();
+            List<string> ret = new();
             ret.AddRange(meta);
             ret.AddRange(notes);
             ret.AddRange(other);
@@ -444,7 +354,7 @@ namespace ClipExplorer
         /// <param name="info">Extra info to add to midi file.</param>
         public void ExportMidi(string fn, string info)
         {
-            MidiEventCollection mecoll = new MidiEventCollection(1, DeltaTicksPerQuarterNote);
+            MidiEventCollection mecoll = new(1, DeltaTicksPerQuarterNote);
             IList<MidiEvent> mevents = mecoll.AddTrack();
 
             // Tempo.
