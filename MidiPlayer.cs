@@ -135,8 +135,8 @@ namespace ClipExplorer
             _midiOut?.Dispose();
             _midiOut = null;
 
-            _mmTimer?.Stop();
-            _mmTimer?.Dispose();
+            _mmTimer.Stop();
+            _mmTimer.Dispose();
 
             if (disposing && (components != null))
             {

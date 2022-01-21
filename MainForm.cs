@@ -75,8 +75,8 @@ namespace ClipExplorer
             splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
             // Init UI from settings
-            Location = new(Common.Settings.MainFormInfo.X, Common.Settings.MainFormInfo.Y);
-            Size = new(Common.Settings.MainFormInfo.Width, Common.Settings.MainFormInfo.Height);
+            Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
+            Size = new Size(Common.Settings.FormGeometry.Width, Common.Settings.FormGeometry.Height);
             WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
             sldVolume.Value = Common.Settings.Volume;
@@ -109,7 +109,7 @@ namespace ClipExplorer
             Common.Settings.TaggedPaths = ftree.TaggedPaths;
             Common.Settings.Autoplay = !ftree.DoubleClickSelect;
             Common.Settings.Volume = sldVolume.Value;
-            Common.Settings.MainFormInfo = new Rectangle(Location.X, Location.Y, Width, Height);
+            Common.Settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
 
             Common.Settings.Save();
         }

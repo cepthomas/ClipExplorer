@@ -83,7 +83,8 @@ namespace ClipExplorer
 
         #region Persisted Non-editable Properties
         [Browsable(false)]
-        public Rectangle MainFormInfo { get; set; } = new Rectangle(50, 50, 500, 400);
+        [JsonConverter(typeof(JsonRectangleConverter))]
+        public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
 
         [Browsable(false)]
         public double Volume { get; set; } = 0.5;
@@ -122,11 +123,10 @@ namespace ClipExplorer
                 string json = File.ReadAllText(fn);
                 UserSettings? set = JsonSerializer.Deserialize<UserSettings>(json);
                 Common.Settings = set ?? new();
+                Common.Settings._fn = fn;
 
                 // Clean up any bad file names.
                 Common.Settings.RecentFiles.RemoveAll(f => !File.Exists(f));
-
-                Common.Settings._fn = fn;
             }
             else
             {
