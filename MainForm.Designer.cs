@@ -36,10 +36,11 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfUis.FilTree();
             this.txtViewer = new NBagOfUis.TextViewer();
-            this.chkLoop = new System.Windows.Forms.CheckBox();
             this.sldVolume = new NBagOfUis.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
+            this.btnAutoplay = new System.Windows.Forms.ToolStripButton();
+            this.btnLoop = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -53,7 +54,9 @@
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileDropDownButton,
             this.btnSettings,
-            this.btnAbout});
+            this.btnAbout,
+            this.btnAutoplay,
+            this.btnLoop});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1395, 27);
@@ -107,7 +110,6 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtViewer);
-            this.splitContainer1.Panel2.Controls.Add(this.chkLoop);
             this.splitContainer1.Panel2.Controls.Add(this.sldVolume);
             this.splitContainer1.Panel2.Controls.Add(this.btnRewind);
             this.splitContainer1.Panel2.Controls.Add(this.chkPlay);
@@ -118,10 +120,10 @@
             // ftree
             // 
             this.ftree.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ftree.DoubleClickSelect = false;
             this.ftree.Location = new System.Drawing.Point(0, 0);
             this.ftree.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.ftree.Name = "ftree";
+            this.ftree.SingleClickSelect = true;
             this.ftree.Size = new System.Drawing.Size(677, 827);
             this.ftree.TabIndex = 0;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
@@ -140,26 +142,13 @@
             this.txtViewer.TabIndex = 58;
             this.txtViewer.Text = "";
             // 
-            // chkLoop
-            // 
-            this.chkLoop.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkLoop.FlatAppearance.CheckedBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.chkLoop.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_82_refresh;
-            this.chkLoop.Location = new System.Drawing.Point(112, 8);
-            this.chkLoop.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.chkLoop.Name = "chkLoop";
-            this.chkLoop.Size = new System.Drawing.Size(43, 49);
-            this.chkLoop.TabIndex = 55;
-            this.chkLoop.UseVisualStyleBackColor = false;
-            // 
             // sldVolume
             // 
             this.sldVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.sldVolume.DecPlaces = 1;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(169, 8);
+            this.sldVolume.Location = new System.Drawing.Point(117, 8);
             this.sldVolume.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.sldVolume.Maximum = 1D;
             this.sldVolume.Minimum = 0D;
@@ -181,7 +170,6 @@
             this.btnRewind.Size = new System.Drawing.Size(43, 49);
             this.btnRewind.TabIndex = 39;
             this.btnRewind.UseVisualStyleBackColor = false;
-            this.btnRewind.Click += new System.EventHandler(this.Rewind_Click);
             // 
             // chkPlay
             // 
@@ -195,7 +183,24 @@
             this.chkPlay.Size = new System.Drawing.Size(43, 49);
             this.chkPlay.TabIndex = 41;
             this.chkPlay.UseVisualStyleBackColor = false;
-            this.chkPlay.CheckedChanged += new System.EventHandler(this.Play_CheckedChanged);
+            // 
+            // btnAutoplay
+            // 
+            this.btnAutoplay.CheckOnClick = true;
+            this.btnAutoplay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnAutoplay.Image = global::ClipExplorer.Properties.Resources.glyphicons_221_play_button;
+            this.btnAutoplay.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAutoplay.Name = "btnAutoplay";
+            this.btnAutoplay.Size = new System.Drawing.Size(29, 24);
+            // 
+            // btnLoop
+            // 
+            this.btnLoop.CheckOnClick = true;
+            this.btnLoop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_82_refresh;
+            this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnLoop.Name = "btnLoop";
+            this.btnLoop.Size = new System.Drawing.Size(29, 24);
             // 
             // MainForm
             // 
@@ -231,10 +236,11 @@
         private System.Windows.Forms.Button btnRewind;
         private System.Windows.Forms.CheckBox chkPlay;
         private NBagOfUis.FilTree ftree;
-        private System.Windows.Forms.CheckBox chkLoop;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
         private NBagOfUis.TextViewer txtViewer;
+        private System.Windows.Forms.ToolStripButton btnAutoplay;
+        private System.Windows.Forms.ToolStripButton btnLoop;
     }
 }
 

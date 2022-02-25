@@ -1,8 +1,12 @@
 # ClipExplorer
-A windows tool for playing audio and midi file clips. This is intended to be used for auditioning parts for use in compositions created in a real DAW.
-To that end, and because the windows multimedia timer has inadequate accuracy for midi notes, resolution is limited to 32nd notes. Likewise,
-minimal attention has been paid to aesthetics over functionality. This explains the poor color choices. Audio and midi play devices are limited to the
-ones available on your box. (Hint- VirtualMidiSynth).
+A windows tool for playing audio and midi file clips. This is intended to be used for auditioning parts for 
+use in compositions created in a real DAW.
+To that end, and because the windows multimedia timer has inadequate accuracy for midi notes, resolution is 
+limited to 32nd notes.
+Likewise, minimal attention has been paid to aesthetics over functionality. This explains the poor color choices.
+Audio and midi play devices are limited to the ones available on your box. (Hint- VirtualMidiSynth).
+
+Requires VS2019 and .NET5.
 
 # Usage
 - The simple UI shows a tree directory navigator on the left and standard audio transport family of controls on the right.

@@ -65,7 +65,7 @@ namespace ClipExplorer
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing && (components is not null))
             {
                 components.Dispose();
             }
@@ -169,7 +169,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
-            if (_audioFileReader != null)
+            if (_audioFileReader is not null)
             {
                 _waveOut!.Play();
             }
@@ -178,7 +178,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Stop()
         {
-            if (_audioFileReader != null)
+            if (_audioFileReader is not null)
             {
                 _waveOut!.Pause(); // or Stop?
                 ResetMeters();
@@ -188,7 +188,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Rewind()
         {
-            if (_audioFileReader != null)
+            if (_audioFileReader is not null)
             {
                 _audioFileReader.Position = 0;
                 timeBar.Current = TimeSpan.Zero;
@@ -209,7 +209,7 @@ namespace ClipExplorer
         {
             List<string> ret = new();
 
-            if (_audioFileReader != null)
+            if (_audioFileReader is not null)
             {
                 _audioFileReader!.Position = 0; // rewind
                 var sampleChannel = new SampleChannel(_audioFileReader, false);
@@ -268,7 +268,7 @@ namespace ClipExplorer
         /// </summary>
         void ShowClip()
         {
-            if (_audioFileReader != null)
+            if (_audioFileReader is not null)
             {
                 _audioFileReader.Position = 0; // rewind
                 var sampleChannel = new SampleChannel(_audioFileReader, false);
@@ -358,7 +358,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void WaveOut_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
-            if (e.Exception != null)
+            if (e.Exception is not null)
             {
                 LogMessage("ERR", e.Exception.Message);
             }

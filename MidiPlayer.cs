@@ -40,9 +40,6 @@ namespace ClipExplorer
         /// <summary>The fast timer.</summary>
         readonly MmTimerEx _mmTimer = new();
 
-        /// <summary>Indicates whether or not the midi is playing.</summary>
-        bool _running = false;
-
         /// <summary>Midi events from the input file.</summary>
         MidiFile? _mfile;
 
@@ -180,7 +177,7 @@ namespace ClipExplorer
         public void Play()
         {
             // Start or restart?
-            if (!_running)
+            if (!_mmTimer.Running)
             {
                 // Downshift to time increments compatible with this system.
                 MidiTime mt = new()
@@ -196,8 +193,6 @@ namespace ClipExplorer
                 // Create periodic timer.
                 _mmTimer.SetTimer(period, MmTimerCallback);
                 _mmTimer.Start();
-
-                _running = true;
             }
             else
             {
@@ -208,10 +203,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Stop()
         {
-            _running = false;
-
             _mmTimer.Stop();
-
             // Send midi stop all notes just in case.
             KillAll();
         }
@@ -274,7 +266,7 @@ namespace ClipExplorer
         /// </summary>
         void MmTimerCallback(double totalElapsed, double periodElapsed)
         {
-            if (_running)
+            if (_mmTimer.Running)
             {
                 // Any soloes?
                 bool solo = _playChannels.Where(c => c.Mode == PlayChannel.PlayMode.Solo).Any();
@@ -337,7 +329,7 @@ namespace ClipExplorer
                 // Bump time. Check for end of play. Client will take care of transport control.
                 if (barBar.IncrementCurrent(1))
                 {
-                    _running = false;
+//>>                    _running = false;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
                 }
             }
@@ -441,7 +433,7 @@ namespace ClipExplorer
             //// Send midi stop all notes just in case.
             //for (int i = 0; i < _playChannels.Count(); i++)
             //{
-            //    if (_playChannels[i] != null && _playChannels[i].Valid)
+            //    if (_playChannels[i] is not null && _playChannels[i].Valid)
             //    {
             //        Kill(i);
             //    }
@@ -531,7 +523,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Tempo_ValueChanged(object? sender, EventArgs e)
         {
-            if (_running)
+            if (_mmTimer.Running)
             {
                 Stop();
                 _tempo = (int)sldTempo.Value;

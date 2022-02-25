@@ -25,14 +25,8 @@ namespace ClipExplorer
         [Description("Where to look in order as they appear.")]
         [Category("Navigator")]
         [Browsable(true)]
-        [Editor(typeof(ListEditor), typeof(UITypeEditor))]
+        [Editor(typeof(StringListEditor), typeof(UITypeEditor))] // Should be a proper folder picker.
         public List<string> RootDirs { get; set; } = new List<string>();
-
-        [DisplayName("Autoplay Files")]
-        [Description("Single click plays file otherwise requires double click.")]
-        [Category("Navigator")]
-        [Browsable(true)]
-        public bool Autoplay { get; set; } = true;
 
         [DisplayName("Dump To Clipboard")]
         [Description("Otherwise to file.")]
@@ -87,16 +81,16 @@ namespace ClipExplorer
         public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
 
         [Browsable(false)]
+        public bool Autoplay { get; set; } = true;
+
+        [Browsable(false)]
+        public bool Loop { get; set; } = false;
+
+        [Browsable(false)]
         public double Volume { get; set; } = 0.5;
 
         [Browsable(false)]
         public List<string> RecentFiles { get; set; } = new List<string>();
-
-        [Browsable(false)]
-        public Dictionary<string, bool> AllTags { get; set; } = new Dictionary<string, bool>();
-
-        [Browsable(false)]
-        public Dictionary<string, string> TaggedPaths { get; set; } = new Dictionary<string, string>();
         #endregion
 
         #region Fields
@@ -144,6 +138,7 @@ namespace ClipExplorer
     public class FixedListTypeConverter : TypeConverter
     {
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
+
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
 
         // Get the specific list based on the property name.

@@ -54,6 +54,12 @@ namespace ClipExplorer
             di.Create();
             UserSettings.Load(appDir);
 
+            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
+
+            // Toolbar configs.
+            btnAutoplay.Checked = Common.Settings.Autoplay;
+            btnLoop.Checked = Common.Settings.Loop;
+
             // The text output.
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
@@ -84,6 +90,10 @@ namespace ClipExplorer
 
             InitNavigator();
 
+            // Hook up UI handlers.
+            chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? PlayX() : StopX(); };
+            btnRewind.Click += (_, __) => { Rewind(); };
+
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
         }
 
@@ -105,9 +115,7 @@ namespace ClipExplorer
         /// </summary>
         void SaveSettings()
         {
-            Common.Settings.AllTags = ftree.AllTags;
-            Common.Settings.TaggedPaths = ftree.TaggedPaths;
-            Common.Settings.Autoplay = !ftree.DoubleClickSelect;
+//>>            Common.Settings.Autoplay =  !ftree.DoubleClickSelect;
             Common.Settings.Volume = sldVolume.Value;
             Common.Settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
 
@@ -272,7 +280,7 @@ namespace ClipExplorer
         {
             bool ok = true;
 
-            Stop();
+            chkPlay.Checked = false; // ==> stop
 
             LogMessage(this, "INF", $"Opening file: {fn}");
 
@@ -310,7 +318,7 @@ namespace ClipExplorer
                             ok = _player!.OpenFile(fn);
                             if (Common.Settings.Autoplay)
                             {
-                                Start();
+                                chkPlay.Checked = true; // ==> run
                             }
                         }
                     }
@@ -381,10 +389,9 @@ namespace ClipExplorer
         /// Internal handler.
         /// </summary>
         /// <returns></returns>
-        bool Stop()
+        bool StopX()
         {
             _player?.Stop();
-            SetPlayCheck(false);
             return true;
         }
 
@@ -392,34 +399,45 @@ namespace ClipExplorer
         /// Internal handler.
         /// </summary>
         /// <returns></returns>
-        bool Start()
+        bool PlayX()
         {
             _player?.Rewind();
             _player?.Play();
-            SetPlayCheck(true);
             return true;
         }
 
         /// <summary>
-        /// Need to temporarily suppress CheckedChanged event.
+        /// Go back Jack.
         /// </summary>
-        /// <param name="on"></param>
-        void SetPlayCheck(bool on)
+        public void Rewind()
         {
-            chkPlay.CheckedChanged -= Play_CheckedChanged;
-            chkPlay.Checked = on;
-            chkPlay.CheckedChanged += Play_CheckedChanged;
+            // Might come from another thread.
+            this.InvokeIfRequired(_ =>
+            {
+                _player!.Rewind();
+            });
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Play_CheckedChanged(object? sender, EventArgs e)
-        {
-            var _ = chkPlay.Checked ? Start() : Stop();
-        }
+        ///// <summary>
+        ///// Need to temporarily suppress CheckedChanged event.
+        ///// </summary>
+        ///// <param name="on"></param>
+        //void SetPlayCheck(bool on)
+        //{
+        //    chkPlay.CheckedChanged -= Play_CheckedChanged;
+        //    chkPlay.Checked = on;
+        //    chkPlay.CheckedChanged += Play_CheckedChanged;
+        //}
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //void Play_CheckedChanged(object? sender, EventArgs e)
+        //{
+        //    var _ = chkPlay.Checked ? Start() : Stop();
+        //}
 
         /// <summary>
         /// 
@@ -431,14 +449,14 @@ namespace ClipExplorer
             // Usually comes from a different thread.
             this.InvokeIfRequired(_ =>
             {
-                if (chkLoop.Checked)
+                if (btnLoop.Checked)
                 {
-                    Start();
+                    PlayX();
                 }
                 else
                 {
-                    Stop();
-                    _player!.Rewind();
+                    StopX();
+                    Rewind();
                 }
             });
         }
@@ -454,7 +472,7 @@ namespace ClipExplorer
             {
                 case Keys.Space:
                     // Toggle.
-                    bool _ = chkPlay.Checked ? Stop() : Start();
+                    chkPlay.Checked = !chkPlay.Checked;
                     e.Handled = true;
                     break;
 
@@ -470,29 +488,27 @@ namespace ClipExplorer
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Rewind_Click(object? sender, EventArgs e)
-        {
-            Stop();
-            _player!.Rewind();
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //void Rewind_Click(object? sender, EventArgs e)
+        //{
+        //    Stop();
+        //    _player!.Rewind();
+        //}
         #endregion
 
         #region Navigator functions
         /// <summary>
-        /// Initialize tree from user settings. Clone so we don't mess up the originals.
+        /// Initialize tree from user settings.
         /// </summary>
         void InitNavigator()
         {
             ftree.FilterExts = _fileTypes.ToList();
             ftree.RootDirs = Common.Settings.RootDirs;
-            ftree.AllTags = Common.Settings.AllTags;
-            ftree.TaggedPaths = Common.Settings.TaggedPaths;
-            ftree.DoubleClickSelect = !Common.Settings.Autoplay;
+//>>            ftree.DoubleClickSelect = !Common.Settings.Autoplay;
 
             ftree.Init();
         }
