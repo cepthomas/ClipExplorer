@@ -115,7 +115,8 @@ namespace ClipExplorer
         /// </summary>
         void SaveSettings()
         {
-//>>            Common.Settings.Autoplay =  !ftree.DoubleClickSelect;
+            Common.Settings.Autoplay = btnAutoplay.Checked;
+            Common.Settings.Loop = btnLoop.Checked;
             Common.Settings.Volume = sldVolume.Value;
             Common.Settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
 
@@ -508,7 +509,7 @@ namespace ClipExplorer
         {
             ftree.FilterExts = _fileTypes.ToList();
             ftree.RootDirs = Common.Settings.RootDirs;
-//>>            ftree.DoubleClickSelect = !Common.Settings.Autoplay;
+            ftree.SingleClickSelect = true;
 
             ftree.Init();
         }

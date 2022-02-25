@@ -329,7 +329,6 @@ namespace ClipExplorer
                 // Bump time. Check for end of play. Client will take care of transport control.
                 if (barBar.IncrementCurrent(1))
                 {
-//>>                    _running = false;
                     PlaybackCompleted?.Invoke(this, new EventArgs());
                 }
             }
