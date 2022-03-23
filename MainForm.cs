@@ -50,9 +50,7 @@ namespace ClipExplorer
         {
             // Get the settings.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
-            DirectoryInfo di = new(appDir);
-            di.Create();
-            UserSettings.Load(appDir);
+            Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
 
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
@@ -128,23 +126,7 @@ namespace ClipExplorer
         /// </summary>
         void Settings_Click(object? sender, EventArgs e)
         {
-            using Form f = new()
-            {
-                Text = "User Settings",
-                Size = new Size(450, 450),
-                StartPosition = FormStartPosition.Manual,
-                Location = new Point(200, 200),
-                FormBorderStyle = FormBorderStyle.FixedToolWindow,
-                ShowIcon = false,
-                ShowInTaskbar = false
-            };
-
-            PropertyGridEx pg = new()
-            {
-                Dock = DockStyle.Fill,
-                PropertySort = PropertySort.Categorized,
-                SelectedObject = Common.Settings
-            };
+            var changes = Common.Settings.Edit("User Settings");
 
             // Detect changes of interest.
             bool midiChange = false;
@@ -152,18 +134,16 @@ namespace ClipExplorer
             bool navChange = false;
             bool restart = false;
 
-            pg.PropertyValueChanged += (sdr, args) =>
-            {
-                restart |= args.ChangedItem.PropertyDescriptor.Name.EndsWith("Device");
-                midiChange |= args.ChangedItem.PropertyDescriptor.Category == "Midi";
-                audioChange |= args.ChangedItem.PropertyDescriptor.Category == "Audio";
-                navChange |= args.ChangedItem.PropertyDescriptor.Category == "Navigator";
-            };
-
-            f.Controls.Add(pg);
-            f.ShowDialog();
-
             // Figure out what changed - each handled differently.
+            foreach (var (name, cat) in changes)
+            {
+                restart |= name.EndsWith("Device");
+                restart |= cat == "Cosmetics";
+                midiChange |= cat == "Midi";
+                audioChange |= cat == "Audio";
+                navChange |= cat == "Navigator";
+            }
+
             if (restart)
             {
                 MessageBox.Show("Restart required for device changes to take effect");
@@ -206,7 +186,7 @@ namespace ClipExplorer
             this.InvokeIfRequired(_ =>
             {
                 string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
-                txtViewer.AddLine(s);
+                txtViewer.AppendLine(s);
             });
         }
         #endregion

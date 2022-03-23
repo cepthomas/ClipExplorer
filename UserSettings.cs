@@ -18,7 +18,7 @@ using NBagOfUis;
 namespace ClipExplorer
 {
     [Serializable]
-    public class UserSettings
+    public class UserSettings : Settings
     {
         #region Persisted editable properties
         [DisplayName("Root Directories")]
@@ -77,10 +77,6 @@ namespace ClipExplorer
 
         #region Persisted Non-editable Properties
         [Browsable(false)]
-        [JsonConverter(typeof(JsonRectangleConverter))]
-        public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
-
-        [Browsable(false)]
         public bool Autoplay { get; set; } = true;
 
         [Browsable(false)]
@@ -88,49 +84,6 @@ namespace ClipExplorer
 
         [Browsable(false)]
         public double Volume { get; set; } = 0.5;
-
-        [Browsable(false)]
-        public List<string> RecentFiles { get; set; } = new List<string>();
-        #endregion
-
-        #region Fields
-        /// <summary>The file name.</summary>
-        string _fn = "???";
-        #endregion
-
-        #region Persistence
-        /// <summary>Save object to file.</summary>
-        public void Save()
-        {
-            JsonSerializerOptions opts = new() { WriteIndented = true };
-            string json = JsonSerializer.Serialize(this, opts);
-            File.WriteAllText(_fn, json);
-        }
-
-        /// <summary>Create object from file.</summary>
-        public static void Load(string appDir)
-        {
-            string fn = Path.Combine(appDir, "settings.json");
-
-            if (File.Exists(fn))
-            {
-                string json = File.ReadAllText(fn);
-                UserSettings? set = JsonSerializer.Deserialize<UserSettings>(json);
-                Common.Settings = set ?? new();
-                Common.Settings._fn = fn;
-
-                // Clean up any bad file names.
-                Common.Settings.RecentFiles.RemoveAll(f => !File.Exists(f));
-            }
-            else
-            {
-                // Doesn't exist, create a new one.
-                Common.Settings = new UserSettings
-                {
-                    _fn = fn
-                };
-            }
-        }
         #endregion
     }
 
