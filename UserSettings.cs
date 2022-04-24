@@ -67,6 +67,12 @@ namespace ClipExplorer
         [Browsable(true)]
         public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;
 
+        [DisplayName("Time is 0-based")]
+        [Description("Engineers prefer this to musician style.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public bool ZeroBased { get; set; } = false;
+
         [DisplayName("Control Color")]
         [Description("Pick what you like.")]
         [Category("Cosmetics")]

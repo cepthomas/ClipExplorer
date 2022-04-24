@@ -12,10 +12,6 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-//this.btnPatch.Click += new System.EventHandler(this.Patch_Click);
-//this.lbPatterns.SelectedIndexChanged += new System.EventHandler(this.Patterns_SelectedIndexChanged);
-
-
 namespace ClipExplorer
 {
     /// <summary>
@@ -221,6 +217,7 @@ namespace ClipExplorer
         {
             bool ok = true;
 
+            barBar.ZeroBased = Common.Settings.ZeroBased;
             barBar.BeatsPerBar = BEATS_PER_BAR;
             barBar.SubdivsPerBeat = PPQ;
             barBar.Snap = Common.Settings.Snap;
