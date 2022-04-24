@@ -59,11 +59,11 @@ namespace ClipExplorer
             btnLoop.Checked = Common.Settings.Loop;
 
             // The text output.
+            txtViewer.Font = Font;
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
             txtViewer.Colors.Add("ERR", Color.LightPink);
-            //txtViewer.Colors.Add("WRN:", Color.Plum);
-            txtViewer.Font = new("Lucida Console", 9);
+            txtViewer.Colors.Add("WRN:", Color.Plum);
 
             // Create devices.
             _wavePlayer = new WavePlayer() { Visible = false };
@@ -134,7 +134,6 @@ namespace ClipExplorer
             bool navChange = false;
             bool restart = false;
 
-            // Figure out what changed - each handled differently.
             foreach (var (name, cat) in changes)
             {
                 restart |= name.EndsWith("Device");
@@ -185,7 +184,8 @@ namespace ClipExplorer
             // May come from a different thread.
             this.InvokeIfRequired(_ =>
             {
-                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
+                //string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
+                string s = $"> {cat} ({((Control)sender!).Name}) {msg}";
                 txtViewer.AppendLine(s);
             });
         }

@@ -33,14 +33,14 @@
             this.fileDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
+            this.btnAutoplay = new System.Windows.Forms.ToolStripButton();
+            this.btnLoop = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftree = new NBagOfUis.FilTree();
             this.txtViewer = new NBagOfUis.TextViewer();
             this.sldVolume = new NBagOfUis.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
-            this.btnAutoplay = new System.Windows.Forms.ToolStripButton();
-            this.btnLoop = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -96,6 +96,24 @@
             this.btnAbout.ToolTipText = "Get some info";
             this.btnAbout.Click += new System.EventHandler(this.About_Click);
             // 
+            // btnAutoplay
+            // 
+            this.btnAutoplay.CheckOnClick = true;
+            this.btnAutoplay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnAutoplay.Image = global::ClipExplorer.Properties.Resources.glyphicons_221_play_button;
+            this.btnAutoplay.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAutoplay.Name = "btnAutoplay";
+            this.btnAutoplay.Size = new System.Drawing.Size(29, 24);
+            // 
+            // btnLoop
+            // 
+            this.btnLoop.CheckOnClick = true;
+            this.btnLoop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_82_refresh;
+            this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnLoop.Name = "btnLoop";
+            this.btnLoop.Size = new System.Drawing.Size(29, 24);
+            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -133,14 +151,14 @@
             this.txtViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtViewer.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtViewer.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtViewer.Location = new System.Drawing.Point(2, 398);
             this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
             this.txtViewer.Size = new System.Drawing.Size(709, 425);
             this.txtViewer.TabIndex = 58;
-            this.txtViewer.Text = "";
+            this.txtViewer.WordWrap = true;
             // 
             // sldVolume
             // 
@@ -183,24 +201,6 @@
             this.chkPlay.Size = new System.Drawing.Size(43, 49);
             this.chkPlay.TabIndex = 41;
             this.chkPlay.UseVisualStyleBackColor = false;
-            // 
-            // btnAutoplay
-            // 
-            this.btnAutoplay.CheckOnClick = true;
-            this.btnAutoplay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnAutoplay.Image = global::ClipExplorer.Properties.Resources.glyphicons_221_play_button;
-            this.btnAutoplay.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnAutoplay.Name = "btnAutoplay";
-            this.btnAutoplay.Size = new System.Drawing.Size(29, 24);
-            // 
-            // btnLoop
-            // 
-            this.btnLoop.CheckOnClick = true;
-            this.btnLoop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_82_refresh;
-            this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnLoop.Name = "btnLoop";
-            this.btnLoop.Size = new System.Drawing.Size(29, 24);
             // 
             // MainForm
             // 
