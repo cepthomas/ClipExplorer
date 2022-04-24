@@ -89,7 +89,7 @@ namespace ClipExplorer
             InitNavigator();
 
             // Hook up UI handlers.
-            chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? PlayX() : StopX(); };
+            chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? Play() : Stop(); };
             btnRewind.Click += (_, __) => { Rewind(); };
 
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
@@ -370,7 +370,7 @@ namespace ClipExplorer
         /// Internal handler.
         /// </summary>
         /// <returns></returns>
-        bool StopX()
+        bool Stop()
         {
             _player?.Stop();
             return true;
@@ -380,7 +380,7 @@ namespace ClipExplorer
         /// Internal handler.
         /// </summary>
         /// <returns></returns>
-        bool PlayX()
+        bool Play()
         {
             _player?.Rewind();
             _player?.Play();
@@ -399,27 +399,6 @@ namespace ClipExplorer
             });
         }
 
-        ///// <summary>
-        ///// Need to temporarily suppress CheckedChanged event.
-        ///// </summary>
-        ///// <param name="on"></param>
-        //void SetPlayCheck(bool on)
-        //{
-        //    chkPlay.CheckedChanged -= Play_CheckedChanged;
-        //    chkPlay.Checked = on;
-        //    chkPlay.CheckedChanged += Play_CheckedChanged;
-        //}
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //void Play_CheckedChanged(object? sender, EventArgs e)
-        //{
-        //    var _ = chkPlay.Checked ? Start() : Stop();
-        //}
-
         /// <summary>
         /// 
         /// </summary>
@@ -432,11 +411,11 @@ namespace ClipExplorer
             {
                 if (btnLoop.Checked)
                 {
-                    PlayX();
+                    Play();
                 }
                 else
                 {
-                    StopX();
+                    chkPlay.Checked = false;
                     Rewind();
                 }
             });

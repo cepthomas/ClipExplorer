@@ -387,9 +387,9 @@ namespace ClipExplorer
 
             // Figure out times.
             int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
-            // Round up to bar.
-            int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
-            lastSubdiv = (floor + 1) * (PPQ * 4);
+            //// Round up to bar.
+            //int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
+            //lastSubdiv = (floor + 1) * (PPQ * 4);
             sldTempo.Value = _tempo;
 
             barBar.Length = new BarSpan(lastSubdiv);
