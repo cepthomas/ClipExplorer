@@ -66,13 +66,13 @@ namespace ClipExplorer
             txtViewer.Colors.Add("WRN:", Color.Plum);
 
             // Create devices.
-            _wavePlayer = new WavePlayer() { Visible = false };
+            _wavePlayer = new WavePlayer() { Visible = false, Volume = Common.Settings.Volume };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             _wavePlayer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
             splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
-            _midiPlayer = new MidiPlayer() { Visible = false };
+            _midiPlayer = new MidiPlayer() { Visible = false, Volume = Common.Settings.Volume };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             _midiPlayer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);

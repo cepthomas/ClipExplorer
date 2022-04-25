@@ -222,6 +222,8 @@ namespace ClipExplorer
             barBar.SubdivsPerBeat = PPQ;
             barBar.Snap = Common.Settings.Snap;
 
+            sldTempo.Resolution = Common.Settings.TempoResolution;
+
             return ok;
         }
 

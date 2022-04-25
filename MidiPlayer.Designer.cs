@@ -63,7 +63,7 @@ namespace ClipExplorer
             // sldTempo
             // 
             this.sldTempo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.sldTempo.DecPlaces = 0;
+            this.sldTempo.Resolution = 5;
             this.sldTempo.DrawColor = System.Drawing.Color.White;
             this.sldTempo.Label = "BPM";
             this.sldTempo.Location = new System.Drawing.Point(2, 70);
@@ -72,7 +72,6 @@ namespace ClipExplorer
             this.sldTempo.Minimum = 50D;
             this.sldTempo.Name = "sldTempo";
             this.sldTempo.Orientation = System.Windows.Forms.Orientation.Horizontal;
-            this.sldTempo.ResetValue = 50D;
             this.sldTempo.Size = new System.Drawing.Size(98, 53);
             this.sldTempo.TabIndex = 63;
             this.toolTip.SetToolTip(this.sldTempo, "Tempo adjuster");

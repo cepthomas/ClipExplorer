@@ -61,6 +61,12 @@ namespace ClipExplorer
         [Browsable(true)]
         public int DefaultTempo { get; set; } = 100;
 
+        [DisplayName("Tempo Resolution")]
+        [Description("Adjust tempo in UI.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public int TempoResolution { get; set; } = 5;
+
         [DisplayName("Snap To Grid")]
         [Description("Snap to bar | beat | subdiv.")]
         [Category("Midi")]

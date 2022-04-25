@@ -163,7 +163,7 @@
             // sldVolume
             // 
             this.sldVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.sldVolume.DecPlaces = 1;
+            this.sldVolume.Resolution = 0.05D;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
             this.sldVolume.Location = new System.Drawing.Point(117, 8);
@@ -172,7 +172,6 @@
             this.sldVolume.Minimum = 0D;
             this.sldVolume.Name = "sldVolume";
             this.sldVolume.Orientation = System.Windows.Forms.Orientation.Horizontal;
-            this.sldVolume.ResetValue = 0D;
             this.sldVolume.Size = new System.Drawing.Size(100, 50);
             this.sldVolume.TabIndex = 42;
             this.sldVolume.Value = 0.5D;
