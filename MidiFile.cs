@@ -20,7 +20,7 @@ namespace ClipExplorer
     {
         #region Properties gleaned from the file
         /// <summary>What is it.</summary>
-        public string Filename { get; private set; } = "";
+        public string FileName { get; private set; } = "";
 
         /// <summary>What is it.</summary>
         public int MidiFileType { get; private set; } = 0;
@@ -72,7 +72,7 @@ namespace ClipExplorer
         {
             // Init everything.
             _midiEvents.Clear();
-            Filename = fn;
+            FileName = fn;
             Channels.Clear();
             DeltaTicksPerQuarterNote = 0;
             Tempo = 100;

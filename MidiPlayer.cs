@@ -238,12 +238,12 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Export()
         {
-            string? dir = Path.GetDirectoryName(_mfile!.Filename);
-            string newfn = Path.GetFileNameWithoutExtension(_mfile.Filename);
+            string? dir = Path.GetDirectoryName(_mfile!.FileName);
+            string newfn = Path.GetFileNameWithoutExtension(_mfile.FileName);
             string info;
 
             newfn = $"{newfn}_export.mid";
-            info = $"Export from {_mfile.Filename}";
+            info = $"Export from {_mfile.FileName}";
 
             using SaveFileDialog dumpDlg = new()
             {
