@@ -9,6 +9,12 @@ Audio and midi play devices are limited to the ones available on your box. (Hint
 
 Requires VS2019 and .NET5.
 
+Uses:
+- [NBagOfTricks](https://github.com/cepthomas/NBagOfTricks/blob/main/README.md)
+- [NBagOfUis](https://github.com/cepthomas/NBagOfUis/blob/main/README.md)
+- [MidiLib](https://github.com/cepthomas/MidiLib/blob/main/README.md).
+
+
 # Usage
 
 - The simple UI shows a tree directory navigator on the left and standard audio transport family of controls on the right.
