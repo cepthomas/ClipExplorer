@@ -56,9 +56,6 @@
         <member name="F:MidiLib.ChannelCollection._channels">
             <summary>All the channels. Index is 0-based, not channel number.</summary>
         </member>
-        <member name="P:MidiLib.ChannelCollection.TheChannels">
-            <summary>The global collection.</summary>
-        </member>
         <member name="P:MidiLib.ChannelCollection.TotalSubdivs">
             <summary>Longest length of channels in subdivs.</summary>
         </member>
@@ -77,8 +74,8 @@
             <summary>
             Opaque binder.
             </summary>
-            <param name="chnum">This channel to..</param>
-            <param name="control">This control.</param>
+            <param name="chnum">From this channel...</param>
+            <param name="control">...to this control.</param>
         </member>
         <member name="M:MidiLib.ChannelCollection.SetEvents(System.Int32,System.Collections.Generic.IEnumerable{MidiLib.EventDesc},MidiLib.MidiTime)">
             <summary>
@@ -340,6 +337,9 @@
             <summary>
             Reads in and processes standard midi or yamaha style files.
             </summary>
+        </member>
+        <member name="F:MidiLib.MidiData._allChannels">
+            <summary>The internal channel objects.</summary>
         </member>
         <member name="F:MidiLib.MidiData._includeNoisy">
             <summary>Include events like controller changes, pitch wheel, ...</summary>
@@ -654,10 +654,13 @@
         <member name="F:MidiLib.Player._midiOut">
             <summary>Midi output device.</summary>
         </member>
+        <member name="F:MidiLib.Player._allChannels">
+            <summary>The internal channel objects.</summary>
+        </member>
         <member name="F:MidiLib.Player._currentSubdiv">
             <summary>Backing.</summary>
         </member>
-        <member name="F:MidiLib.Player._midiTraceFile">
+        <member name="F:MidiLib.Player._midiLogFile">
             <summary>Where to log to.</summary>
         </member>
         <member name="P:MidiLib.Player.State">
@@ -672,12 +675,13 @@
         <member name="P:MidiLib.Player.LogMidi">
             <summary>Log outbound traffic. Warning - can get busy.</summary>
         </member>
-        <member name="M:MidiLib.Player.#ctor(System.String,System.String)">
+        <member name="M:MidiLib.Player.#ctor(System.String,MidiLib.ChannelCollection,System.String)">
             <summary>
             Normal constructor.
             </summary>
             <param name="midiDevice">Client supplies name of device.</param>
-            <param name="midiTracePath">Where to log.</param>
+            <param name="channels">The actual channels.</param>
+            <param name="midiLogPath">Where to log wire events (optional).</param>
         </member>
         <member name="M:MidiLib.Player.#ctor">
             <summary>

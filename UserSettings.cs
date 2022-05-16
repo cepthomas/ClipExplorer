@@ -97,6 +97,10 @@ namespace ClipExplorer
         [Browsable(false)]
         public double Volume { get; set; } = 0.5;
         #endregion
+
+        [Browsable(false)]
+        [JsonIgnore]
+        public string ExportPath { get; set; } = "";
     }
 
     /// <summary>Converter for selecting property value from known lists.</summary>

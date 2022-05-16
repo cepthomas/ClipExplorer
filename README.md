@@ -19,7 +19,7 @@ Uses:
 
 - The simple UI shows a tree directory navigator on the left and standard audio transport family of controls on the right.
   Depending on file choice, audio or midi specific controls will be shown.
-- If midi file type is one, all tracks are combined. Because.
+- If midi file type is `1`, all tracks are combined. Because.
 - Files can have tags applied for the purpose of filtering.
 - Click on the settings icon to edit your options.
 - Some midi files with single instruments are sloppy with channel numbers so there are a couple of options for simple remapping.

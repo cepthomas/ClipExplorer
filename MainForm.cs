@@ -11,6 +11,8 @@ using System.IO;
 using System.Diagnostics;
 using NBagOfTricks;
 using NBagOfUis;
+using MidiLib;
+
 
 
 namespace ClipExplorer
@@ -48,9 +50,12 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_Load(object? sender, EventArgs e)
         {
-            // Get the settings.
+            // Get settings and set up paths.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
             Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
+            Common.Settings.ExportPath = Path.Combine(appDir, "export");
+            DirectoryInfo di = new(Common.Settings.ExportPath);
+            di.Create();
 
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
@@ -203,8 +208,6 @@ namespace ClipExplorer
 
             // Always:
             fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Open...", null, Open_Click));
-            fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Dump...", null, Dump_Click));
-            fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export...", null, Export_Click));
             fileDropDownButton.DropDownItems.Add(new ToolStripSeparator());
 
             Common.Settings.RecentFiles.ForEach(f =>
@@ -327,41 +330,6 @@ namespace ClipExplorer
             }
 
             return ok;
-        }
-
-        /// <summary>
-        /// Dump current file.
-        /// </summary>
-        void Dump_Click(object? sender, EventArgs e)
-        {
-            var ds = _player!.Dump();
-            if (ds.Count > 0)
-            {
-                if (Common.Settings.DumpToClip)
-                {
-                    Clipboard.SetText(string.Join(Environment.NewLine, ds));
-                    LogMessage(this, "INF", "File dumped to clipboard");
-                }
-                else
-                {
-                    using SaveFileDialog dumpDlg = new() { Title = "Dump to file", FileName = "dump.csv" };
-
-                    if (dumpDlg.ShowDialog() == DialogResult.OK)
-                    {
-                        File.WriteAllLines(dumpDlg.FileName, ds.ToArray());
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Export_Click(object? sender, EventArgs e)
-        {
-            _player!.Export();
         }
         #endregion
 

@@ -157,12 +157,6 @@ namespace ClipExplorer
 
             return ok;
         }
-
-        /// <inheritdoc />
-        public void Export()
-        {
-            LogMessage("INF", "Sorry, not supported");
-        }
         #endregion
 
         #region Play functions
@@ -204,7 +198,10 @@ namespace ClipExplorer
             return true;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Might be useful in the future.
+        /// </summary>
+        /// <returns></returns>
         public List<string> Dump()
         {
             List<string> ret = new();

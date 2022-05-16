@@ -22,9 +22,10 @@ namespace ClipExplorer
             this.cgChannels = new NBagOfUis.ClickGrid();
             this.sldTempo = new NBagOfUis.Slider();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.chkDrumsOn1 = new System.Windows.Forms.CheckBox();
             this.btnKill = new System.Windows.Forms.Button();
             this.chkLogMidi = new System.Windows.Forms.CheckBox();
+            this.cmbDrumChannel = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // barBar
@@ -45,6 +46,7 @@ namespace ClipExplorer
             this.barBar.SubdivsPerBeat = 8;
             this.barBar.TabIndex = 70;
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
+            this.barBar.ZeroBased = false;
             // 
             // cgChannels
             // 
@@ -63,7 +65,6 @@ namespace ClipExplorer
             // sldTempo
             // 
             this.sldTempo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.sldTempo.Resolution = 5;
             this.sldTempo.DrawColor = System.Drawing.Color.White;
             this.sldTempo.Label = "BPM";
             this.sldTempo.Location = new System.Drawing.Point(2, 70);
@@ -72,25 +73,12 @@ namespace ClipExplorer
             this.sldTempo.Minimum = 50D;
             this.sldTempo.Name = "sldTempo";
             this.sldTempo.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.sldTempo.Resolution = 5D;
             this.sldTempo.Size = new System.Drawing.Size(98, 53);
             this.sldTempo.TabIndex = 63;
             this.toolTip.SetToolTip(this.sldTempo, "Tempo adjuster");
             this.sldTempo.Value = 100D;
             this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
-            // 
-            // chkDrumsOn1
-            // 
-            this.chkDrumsOn1.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chkDrumsOn1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkDrumsOn1.Location = new System.Drawing.Point(2, 136);
-            this.chkDrumsOn1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.chkDrumsOn1.Name = "chkDrumsOn1";
-            this.chkDrumsOn1.Size = new System.Drawing.Size(98, 34);
-            this.chkDrumsOn1.TabIndex = 77;
-            this.chkDrumsOn1.Text = "Drums on 1";
-            this.toolTip.SetToolTip(this.chkDrumsOn1, "Drums are on channel 1");
-            this.chkDrumsOn1.UseVisualStyleBackColor = true;
-            this.chkDrumsOn1.CheckedChanged += new System.EventHandler(this.DrumsOn1_CheckedChanged);
             // 
             // btnKill
             // 
@@ -103,7 +91,6 @@ namespace ClipExplorer
             this.btnKill.TabIndex = 79;
             this.toolTip.SetToolTip(this.btnKill, "Kill all midi channels");
             this.btnKill.UseVisualStyleBackColor = true;
-            this.btnKill.Click += new System.EventHandler(this.Kill_Click);
             // 
             // chkLogMidi
             // 
@@ -118,12 +105,32 @@ namespace ClipExplorer
             this.toolTip.SetToolTip(this.chkLogMidi, "Enable logging midi events");
             this.chkLogMidi.UseVisualStyleBackColor = true;
             // 
+            // cmbDrumChannel
+            // 
+            this.cmbDrumChannel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbDrumChannel.FormattingEnabled = true;
+            this.cmbDrumChannel.Location = new System.Drawing.Point(38, 131);
+            this.cmbDrumChannel.Name = "cmbDrumChannel";
+            this.cmbDrumChannel.Size = new System.Drawing.Size(62, 28);
+            this.cmbDrumChannel.TabIndex = 81;
+            this.toolTip.SetToolTip(this.cmbDrumChannel, "Drums on this channel");
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(4, 135);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(32, 20);
+            this.label1.TabIndex = 80;
+            this.label1.Text = "DC:";
+            // 
             // MidiPlayer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.cmbDrumChannel);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.btnKill);
-            this.Controls.Add(this.chkDrumsOn1);
             this.Controls.Add(this.chkLogMidi);
             this.Controls.Add(this.barBar);
             this.Controls.Add(this.cgChannels);
@@ -133,6 +140,7 @@ namespace ClipExplorer
             this.Size = new System.Drawing.Size(588, 285);
             this.Load += new System.EventHandler(this.MidiPlayer_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
         #endregion
@@ -142,7 +150,8 @@ namespace ClipExplorer
         private NBagOfUis.BarBar barBar;
         private ToolTip toolTip;
         private CheckBox chkLogMidi;
-        private CheckBox chkDrumsOn1;
         private Button btnKill;
+        private Label label1;
+        private ComboBox cmbDrumChannel;
     }
 }

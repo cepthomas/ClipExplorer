@@ -39,13 +39,6 @@ namespace ClipExplorer
 
         /// <summary>Settings have been edited.</summary>
         bool SettingsChanged();
-
-        /// <summary>Export to binary content. Depends on type.</summary>
-        void Export();
-
-        /// <summary>Formatted/readable content.</summary>
-        /// <returns>Content. Empty if there was an error.</returns>
-        List<string> Dump();
         #endregion
     }
 }
