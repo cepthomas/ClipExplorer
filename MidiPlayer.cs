@@ -117,9 +117,9 @@ namespace ClipExplorer
             _mdata.ExportPath = Common.Settings.ExportPath;
 
             // Set up the channel/mute/solo grid.
-            cgChannels.AddStateType((int)ChannelState.Normal, Color.Black, Color.AliceBlue);
-            cgChannels.AddStateType((int)ChannelState.Solo, Color.Black, Color.LightGreen);
-            cgChannels.AddStateType((int)ChannelState.Mute, Color.Black, Color.Salmon);
+            gridChannels.AddStateType((int)ChannelState.Normal, Color.Black, Color.AliceBlue);
+            gridChannels.AddStateType((int)ChannelState.Solo, Color.Black, Color.LightGreen);
+            gridChannels.AddStateType((int)ChannelState.Mute, Color.Black, Color.Salmon);
 
             barBar.ProgressColor = Common.Settings.ControlColor;
             barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
@@ -135,8 +135,8 @@ namespace ClipExplorer
             {
                 cmbDrumChannel.Items.Add(i);
             }
+            cmbDrumChannel.SelectedIndex = MidiDefs.DEFAULT_DRUM_CHANNEL;
             cmbDrumChannel.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
-
 
             btnKill.Click += (_, __) => _player.KillAll();
         }
@@ -174,7 +174,8 @@ namespace ClipExplorer
             using (new WaitCursor())
             {
                 // Clean up first.
-                cgChannels.Clear();
+                _allChannels.Reset();
+                gridChannels.Clear();
                 Rewind();
 
                 // Process the file. This creates all channels.
@@ -192,7 +193,6 @@ namespace ClipExplorer
                     Tempo = _tempo
                 };
 
-                //int lastSubdiv = 0;
                 for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
                 {
                     int chnum = i + 1;
@@ -243,6 +243,7 @@ namespace ClipExplorer
                 //// Create periodic timer.
                 //_mmTimer.SetTimer(period, MmTimerCallback);
                 _mmTimer.Start();
+                _player.Run(true);
             }
             else
             {
@@ -254,6 +255,7 @@ namespace ClipExplorer
         public void Stop()
         {
             _mmTimer.Stop();
+            _player.Run(false);
             // Send midi stop all notes just in case.
             _player.KillAll();
         }
@@ -417,7 +419,7 @@ namespace ClipExplorer
         /// </summary>
         void InitChannelsGrid()
         {
-            cgChannels.Clear();
+            gridChannels.Clear();
             int i = 0;
 
             foreach(var ch in _allChannels)
@@ -436,12 +438,12 @@ namespace ClipExplorer
 
                 if(name != "")
                 {
-                    cgChannels.AddIndicator($"Ch{i + 1} {name}", i);
+                    gridChannels.AddIndicator($"Ch{i + 1} {name}", i);
                 }
                 i++;
             }
 
-            cgChannels.Show(2, cgChannels.Width / 2, 20);
+            gridChannels.Show(2, gridChannels.Width / 2, 20);
         }
         #endregion
 
@@ -483,7 +485,7 @@ namespace ClipExplorer
                     _player.Kill(chnum);
                     break;
             }
-            cgChannels.SetIndicator(chind, (int)newState);
+            gridChannels.SetIndicator(chind, (int)newState);
         }
 
         /// <summary>

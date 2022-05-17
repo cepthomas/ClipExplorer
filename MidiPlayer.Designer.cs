@@ -19,7 +19,7 @@ namespace ClipExplorer
         {
             this.components = new System.ComponentModel.Container();
             this.barBar = new NBagOfUis.BarBar();
-            this.cgChannels = new NBagOfUis.ClickGrid();
+            this.gridChannels = new NBagOfUis.ClickGrid();
             this.sldTempo = new NBagOfUis.Slider();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.btnKill = new System.Windows.Forms.Button();
@@ -48,19 +48,19 @@ namespace ClipExplorer
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
             this.barBar.ZeroBased = false;
             // 
-            // cgChannels
+            // gridChannels
             // 
-            this.cgChannels.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.gridChannels.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.cgChannels.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.cgChannels.Location = new System.Drawing.Point(126, 70);
-            this.cgChannels.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.cgChannels.Name = "cgChannels";
-            this.cgChannels.Size = new System.Drawing.Size(448, 203);
-            this.cgChannels.TabIndex = 69;
-            this.toolTip.SetToolTip(this.cgChannels, "Midi channels with mute/solo");
-            this.cgChannels.IndicatorEvent += new System.EventHandler<NBagOfUis.IndicatorEventArgs>(this.Channels_IndicatorEvent);
+            this.gridChannels.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.gridChannels.Location = new System.Drawing.Point(126, 70);
+            this.gridChannels.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.gridChannels.Name = "gridChannels";
+            this.gridChannels.Size = new System.Drawing.Size(448, 203);
+            this.gridChannels.TabIndex = 69;
+            this.toolTip.SetToolTip(this.gridChannels, "Midi channels with mute/solo");
+            this.gridChannels.IndicatorEvent += new System.EventHandler<NBagOfUis.IndicatorEventArgs>(this.Channels_IndicatorEvent);
             // 
             // sldTempo
             // 
@@ -133,7 +133,7 @@ namespace ClipExplorer
             this.Controls.Add(this.btnKill);
             this.Controls.Add(this.chkLogMidi);
             this.Controls.Add(this.barBar);
-            this.Controls.Add(this.cgChannels);
+            this.Controls.Add(this.gridChannels);
             this.Controls.Add(this.sldTempo);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MidiPlayer";
@@ -146,7 +146,7 @@ namespace ClipExplorer
         #endregion
 
         private NBagOfUis.Slider sldTempo;
-        private NBagOfUis.ClickGrid cgChannels;
+        private NBagOfUis.ClickGrid gridChannels;
         private NBagOfUis.BarBar barBar;
         private ToolTip toolTip;
         private CheckBox chkLogMidi;

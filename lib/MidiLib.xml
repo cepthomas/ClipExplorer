@@ -43,6 +43,11 @@
             </summary>
             <param name="events"></param>
         </member>
+        <member name="M:MidiLib.Channel.Reset">
+            <summary>
+            Clean the events for the channel.
+            </summary>
+        </member>
         <member name="M:MidiLib.Channel.GetEvents(System.Int32)">
             <summary>
             Get the events for a specific subdiv.
@@ -68,6 +73,11 @@
         <member name="M:MidiLib.ChannelCollection.#ctor">
             <summary>
             Normal constructor.
+            </summary>
+        </member>
+        <member name="M:MidiLib.ChannelCollection.Reset">
+            <summary>
+            Clean the channels.
             </summary>
         </member>
         <member name="M:MidiLib.ChannelCollection.Bind(System.Int32,MidiLib.ChannelControl)">
