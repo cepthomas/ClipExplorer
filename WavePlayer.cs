@@ -50,7 +50,7 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public PlayState State { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public PlayState State { get => throw new NotImplementedException(); set => throw new NotImplementedException(); } //TODO
         #endregion
 
         #region Lifecycle
@@ -91,9 +91,18 @@ namespace ClipExplorer
         /// <param name="e"></param>
         private void WavePlayer_Load(object? sender, EventArgs e)
         {
+            // Init settings.
+            SettingsChanged();
+
             ResetMeters();
 
+            // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
+            waveViewerL.DrawColor = Color.Black;
+            waveViewerR.DrawColor = Color.Black;
+            levelL.DrawColor = Common.Settings.ControlColor;
+            levelR.DrawColor = Common.Settings.ControlColor;
+            timeBar.ProgressColor = Common.Settings.ControlColor;
 
             // Create output device.
             for (int id = -1; id < WaveOut.DeviceCount; id++)
@@ -110,12 +119,6 @@ namespace ClipExplorer
                     break;
                 }
             }
-
-            waveViewerL.DrawColor = Color.Black;
-            waveViewerR.DrawColor = Color.Black;
-            levelL.DrawColor = Common.Settings.ControlColor;
-            levelR.DrawColor = Common.Settings.ControlColor;
-            timeBar.ProgressColor = Common.Settings.ControlColor;
         }
         #endregion
 

@@ -13,10 +13,10 @@ using NBagOfUis;
 using MidiLib;
 
 
-//TODOMfileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export All", null, Export_Click));
-//TODOMfileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Pattern", null, Export_Click));
-//TODOMfileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Midi", null, Export_Click)); 
-
+//TODO exports:
+//fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export All", null, Export_Click));
+//fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Pattern", null, Export_Click));
+//fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Midi", null, Export_Click)); 
 
 namespace ClipExplorer
 {
@@ -50,9 +50,6 @@ namespace ClipExplorer
 
         /// <summary>Midi events from the input file.</summary>
         readonly MidiData _mdata = new();
-
-        ///// <summary>Requested tempo from file. Use default if not supplied.</summary>
-        //double _tempo = Common.Settings.DefaultTempo;
         #endregion
 
         #region Events
@@ -70,11 +67,6 @@ namespace ClipExplorer
         /// <inheritdoc />
         public PlayState State { get { return (PlayState)_player.State; } set { _player.State = (RunState)value; } }
         #endregion
-
-        //#region Types
-        ///// <summary>Player state.</summary>
-        //public enum RunState { Stopped, Playing, Complete }
-        //#endregion
 
         #region Lifecycle
         /// <summary>
@@ -103,12 +95,11 @@ namespace ClipExplorer
                 Environment.Exit(1);
             }
 
+            // Init settings.
             SettingsChanged();
 
+            // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
-            
-
-            _player = new(Common.Settings.MidiOutDevice, _allChannels);
 
             // Time controller.
             barBar.ZeroBased = Common.Settings.ZeroBased;
@@ -283,7 +274,6 @@ namespace ClipExplorer
         public bool SettingsChanged()
         {
             bool ok = true;
-
             barBar.ZeroBased = Common.Settings.ZeroBased;
             barBar.BeatsPerBar = BEATS_PER_BAR;
             barBar.SubdivsPerBeat = PPQ;
@@ -318,20 +308,10 @@ namespace ClipExplorer
                 MessageBox.Show(ex.Message);
             }
         }
+        #endregion
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="evt"></param>
-        //void MidiSend(MidiEvent evt)
-        //{
-        //    _midiOut?.Send(evt.GetAsShortMessage());
+        #region UI event handlers
 
-        //    if (chkLogMidi.Checked)
-        //    {
-        //        LogMessage("SND", evt.ToString());
-        //    }
-        //}
         #endregion
 
 
@@ -375,61 +355,6 @@ namespace ClipExplorer
             }
         }
 
-
-
-        ///// <summary>
-        ///// Get requested events.
-        ///// </summary>
-        //void GetEvents()
-        //{
-        //    // Init internal structure.
-        //    _playChannels.ForEach(pc => pc.Reset());
-
-        //    // Downshift to time increments compatible with this application.
-        //    MidiTime mt = new()
-        //    {
-        //        InternalPpq = PPQ,
-        //        MidiPpq = _mfile!.DeltaTicksPerQuarterNote,
-        //        Tempo = _tempo
-        //    };
-
-        //    // Bin events by channel. Scale to internal ppq.
-        //    foreach (var ch in _mfile.Channels)
-        //    {
-        //        _playChannels[ch.Key - 1].Patch = ch.Value;
-        //        var pevts = _mfile.GetEvents(ch.Key);
-
-        //        foreach (var te in pevts)
-        //        {
-        //            if (te.Channel - 1 < MidiDefs.NUM_CHANNELS) // midi is one-based
-        //            {
-        //                // Scale to internal.
-        //                long subdiv = mt.MidiToInternal(te.AbsoluteTime);
-
-        //                // Add to our collection.
-        //                _playChannels[te.Channel - 1].AddEvent((int)subdiv, te);
-        //            }
-        //        };
-        //    }
-
-        //    // Figure out times.
-        //    int lastSubdiv = _playChannels.Max(pc => pc.MaxSubdiv);
-        //    //// Round up to bar.
-        //    //int floor = lastSubdiv / (PPQ * 4); // 4/4 only.
-        //    //lastSubdiv = (floor + 1) * (PPQ * 4);
-        //    sldTempo.Value = _tempo;
-
-        //    barBar.Length = new BarSpan(lastSubdiv);
-        //    barBar.Start = BarSpan.Zero;
-        //    barBar.End = barBar.Length - BarSpan.OneSubdiv;
-        //    barBar.Current = BarSpan.Zero;
-        //}
-
-
-
-
-
-
         /// <summary>
         /// Logger.
         /// </summary>
@@ -439,44 +364,6 @@ namespace ClipExplorer
         {
             Log?.Invoke(this, new LogEventArgs(cat, msg));
         }
-
-        ///// <summary>
-        ///// Send all notes off.
-        ///// </summary>
-        ///// <param name="channel">1-based channel</param>
-        //void Kill(int channel)
-        //{
-        //    ControlChangeEvent nevt = new(0, channel, MidiController.AllNotesOff, 0);
-        //    MidiSend(nevt);
-        //}
-
-        ///// <summary>
-        ///// Send all notes off.
-        ///// </summary>
-        //void KillAll()
-        //{
-        //    // Send midi stop all notes just in case.
-        //    for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
-        //    {
-        //        Kill(i + 1);
-        //    }
-
-        //    //// Send midi stop all notes just in case.
-        //    //for (int i = 0; i < _playChannels.Count(); i++)
-        //    //{
-        //    //    if (_playChannels[i] is not null && _playChannels[i].Valid)
-        //    //    {
-        //    //        Kill(i);
-        //    //    }
-        //    //}
-        //}
-
-
-        #region UI event handlers
-
-        #endregion
-
-
 
         /// <summary>
         /// User changed tempo.
@@ -513,19 +400,6 @@ namespace ClipExplorer
         void BarBar_CurrentTimeChanged(object? sender, EventArgs e)
         {
         }
-
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //void Kill_Click(object? sender, EventArgs e)
-        //{
-        //    KillAll();
-        //}
-
-
 
         #region Process patterns
         /// <summary>
@@ -615,7 +489,7 @@ namespace ClipExplorer
 
             if (Common.Settings.Autoplay)
             {
-               //TODO chkPlay.Checked = true; // ==> Start()
+                Play();
             }
         }
 
@@ -633,7 +507,6 @@ namespace ClipExplorer
             }
         }
         #endregion
-
 
         #region Drum channel
         /// <summary>
@@ -656,7 +529,6 @@ namespace ClipExplorer
                 (ctl.ChannelNumber == cmbDrumChannel2.SelectedIndex));
         }
         #endregion
-
 
         #region Export
         /// <summary>

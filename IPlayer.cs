@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace ClipExplorer
 {
-
     public enum PlayState { Stopped = 0, Playing = 1, Complete = 2 }
 
     interface IPlayer : IDisposable
@@ -14,12 +13,10 @@ namespace ClipExplorer
         #region Properties
         /// <summary>Current master volume - between MIN_VOLUME and MAX_VOLUME. Default is DEFAULT_VOLUME.</summary>
         double Volume { get; set; }
-        #endregion
-
 
         /// <summary>What are we doing right now.</summary>
         PlayState State { get; set; }
-
+        #endregion
 
         #region Events
         /// <summary>Client needs to know when playing is done.</summary>
@@ -27,7 +24,6 @@ namespace ClipExplorer
 
         /// <summary>Log me please.</summary>
         event EventHandler<LogEventArgs> Log;
-
         #endregion
 
         #region Public Functions

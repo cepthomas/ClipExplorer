@@ -173,9 +173,9 @@ namespace ClipExplorer.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon Morso {
+        internal static System.Drawing.Icon zebra {
             get {
-                object obj = ResourceManager.GetObject("Morso", resourceCulture);
+                object obj = ResourceManager.GetObject("zebra", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }

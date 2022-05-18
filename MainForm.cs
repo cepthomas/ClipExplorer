@@ -15,18 +15,16 @@ using NBagOfUis;
 using MidiLib;
 
 
-namespace ClipExplorer // !!! was MidiFileExplorer
+namespace ClipExplorer
 {
     public partial class MainForm : Form
     {
-
         #region Fields
         /// <summary>Current file.</summary>
         string _fn = "";
 
         /// <summary>Supported file types in OpenFileDialog form.</summary>
-        readonly string _fileTypes = "Style Files|*.sty;*.pcs;*.sst;*.prs|Midi Files|*.mid";
-        readonly string[] _fileTypesX = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
+        readonly string _fileTypes = "Audio Files|*.wav;*.mp3;*.m4a;*.flac|Midi Files|*.mid|Style Files|*.sty;*.pcs;*.sst;*.prs|";
 
         /// <summary>Audio device.</summary>
         WavePlayer? _wavePlayer = null;
@@ -40,7 +38,6 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         /// <summary>Prevent button press recursion.</summary>
         bool _guard = false;
         #endregion
-
 
         #region Lifecycle
         /// <summary>
@@ -56,7 +53,7 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         /// </summary>
         void MainForm_Load(object? sender, EventArgs e)
         {
-            Icon = Properties.Resources.Morso;
+            Icon = Properties.Resources.zebra;
 
             // Get settings and set up paths.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
@@ -64,7 +61,6 @@ namespace ClipExplorer // !!! was MidiFileExplorer
             Common.ExportPath = Path.Combine(appDir, "export");
             DirectoryInfo di = new(Common.ExportPath);
             di.Create();
-
 
             // Init main form from settings
             Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
@@ -206,13 +202,7 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         /// </summary>
         bool Play()
         {
-            // // Start or restart?
-            // if (!_mmTimer.Running)
-            // {
-            //     _mmTimer.Start();
-            // }
             _player.Play();
-
             return true;
         }
 
@@ -221,9 +211,7 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         /// </summary>
         bool Stop()
         {
-            //_mmTimer.Stop();
             _player.Stop();
-
             return true;
         }
 
@@ -262,49 +250,78 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         }
         #endregion
 
-
         #region File handling
         /// <summary>
-        /// Common file opener. Initializes pattern list from contents.
+        /// Common file opener.
         /// </summary>
         /// <param name="fn">The file to open.</param>
+        /// <returns>Status.</returns>
         public bool OpenFile(string fn)
         {
             bool ok = true;
-            _fn = "";
 
-            LogMessage("INF", $"Reading file: {fn}");
+            chkPlay.Checked = false; // ==> Stop()
 
-            if(chkPlay.Checked)
+            LogMessage(this, "INF", $"Opening file: {fn}");
+
+            using (new WaitCursor())
             {
-                chkPlay.Checked = false; // ==> Stop()
-            }
+                try
+                {
+                    switch (Path.GetExtension(fn).ToLower())
+                    {
+                        case ".wav":
+                        case ".mp3":
+                        case ".m4a":
+                        case ".flac":
+                            _wavePlayer!.Visible = true;
+                            _midiPlayer!.Visible = false;
+                            _player = _wavePlayer;
+                            break;
 
-            try
-            {
-                //TODO
+                        case ".mid":
+                            _wavePlayer!.Visible = false;
+                            _midiPlayer!.Visible = true;
+                            _player = _midiPlayer;
+                            break;
 
-                _fn = fn;
-                SetText();
-            }
-            catch (Exception ex)
-            {
-                LogMessage("ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
-                _fn = "";
-                SetText();
-                ok = false;
+                        default:
+                            LogMessage(this, "ERR", $"Invalid file type: {fn}");
+                            ok = false;
+                            break;
+                    }
+
+                    if (ok)
+                    {
+                        ok = _player!.OpenFile(fn);
+                        _fn = fn;
+                        Common.Settings.RecentFiles.UpdateMru(fn);
+                        SetText();
+
+                        if (Common.Settings.Autoplay)
+                        {
+                            chkPlay.Checked = true; // ==> Play()
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(this, "ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
+                    _fn = "";
+                    SetText();
+                    ok = false;
+                }
             }
 
             return ok;
         }
-
 
         /// <summary>
         /// Initialize tree from user settings.
         /// </summary>
         void InitNavigator()
         {
-            ftree.FilterExts = _fileTypesX.ToList();
+            ftree.FilterExts = _fileTypes.SplitByTokens("|;*").Where(s => s.StartsWith(".")).ToList();
             ftree.RootDirs = Common.Settings.RootDirs;
             ftree.SingleClickSelect = true;
 
@@ -327,8 +344,6 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         {
             OpenFile(fn);
         }
-
-
 
         /// <summary>
         /// Organize the file menu item drop down.
@@ -363,7 +378,7 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         }
 
         /// <summary>
-        /// Allows the user to select a midi or style from file system.
+        /// Allows the user to select an audio clip or midi from file system.
         /// </summary>
         void Open_Click(object? sender, EventArgs e)
         {
@@ -373,115 +388,13 @@ namespace ClipExplorer // !!! was MidiFileExplorer
                 Title = "Select a file"
             };
 
-            if (openDlg.ShowDialog() == DialogResult.OK)
-            {
-                OpenFile(openDlg.FileName);
-            }
-        }
-        #endregion
-
-
-        /// <summary>
-        /// Allows the user to select an audio clip or midi from file system.
-        /// </summary>
-        void Open_Click_TODO(object? sender, EventArgs e)
-        {
-            string sext = "Clip Files | ";
-            foreach (string ext in _fileTypesX)
-            {
-                sext += $"*{ext}; ";
-            }
-
-            using OpenFileDialog openDlg = new()
-            {
-                Filter = sext,
-                Title = "Select a file"
-            };
-
             if (openDlg.ShowDialog() == DialogResult.OK && openDlg.FileName != _fn)
             {
                 OpenFile(openDlg.FileName);
                 _fn = openDlg.FileName;
             }
         }
-
-        /// <summary>
-        /// Common file opener.
-        /// </summary>
-        /// <param name="fn">The file to open.</param>
-        /// <returns>Status.</returns>
-        public bool OpenFile_TODO(string fn)
-        {
-            bool ok = true;
-
-            chkPlay.Checked = false; // ==> stop
-
-            LogMessage(this, "INF", $"Opening file: {fn}");
-
-            using (new WaitCursor())
-            {
-                try
-                {
-                    if (File.Exists(fn))
-                    {
-                        switch (Path.GetExtension(fn).ToLower())
-                        {
-                            case ".wav":
-                            case ".mp3":
-                            case ".m4a":
-                            case ".flac":
-                                _wavePlayer!.Visible = true;
-                                _midiPlayer!.Visible = false;
-                                _player = _wavePlayer;
-                                break;
-
-                            case ".mid":
-                                _wavePlayer!.Visible = false;
-                                _midiPlayer!.Visible = true;
-                                _player = _midiPlayer;
-                                break;
-
-                            default:
-                                LogMessage(this, "ERR", $"Invalid file type: {fn}");
-                                ok = false;
-                                break;
-                        }
-
-                        if (ok)
-                        {
-                            ok = _player!.OpenFile(fn);
-                            if (Common.Settings.Autoplay)
-                            {
-                                chkPlay.Checked = true; // ==> run
-                            }
-                        }
-                    }
-                    else
-                    {
-                        LogMessage(this, "ERR", $"Invalid file: {fn}");
-                        ok = false;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMessage(this, "ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
-                    ok = false;
-                }
-            }
-
-            if (ok)
-            {
-                SetText();
-                Common.Settings.RecentFiles.UpdateMru(fn);
-            }
-            else
-            {
-                SetText();
-            }
-
-            return ok;
-        }
-
+        #endregion
 
         #region Misc handlers
         /// <summary>
@@ -514,6 +427,26 @@ namespace ClipExplorer // !!! was MidiFileExplorer
                         e.Handled = true;
                     }
                     break;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Volume_ValueChanged(object? sender, EventArgs e)
+        {
+            float vol = (float)sldVolume.Value;
+            Common.Settings.Volume = vol;
+            if (_player is null)
+            {
+                _midiPlayer!.Volume = vol;
+                _wavePlayer!.Volume = vol;
+            }
+            else
+            {
+                _player.Volume = vol;
             }
         }
         #endregion
@@ -568,57 +501,12 @@ namespace ClipExplorer // !!! was MidiFileExplorer
                 InitNavigator();
             }
 
-            // var changes = Common.Settings.Edit("User Settings");
-
-            // // Detect changes of interest.
-            // bool restart = false;
-
-            // // Figure out what changed - each handled differently.
-            // foreach (var (name, cat) in changes)
-            // {
-            //     restart |= name == "MidiOutDevice";
-            //     restart |= name == "ControlColor";
-            //     restart |= name == "RootDirs";
-            //     restart |= name == "ZeroBased";
-            // }
-
-            // // Figure out what changed.
-            // if (restart)
-            // {
-            //     MessageBox.Show("Restart required for changes to take effect");
-            // }
-
             // Benign changes.
-            //TODOMbarBar.Snap = Common.Settings.Snap;
-            //TODOMbarBar.ZeroBased = Common.Settings.ZeroBased;
             btnLoop.Checked = Common.Settings.Loop;
-            //TODOMsldTempo.Resolution = Common.Settings.TempoResolution;
 
             SaveSettings();
         }
         #endregion
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Volume_ValueChanged(object? sender, EventArgs e)
-        {
-            float vol = (float)sldVolume.Value;
-            Common.Settings.Volume = vol;
-            if (_player is null)
-            {
-                _midiPlayer!.Volume = vol;
-                _wavePlayer!.Volume = vol;
-            }
-            else
-            {
-                _player.Volume = vol;
-            }
-        }
-
 
         #region Info
         /// <summary>
@@ -669,7 +557,7 @@ namespace ClipExplorer // !!! was MidiFileExplorer
         }
         #endregion
 
-
+        #region Misc
         /// <summary>
         /// Utility for header.
         /// </summary>
@@ -678,6 +566,6 @@ namespace ClipExplorer // !!! was MidiFileExplorer
             var s = _fn == "" ? "No file loaded" : _fn;
             Text = $"Clip Explorer {MiscUtils.GetVersionString()} - {s}";
         }
-
+        #endregion
     }
 }

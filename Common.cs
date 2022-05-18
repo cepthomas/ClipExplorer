@@ -17,17 +17,13 @@ namespace ClipExplorer
         public const double DEFAULT_VOLUME = 0.8;
         #endregion
 
-
-
+        #region Constants
         /// <summary>Current global user settings.</summary>
         public static UserSettings Settings { get; set; } = new UserSettings();
 
         /// <summary>Where to put things.</summary>
         public static string ExportPath { get; set; }
-
-
-        ///// <summary>Shared log file.</summary>
-        //public static string LogFileName { get { return MiscUtils.GetAppDataDir("ClipPlayer", "Ephemera") + @"\mplog.txt"; } }
+        #endregion
     }
 
     /// <summary>Player has something to say or show.</summary>
@@ -41,5 +37,4 @@ namespace ClipExplorer
             Message = msg;
         }
     }
-
 }
