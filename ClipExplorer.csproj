@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <AssemblyName>ClipExplorer</AssemblyName>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>ClipExplorer</AssemblyName>
     <Deterministic>False</Deterministic>
     <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version> 
     <Description>ClipExplorer application</Description>
@@ -16,24 +16,28 @@
     <Nullable>enable</Nullable>
     <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
     <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
-    <ApplicationIcon>Resources\zebra.ico</ApplicationIcon> <!-- en none -->
+    <ApplicationIcon>Resources\Morso.ico</ApplicationIcon> <!-- en none -->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.0.1" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <Compile Remove="doc\**" />
+    <Compile Remove="lib\**" />
+    <Compile Remove="test\**" />
+    <EmbeddedResource Remove="doc\**" />
+    <EmbeddedResource Remove="lib\**" />
+    <EmbeddedResource Remove="test\**" />
+    <None Remove="doc\**" />
+    <None Remove="lib\**" />
+    <None Remove="test\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="MidiLib">
-      <HintPath>lib\MidiLib.dll</HintPath>
-    </Reference>
-    <Reference Include="NBagOfTricks">
-      <HintPath>lib\NBagOfTricks.dll</HintPath>
-    </Reference>
-    <Reference Include="NBagOfUis">
-      <HintPath>lib\NBagOfUis.dll</HintPath>
-    </Reference>
+    <Compile Remove="MainForm_X.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="clipex.sublime-project" />
+    <None Remove="clipex.sublime-workspace" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,21 +60,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="MidiPlayer.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="WavePlayer.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <PackageReference Include="NAudio" Version="2.0.1" />
+    <PackageReference Include="NAudio.Midi" Version="2.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <Reference Include="AudioLib">
+      <HintPath>lib\AudioLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MidiLib">
+      <HintPath>lib\MidiLib.dll</HintPath>
+    </Reference>
+    <Reference Include="NBagOfTricks">
+      <HintPath>lib\NBagOfTricks.dll</HintPath>
+    </Reference>
+    <Reference Include="NBagOfUis">
+      <HintPath>lib\NBagOfUis.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

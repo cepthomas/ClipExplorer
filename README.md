@@ -1,7 +1,7 @@
-# ClipExplorer
+# ClipExplorer TODO update
 
-A windows tool for playing audio and midi file clips. This is intended to be used for auditioning parts for 
-use in compositions created in a real DAW.
+A windows tool for playing audio and midi file clips and Yamaha style files.
+This is primarily intended to be used for auditioning parts for use in compositions created in a real DAW.
 To that end, and because the windows multimedia timer has inadequate accuracy for midi notes, resolution is 
 limited to 32nd notes.
 Likewise, minimal attention has been paid to aesthetics over functionality. This explains the poor color choices.
@@ -25,6 +25,19 @@ Uses:
 - Some midi files with single instruments are sloppy with channel numbers so there are a couple of options for simple remapping.
 - In the log view: C for clear, W for word wrap toggle.
 
+# Usage2
+- Opens style files and plays the individual sections.
+- Export style files as their component parts.
+- Export current selection(s) and channel(s) to a new midi file. Useful for snipping style patterns.
+- Click on the settings icon to edit your options.
+- Some midi files with single instruments are sloppy with channel numbers so there are a couple of options for simple remapping.
+- In the log view: C for clear, W for word wrap toggle.
+
+# Notes2
+- Since midi files and NAudio use 1-based channel numbers, so does this application, except when used as an array index.
+- Because the windows multimedia timer has inadequate accuracy for midi notes, resolution is limited to 32nd notes.
+- If midi file type is `1`, all tracks are combined. Because.
+- Tons of styles and info at https://psrtutorial.com/.
 
 # Third Party
 

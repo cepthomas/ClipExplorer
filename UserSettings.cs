@@ -13,6 +13,7 @@ using NAudio.Wave;
 using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfUis;
+using MidiLib;
 
 
 namespace ClipExplorer
@@ -21,39 +22,41 @@ namespace ClipExplorer
     public class UserSettings : Settings
     {
         #region Persisted editable properties
+        #region General        
         [DisplayName("Root Directories")]
         [Description("Where to look in order as they appear.")]
-        [Category("Navigator")]
+        [Category("General")]
         [Browsable(true)]
-        [Editor(typeof(StringListEditor), typeof(UITypeEditor))] // Should be a proper folder picker.
-        public List<string> RootDirs { get; set; } = new List<string>();
+        [Editor(typeof(StringListEditor), typeof(UITypeEditor))] // Ideally a multi folder picker.
+        public List<string> RootDirs { get; set; } = new();
 
         [DisplayName("Dump To Clipboard")]
         [Description("Otherwise to file.")]
-        [Category("Navigator")]
+        [Category("General")]
         [Browsable(true)]
         public bool DumpToClip { get; set; } = false;
 
-        [DisplayName("Wave Output Device")]
-        [Description("How to play the audio files.")]
-        [Category("Audio")]
+        [DisplayName("Control Color")]
+        [Description("Pick what you like.")]
+        [Category("General")]
         [Browsable(true)]
-        [TypeConverter(typeof(FixedListTypeConverter))]
-        public string WavOutDevice { get; set; } = "Microsoft Sound Mapper";
+        [JsonConverter(typeof(JsonColorConverter))]
+        public Color ControlColor { get; set; } = Color.MediumOrchid;
+        #endregion
 
-        [DisplayName("Latency")]
-        [Description("What's the hurry?")]
-        [Category("Audio")]
-        [Browsable(true)]
-        [TypeConverter(typeof(FixedListTypeConverter))]
-        public string Latency { get; set; } = "200";
-
+        #region Midi        
         [DisplayName("Midi Output Device")]
         [Description("How to play the midi files.")]
         [Category("Midi")]
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string MidiOutDevice { get; set; } = "Microsoft GS Wavetable Synth";
+
+        [DisplayName("Time is 0-based")]
+        [Description("Engineers prefer this to musician style.")]
+        [Category("Midi")]
+        [Browsable(true)]
+        public bool ZeroBased { get; set; } = false;
 
         [DisplayName("Default Tempo")]
         [Description("Use this tempo if it's not in the file.")]
@@ -72,19 +75,23 @@ namespace ClipExplorer
         [Category("Midi")]
         [Browsable(true)]
         public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;
+        #endregion
 
-        [DisplayName("Time is 0-based")]
-        [Description("Engineers prefer this to musician style.")]
-        [Category("Midi")]
+        #region Audio
+        [DisplayName("Wave Output Device")]
+        [Description("How to play the audio files.")]
+        [Category("Audio")]
         [Browsable(true)]
-        public bool ZeroBased { get; set; } = false;
+        [TypeConverter(typeof(FixedListTypeConverter))]
+        public string WavOutDevice { get; set; } = "Microsoft Sound Mapper";
 
-        [DisplayName("Control Color")]
-        [Description("Pick what you like.")]
-        [Category("Cosmetics")]
+        [DisplayName("Latency")]
+        [Description("What's the hurry?")]
+        [Category("Audio")]
         [Browsable(true)]
-        [JsonConverter(typeof(JsonColorConverter))]
-        public Color ControlColor { get; set; } = Color.MediumOrchid;
+        [TypeConverter(typeof(FixedListTypeConverter))]
+        public string Latency { get; set; } = "200";
+        #endregion
         #endregion
 
         #region Persisted Non-editable Properties
@@ -98,16 +105,17 @@ namespace ClipExplorer
         public double Volume { get; set; } = 0.5;
         #endregion
 
+        #region Non-persisted Properties
         [Browsable(false)]
-        [JsonIgnore]
-        public string ExportPath { get; set; } = "";
+        public bool Valid { get; set; } = false;
+        #endregion
     }
 
+    #region Editing helpers
     /// <summary>Converter for selecting property value from known lists.</summary>
     public class FixedListTypeConverter : TypeConverter
     {
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
-
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
 
         // Get the specific list based on the property name.
@@ -142,4 +150,5 @@ namespace ClipExplorer
             return new StandardValuesCollection(rec);
         }
     }
+    #endregion
 }

@@ -48,6 +48,9 @@ namespace ClipExplorer
             get { return _volume; }
             set { _volume = MathUtils.Constrain(value, 0, 1); if (_waveOut != null) _waveOut.Volume = (float)_volume; }
         }
+
+        /// <inheritdoc />
+        public PlayState State { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         #endregion
 
         #region Lifecycle
@@ -89,6 +92,8 @@ namespace ClipExplorer
         private void WavePlayer_Load(object? sender, EventArgs e)
         {
             ResetMeters();
+
+            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
             // Create output device.
             for (int id = -1; id < WaveOut.DeviceCount; id++)

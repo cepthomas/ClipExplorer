@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,19 +9,24 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfUis;
 using MidiLib;
 
 
-
-namespace ClipExplorer
+namespace ClipExplorer // !!! was MidiFileExplorer
 {
     public partial class MainForm : Form
     {
+
         #region Fields
-        /// <summary>Supported file types..</summary>
-        readonly string[] _fileTypes = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
+        /// <summary>Current file.</summary>
+        string _fn = "";
+
+        /// <summary>Supported file types in OpenFileDialog form.</summary>
+        readonly string _fileTypes = "Style Files|*.sty;*.pcs;*.sst;*.prs|Midi Files|*.mid";
+        readonly string[] _fileTypesX = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
 
         /// <summary>Audio device.</summary>
         WavePlayer? _wavePlayer = null;
@@ -29,12 +34,13 @@ namespace ClipExplorer
         /// <summary>Midi device.</summary>
         MidiPlayer? _midiPlayer = null;
 
-        /// <summary>Current file.</summary>
-        string _fn = "";
-
         /// <summary>Current play device.</summary>
         IPlayer? _player = null;
+
+        /// <summary>Prevent button press recursion.</summary>
+        bool _guard = false;
         #endregion
+
 
         #region Lifecycle
         /// <summary>
@@ -50,54 +56,66 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_Load(object? sender, EventArgs e)
         {
+            Icon = Properties.Resources.Morso;
+
             // Get settings and set up paths.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
             Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
-            Common.Settings.ExportPath = Path.Combine(appDir, "export");
-            DirectoryInfo di = new(Common.Settings.ExportPath);
+            Common.ExportPath = Path.Combine(appDir, "export");
+            DirectoryInfo di = new(Common.ExportPath);
             di.Create();
 
-            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
-            // Toolbar configs.
-            btnAutoplay.Checked = Common.Settings.Autoplay;
-            btnLoop.Checked = Common.Settings.Loop;
+            // Init main form from settings
+            Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
+            Size = new Size(Common.Settings.FormGeometry.Width, Common.Settings.FormGeometry.Height);
+            WindowState = FormWindowState.Normal;
+            KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
+            SetText();
 
             // The text output.
             txtViewer.Font = Font;
             txtViewer.WordWrap = true;
-            txtViewer.BackColor = Color.Cornsilk;
             txtViewer.Colors.Add("ERR", Color.LightPink);
             txtViewer.Colors.Add("WRN:", Color.Plum);
+
+            // Other UI configs.
+            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
+            btnAutoplay.Checked = Common.Settings.Autoplay;
+            btnLoop.Checked = Common.Settings.Loop;
+            chkPlay.FlatAppearance.CheckedBackColor = Common.Settings.ControlColor;
+            sldVolume.DrawColor = Common.Settings.ControlColor;
+            sldVolume.Value = Common.Settings.Volume;
+
+            // Hook up some simple UI handlers.
+            //chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? Play() : Stop(); };
+            chkPlay.CheckedChanged += (_, __) => { UpdateState(); };
+            btnRewind.Click += (_, __) => { Rewind(); };
 
             // Create devices.
             _wavePlayer = new WavePlayer() { Visible = false, Volume = Common.Settings.Volume };
             _wavePlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _wavePlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             _wavePlayer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
-            splitContainer1.Panel2.Controls.Add(_wavePlayer);
+            //splitContainer1.Panel2.Controls.Add(_wavePlayer);
 
             _midiPlayer = new MidiPlayer() { Visible = false, Volume = Common.Settings.Volume };
             _midiPlayer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiPlayer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             _midiPlayer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
-            splitContainer1.Panel2.Controls.Add(_midiPlayer);
+            //splitContainer1.Panel2.Controls.Add(_midiPlayer);
 
-            // Init UI from settings
-            Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
-            Size = new Size(Common.Settings.FormGeometry.Width, Common.Settings.FormGeometry.Height);
-            WindowState = FormWindowState.Normal;
-            KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
-            sldVolume.Value = Common.Settings.Volume;
-            sldVolume.DrawColor = Common.Settings.ControlColor;
-
+            // Initialize tree from user settings.
             InitNavigator();
 
-            // Hook up UI handlers.
-            chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? Play() : Stop(); };
-            btnRewind.Click += (_, __) => { Rewind(); };
+            LogMessage("INF", "Hello. C=clear, W=wrap");
 
-            Text = $"Clip Explorer {MiscUtils.GetVersionString()} - No file loaded";
+            // Look for filename passed in.
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+            {
+                OpenFile(args[1]);
+            }
         }
 
         /// <summary>
@@ -105,100 +123,215 @@ namespace ClipExplorer
         /// </summary>
         void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            SaveSettings();
+            //Stop();
 
+            chkPlay.Checked = false; // ==> Stop()
+            SaveSettings();
+        }
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            // Resources.
             _wavePlayer?.Dispose();
             _midiPlayer?.Dispose();
+
+            if (disposing && (components is not null))
+            {
+                components.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
         #endregion
 
-        #region User settings
+        #region State management
         /// <summary>
-        /// Collect and save user settings.
+        /// General state management. Triggered by play button or the player via mm timer function.
         /// </summary>
-        void SaveSettings()
+        void UpdateState()
         {
-            Common.Settings.Autoplay = btnAutoplay.Checked;
-            Common.Settings.Loop = btnLoop.Checked;
-            Common.Settings.Volume = sldVolume.Value;
-            Common.Settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
-
-            Common.Settings.Save();
-        }
-
-        /// <summary>
-        /// Edit the common options in a property grid.
-        /// </summary>
-        void Settings_Click(object? sender, EventArgs e)
-        {
-            var changes = Common.Settings.Edit("User Settings");
-
-            // Detect changes of interest.
-            bool midiChange = false;
-            bool audioChange = false;
-            bool navChange = false;
-            bool restart = false;
-
-            foreach (var (name, cat) in changes)
+            // Suppress recursive updates caused by programatically pressing the play button.
+            if (_guard)
             {
-                restart |= name.EndsWith("Device");
-                restart |= cat == "Cosmetics";
-                midiChange |= cat == "Midi";
-                audioChange |= cat == "Audio";
-                navChange |= cat == "Navigator";
+                return;
             }
 
-            if (restart)
+            _guard = true;
+
+            //LogMessage($"DBG State:{_player.State}  btnLoop{btnLoop.Checked}  TotalSubdivs:{_player.TotalSubdivs}");
+
+            switch (_player.State)
             {
-                MessageBox.Show("Restart required for device changes to take effect");
+                case PlayState.Complete:
+                    Rewind();
+
+                    if (btnLoop.Checked)
+                    {
+                        chkPlay.Checked = true;
+                        Play();
+                    }
+                    else
+                    {
+                        chkPlay.Checked = false;
+                        Stop();
+                    }
+                    break;
+
+                case PlayState.Playing:
+                    if (!chkPlay.Checked)
+                    {
+                        Stop();
+                    }
+                    break;
+
+                case PlayState.Stopped:
+                    if (chkPlay.Checked)
+                    {
+                        Play();
+                    }
+                    break;
             }
 
-            if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
-            {
-                _player.SettingsChanged();
-            }
-
-            if (navChange)
-            {
-                InitNavigator();
-            }
-
-            SaveSettings();
+            _guard = false;
         }
         #endregion
 
-        #region Info
+        #region Transport control
         /// <summary>
-        /// All about me.
+        /// Internal handler.
         /// </summary>
-        void About_Click(object? sender, EventArgs e)
+        bool Play()
         {
-            MiscUtils.ShowReadme("ClipExplorer");
+            // // Start or restart?
+            // if (!_mmTimer.Running)
+            // {
+            //     _mmTimer.Start();
+            // }
+            _player.Play();
+
+            return true;
         }
 
         /// <summary>
-        /// Something you should know.
+        /// Internal handler.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="ea"></param>
-        void LogMessage(object? sender, string cat, string msg)
+        bool Stop()
         {
-            int catSize = 3;
-            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
+            //_mmTimer.Stop();
+            _player.Stop();
 
-            // May come from a different thread.
+            return true;
+        }
+
+        /// <summary>
+        /// Go back Jack. Doesn't affect the run state.
+        /// </summary>
+        void Rewind()
+        {
+            // Might come from another thread.
             this.InvokeIfRequired(_ =>
             {
-                //string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
-                string s = $"> {cat} ({((Control)sender!).Name}) {msg}";
-                txtViewer.AppendLine(s);
+                _player.Rewind();
+            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Player_PlaybackCompleted(object? sender, EventArgs e)
+        {
+            // Usually comes from a different thread.
+            this.InvokeIfRequired(_ =>
+            {
+                if (btnLoop.Checked)
+                {
+                    Play();
+                }
+                else
+                {
+                    chkPlay.Checked = false;
+                    Rewind();
+                }
             });
         }
         #endregion
 
+
         #region File handling
         /// <summary>
-        /// Organize the file drop down.
+        /// Common file opener. Initializes pattern list from contents.
+        /// </summary>
+        /// <param name="fn">The file to open.</param>
+        public bool OpenFile(string fn)
+        {
+            bool ok = true;
+            _fn = "";
+
+            LogMessage("INF", $"Reading file: {fn}");
+
+            if(chkPlay.Checked)
+            {
+                chkPlay.Checked = false; // ==> Stop()
+            }
+
+            try
+            {
+                //TODO
+
+                _fn = fn;
+                SetText();
+            }
+            catch (Exception ex)
+            {
+                LogMessage("ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
+                _fn = "";
+                SetText();
+                ok = false;
+            }
+
+            return ok;
+        }
+
+
+        /// <summary>
+        /// Initialize tree from user settings.
+        /// </summary>
+        void InitNavigator()
+        {
+            ftree.FilterExts = _fileTypesX.ToList();
+            ftree.RootDirs = Common.Settings.RootDirs;
+            ftree.SingleClickSelect = true;
+
+            try
+            {
+                ftree.Init();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                LogMessage("WRN", "No tree directories");
+            }
+        }
+
+        /// <summary>
+        /// Tree has selected a file to play.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="fn"></param>
+        void Navigator_FileSelectedEvent(object? sender, string fn)
+        {
+            OpenFile(fn);
+        }
+
+
+
+        /// <summary>
+        /// Organize the file menu item drop down.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -222,22 +355,39 @@ namespace ClipExplorer
         /// </summary>
         void Recent_Click(object? sender, EventArgs e)
         {
-            //ToolStripMenuItem item = sender as ToolStripMenuItem;
-            string fn = sender!.ToString()!;
-            if (fn != _fn)
+            if (sender is not null)
             {
+                string fn = sender.ToString()!;
                 OpenFile(fn);
-                _fn = fn;
             }
         }
 
         /// <summary>
-        /// Allows the user to select an audio clip or midi from file system.
+        /// Allows the user to select a midi or style from file system.
         /// </summary>
         void Open_Click(object? sender, EventArgs e)
         {
+            using OpenFileDialog openDlg = new()
+            {
+                Filter = _fileTypes,
+                Title = "Select a file"
+            };
+
+            if (openDlg.ShowDialog() == DialogResult.OK)
+            {
+                OpenFile(openDlg.FileName);
+            }
+        }
+        #endregion
+
+
+        /// <summary>
+        /// Allows the user to select an audio clip or midi from file system.
+        /// </summary>
+        void Open_Click_TODO(object? sender, EventArgs e)
+        {
             string sext = "Clip Files | ";
-            foreach (string ext in _fileTypes)
+            foreach (string ext in _fileTypesX)
             {
                 sext += $"*{ext}; ";
             }
@@ -260,7 +410,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="fn">The file to open.</param>
         /// <returns>Status.</returns>
-        public bool OpenFile(string fn)
+        public bool OpenFile_TODO(string fn)
         {
             bool ok = true;
 
@@ -321,74 +471,19 @@ namespace ClipExplorer
 
             if (ok)
             {
-                Text = $"ClipExplorer {MiscUtils.GetVersionString()} - {fn}";
+                SetText();
                 Common.Settings.RecentFiles.UpdateMru(fn);
             }
             else
             {
-                Text = $"ClipExplorer {MiscUtils.GetVersionString()} - No file loaded";
+                SetText();
             }
 
             return ok;
         }
-        #endregion
 
-        #region Transport control
-        /// <summary>
-        /// Internal handler.
-        /// </summary>
-        /// <returns></returns>
-        bool Stop()
-        {
-            _player?.Stop();
-            return true;
-        }
 
-        /// <summary>
-        /// Internal handler.
-        /// </summary>
-        /// <returns></returns>
-        bool Play()
-        {
-            _player?.Rewind();
-            _player?.Play();
-            return true;
-        }
-
-        /// <summary>
-        /// Go back Jack.
-        /// </summary>
-        public void Rewind()
-        {
-            // Might come from another thread.
-            this.InvokeIfRequired(_ =>
-            {
-                _player!.Rewind();
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Player_PlaybackCompleted(object? sender, EventArgs e)
-        {
-            // Usually comes from a different thread.
-            this.InvokeIfRequired(_ =>
-            {
-                if (btnLoop.Checked)
-                {
-                    Play();
-                }
-                else
-                {
-                    chkPlay.Checked = false;
-                    Rewind();
-                }
-            });
-        }
-
+        #region Misc handlers
         /// <summary>
         /// Do some global key handling. Space bar is used for stop/start playing.
         /// </summary>
@@ -405,55 +500,105 @@ namespace ClipExplorer
                     break;
 
                 case Keys.C:
-                    txtViewer.Clear();
-                    e.Handled = true;
+                    if (e.Modifiers == 0)
+                    {
+                        txtViewer.Clear();
+                        e.Handled = true;
+                    }
                     break;
 
                 case Keys.W:
-                    txtViewer.WordWrap = !txtViewer.WordWrap;
-                    e.Handled = true;
+                    if (e.Modifiers == 0)
+                    {
+                        txtViewer.WordWrap = !txtViewer.WordWrap;
+                        e.Handled = true;
+                    }
                     break;
             }
         }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //void Rewind_Click(object? sender, EventArgs e)
-        //{
-        //    Stop();
-        //    _player!.Rewind();
-        //}
         #endregion
 
-        #region Navigator functions
+        #region User settings
         /// <summary>
-        /// Initialize tree from user settings.
+        /// Collect and save user settings.
         /// </summary>
-        void InitNavigator()
+        void SaveSettings()
         {
-            ftree.FilterExts = _fileTypes.ToList();
-            ftree.RootDirs = Common.Settings.RootDirs;
-            ftree.SingleClickSelect = true;
-
-            ftree.Init();
+            Common.Settings.FormGeometry = new Rectangle(Location.X, Location.Y, Width, Height);
+            Common.Settings.Volume = sldVolume.Value;
+            Common.Settings.Autoplay = btnAutoplay.Checked;
+            Common.Settings.Loop = btnLoop.Checked;
+            Common.Settings.Save();
         }
 
         /// <summary>
-        /// Tree has seleccted a file to play.
+        /// Edit the common options in a property grid.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="fn"></param>
-        void Navigator_FileSelectedEvent(object? sender, string fn)
+        void Settings_Click(object? sender, EventArgs e)
         {
-            OpenFile(fn);
-            _fn = fn;
+            var changes = Common.Settings.Edit("User Settings");
+
+            // Detect changes of interest.
+            bool midiChange = false;
+            bool audioChange = false;
+            bool navChange = false;
+            bool restart = false;
+
+            foreach (var (name, cat) in changes)
+            {
+                restart |= name.EndsWith("Device");
+                restart |= cat == "Cosmetics";
+                midiChange |= cat == "Midi";
+                audioChange |= cat == "Audio";
+                navChange |= cat == "Navigator";
+            }
+
+            if (restart)
+            {
+                MessageBox.Show("Restart required for device changes to take effect");
+            }
+
+            if ((midiChange && _player is MidiPlayer) || (audioChange && _player is WavePlayer))
+            {
+                _player.SettingsChanged();
+            }
+
+            if (navChange)
+            {
+                InitNavigator();
+            }
+
+            // var changes = Common.Settings.Edit("User Settings");
+
+            // // Detect changes of interest.
+            // bool restart = false;
+
+            // // Figure out what changed - each handled differently.
+            // foreach (var (name, cat) in changes)
+            // {
+            //     restart |= name == "MidiOutDevice";
+            //     restart |= name == "ControlColor";
+            //     restart |= name == "RootDirs";
+            //     restart |= name == "ZeroBased";
+            // }
+
+            // // Figure out what changed.
+            // if (restart)
+            // {
+            //     MessageBox.Show("Restart required for changes to take effect");
+            // }
+
+            // Benign changes.
+            //TODOMbarBar.Snap = Common.Settings.Snap;
+            //TODOMbarBar.ZeroBased = Common.Settings.ZeroBased;
+            btnLoop.Checked = Common.Settings.Loop;
+            //TODOMsldTempo.Resolution = Common.Settings.TempoResolution;
+
+            SaveSettings();
         }
         #endregion
 
-        #region Misc handlers
+
         /// <summary>
         /// 
         /// </summary>
@@ -473,6 +618,66 @@ namespace ClipExplorer
                 _player.Volume = vol;
             }
         }
+
+
+        #region Info
+        /// <summary>
+        /// All about me.
+        /// </summary>
+        void About_Click(object? sender, EventArgs e)
+        {
+            MiscUtils.ShowReadme("ClipExplorer");
+        }
+
+        /// <summary>
+        /// Something you should know.
+        /// </summary>
+        /// <param name="cat"></param>
+        /// <param name="msg"></param>
+        void LogMessage(string cat, string msg)
+        {
+            int catSize = 3;
+            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
+
+            // May come from a different thread.
+            this.InvokeIfRequired(_ =>
+            {
+                // string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
+                string s = $"> {cat} {msg}";
+                txtViewer.AppendLine(s);
+            });
+        }
+
+
+        /// <summary>
+        /// Something you should know.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="ea"></param>
+        void LogMessage(object? sender, string cat, string msg) //orig
+        {
+            int catSize = 3;
+            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
+
+            // May come from a different thread.
+            this.InvokeIfRequired(_ =>
+            {
+                //string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
+                string s = $"> {cat} ({((Control)sender!).Name}) {msg}";
+                txtViewer.AppendLine(s);
+            });
+        }
         #endregion
+
+
+        /// <summary>
+        /// Utility for header.
+        /// </summary>
+        void SetText()
+        {
+            var s = _fn == "" ? "No file loaded" : _fn;
+            Text = $"Clip Explorer {MiscUtils.GetVersionString()} - {s}";
+        }
+
     }
 }

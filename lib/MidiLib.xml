@@ -4,6 +4,216 @@
         <name>MidiLib</name>
     </assembly>
     <members>
+        <member name="T:MidiLib.BarBar">
+            <summary>The control.</summary>
+        </member>
+        <member name="T:MidiLib.BarBar.SnapType">
+            <summary>User selection options.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._length">
+            <summary>Total length.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._start">
+            <summary>First valid point.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._end">
+            <summary>Last valid point.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._current">
+            <summary>Current time.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._lastXPos">
+            <summary>For tracking mouse moves.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._toolTip">
+            <summary>Tooltip for mousing.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._brush">
+            <summary>The brush.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._penMarker">
+            <summary>The pen.</summary>
+        </member>
+        <member name="F:MidiLib.BarBar._format">
+            <summary>For drawing text.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.ZeroBased">
+            <summary>Option for engineers instead of musicians.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.BeatsPerBar">
+            <summary>Our signature. Only tested with 4.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.SubdivsPerBeat">
+            <summary>Our resolution.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.Snap">
+            <summary>How to snap.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.Length">
+            <summary>Total length.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.Start">
+            <summary>First valid point.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.End">
+            <summary>Last valid point.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.Current">
+            <summary>Where we be now.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.ProgressColor">
+            <summary>For styling.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.MarkerColor">
+            <summary>For styling.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.FontLarge">
+            <summary>Big font.</summary>
+        </member>
+        <member name="P:MidiLib.BarBar.FontSmall">
+            <summary>Baby font.</summary>
+        </member>
+        <member name="E:MidiLib.BarBar.CurrentTimeChanged">
+            <summary>Value changed by user.</summary>
+        </member>
+        <member name="M:MidiLib.BarBar.#ctor">
+            <summary>
+            Normal constructor.
+            </summary>
+        </member>
+        <member name="M:MidiLib.BarBar.Dispose(System.Boolean)">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:MidiLib.BarBar.OnPaint(System.Windows.Forms.PaintEventArgs)">
+            <summary>
+            Draw the control.
+            </summary>
+        </member>
+        <member name="M:MidiLib.BarBar.OnKeyDown(System.Windows.Forms.KeyEventArgs)">
+            <summary>
+            Handle selection operations.
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.BarBar.OnMouseMove(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Handle mouse position changes.
+            </summary>
+        </member>
+        <member name="M:MidiLib.BarBar.OnMouseDown(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Handle dragging.
+            </summary>
+        </member>
+        <member name="M:MidiLib.BarBar.IncrementCurrent(System.Int32)">
+            <summary>
+            Change current time. 
+            </summary>
+            <param name="num">Subdivs/ticks.</param>
+        </member>
+        <member name="M:MidiLib.BarBar.GetSubdivFromMouse(System.Int32)">
+            <summary>
+            Convert x pos to subdiv.
+            </summary>
+            <param name="x"></param>
+        </member>
+        <member name="M:MidiLib.BarBar.Scale(MidiLib.BarSpan)">
+            <summary>
+            Map from time to UI pixels.
+            </summary>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+        <member name="T:MidiLib.BarSpan">
+            <summary>Sort of like TimeSpan.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan.Zero">
+            <summary>A useful constant.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan.OneSubdiv">
+            <summary>A useful constant.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan._id">
+            <summary>For hashing.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan._all_ids">
+            <summary>Increment for unique value.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan._beatsPerBar">
+            <summary>Global - set before using. Only tested with 4.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan._subdivsPerBeat">
+            <summary>Global - set before using. Our resolution.</summary>
+        </member>
+        <member name="F:MidiLib.BarSpan._snapType">
+            <summary>Global - set before using.</summary>
+        </member>
+        <member name="P:MidiLib.BarSpan.TotalSubdivs">
+            <summary>The core.</summary>
+        </member>
+        <member name="P:MidiLib.BarSpan.Bar">
+            <summary>The bar.</summary>
+        </member>
+        <member name="P:MidiLib.BarSpan.Beat">
+            <summary>The beat.</summary>
+        </member>
+        <member name="P:MidiLib.BarSpan.Subdiv">
+            <summary>The subdiv.</summary>
+        </member>
+        <member name="M:MidiLib.BarSpan.#ctor(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Constructor from args.
+            </summary>
+            <param name="bar"></param>
+            <param name="beat"></param>
+            <param name="subdiv"></param>
+        </member>
+        <member name="M:MidiLib.BarSpan.#ctor(System.Int32)">
+            <summary>
+            Constructor from args.
+            </summary>
+            <param name="subdivs"></param>
+        </member>
+        <member name="M:MidiLib.BarSpan.Reset">
+            <summary>
+            Hard reset.
+            </summary>
+        </member>
+        <member name="M:MidiLib.BarSpan.Constrain(MidiLib.BarSpan,MidiLib.BarSpan)">
+            <summary>
+            Utility helper function.
+            </summary>
+            <param name="lower"></param>
+            <param name="upper"></param>
+        </member>
+        <member name="M:MidiLib.BarSpan.Increment(System.Int32)">
+            <summary>
+            Update current value.
+            </summary>
+            <param name="subdivs">Number of subdivs.</param>
+        </member>
+        <member name="M:MidiLib.BarSpan.DoSnap(System.Int32)">
+            <summary>
+            Snap to closest boundary.
+            </summary>
+            <param name="subdiv"></param>
+        </member>
+        <member name="M:MidiLib.BarSpan.Format(System.Boolean)">
+            <summary>
+            Format a readable string.
+            </summary>
+            <param name="zeroBased"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MidiLib.BarSpan.ToString">
+            <summary>
+            Format a readable string.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:MidiLib.ChannelState">
             <summary>Channel state.</summary>
         </member>
@@ -32,7 +242,7 @@
             <summary>Current patch.</summary>
         </member>
         <member name="P:MidiLib.Channel.Volume">
-            <summary>Current volume.</summary>
+            <summary>Current volume - between MIN_VOLUME and MAX_VOLUME. Default is DEFAULT_VOLUME.</summary>
         </member>
         <member name="P:MidiLib.Channel.MaxSubdiv">
             <summary>The duration of the whole channel.</summary>
@@ -378,9 +588,6 @@
         <member name="P:MidiLib.MidiData.AllEvents">
             <summary>All the midi events. This is the verbatim ordered content of the file.</summary>
         </member>
-        <member name="P:MidiLib.MidiData.ExportPath">
-            <summary>Where to put output products.</summary>
-        </member>
         <member name="M:MidiLib.MidiData.Read(System.String,System.Int32,System.Boolean)">
             <summary>
             Read a file.
@@ -462,14 +669,15 @@
             <param name="size"></param>
             <returns></returns>
         </member>
-        <member name="M:MidiLib.MidiData.ExportAllEvents(System.Collections.Generic.List{System.Int32})">
+        <member name="M:MidiLib.MidiData.ExportAllEvents(System.String,System.Collections.Generic.List{System.Int32})">
             <summary>
             Export the contents in a csv readable form. This is as the events appear in the original file.
             </summary>
+            <param name="exportPath">Where to boss?</param>
             <param name="channels">Specific channnels or all if empty.</param>
             <returns>File name of dump file.</returns>
         </member>
-        <member name="M:MidiLib.MidiData.ExportGroupedEvents(System.String,System.Collections.Generic.List{System.Int32},System.Boolean)">
+        <member name="M:MidiLib.MidiData.ExportGroupedEvents(System.String,System.String,System.Collections.Generic.List{System.Int32},System.Boolean)">
             <summary>
             Makes csv dumps of some events grouped by pattern/channel. This is as the events appear in the original file.
             </summary>
@@ -478,14 +686,14 @@
             <param name="includeOther">false if just notes or true if everything.</param>
             <returns>File name of dump file.</returns>
         </member>
-        <member name="M:MidiLib.MidiData.ExportMidi(System.String,System.Collections.Generic.List{System.Int32},System.Int32,System.Boolean)">
+        <member name="M:MidiLib.MidiData.ExportMidi(System.String,System.String,System.Collections.Generic.List{System.Int32},System.Int32)">
             <summary>
             Export pattern parts to individual midi files. This is as the events appear in the original file.
             </summary>
+            <param name="exportPath">Where to boss?</param>
             <param name="patternName">Specific pattern.</param>
             <param name="channels">Specific channnels or all if empty.</param>
             <param name="ppq">Export at this resolution.</param>
-            <param name="zip">Export as zip.</param>
             <returns>File name of export file.</returns>
         </member>
         <member name="M:MidiLib.MidiData.GetFilteredEvents(System.String,System.Collections.Generic.List{System.Int32},System.Boolean)">
@@ -497,12 +705,13 @@
             <param name="sortTime">Optional sort.</param>
             <returns>Enumerator</returns>
         </member>
-        <member name="M:MidiLib.MidiData.MakeExportFileName(System.String,System.String)">
+        <member name="M:MidiLib.MidiData.MakeExportFileName(System.String,System.String,System.String)">
             <summary>
             Create a new clean filename for export. Creates path if it doesn't exist.
             </summary>
-            <param name="mod"></param>
-            <param name="ext"></param>
+            <param name="path">Export path</param>
+            <param name="mod">Modifier</param>
+            <param name="ext">File extension</param>
             <returns></returns>
         </member>
         <member name="T:MidiLib.MidiDefs">
@@ -743,6 +952,185 @@
             Send midi.
             </summary>
             <param name="evt"></param>
+        </member>
+        <member name="T:MidiLib.VirtualKeyboard">
+            <summary>
+            Virtual keyboard control borrowed from Leslie Sanford with extras.
+            </summary>
+        </member>
+        <member name="P:MidiLib.VirtualKeyboard.ShowNoteNames">
+            <summary>Draw the names on the keys.</summary>
+        </member>
+        <member name="T:MidiLib.VirtualKeyboard.KeyboardEventArgs">
+            <summary>Device has received something.</summary>
+        </member>
+        <member name="P:MidiLib.VirtualKeyboard.KeyboardEventArgs.ChannelNumber">
+            <summary>Channel number. Client can set it.</summary>
+        </member>
+        <member name="P:MidiLib.VirtualKeyboard.KeyboardEventArgs.NoteId">
+            <summary>Midi note id.</summary>
+        </member>
+        <member name="P:MidiLib.VirtualKeyboard.KeyboardEventArgs.Velocity">
+            <summary>Midi velocity. 0 means note off.</summary>
+        </member>
+        <member name="F:MidiLib.VirtualKeyboard._keys">
+            <summary>All the created piano keys.</summary>
+        </member>
+        <member name="F:MidiLib.VirtualKeyboard._keyMap">
+            <summary>Map from Keys value to the index in _keys.</summary>
+        </member>
+        <member name="F:MidiLib.VirtualKeyboard._keyDown">
+            <summary>Known bug?</summary>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.#ctor">
+            <summary>
+            Constructor.
+            </summary>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.Keyboard_Load(System.Object,System.EventArgs)">
+            <summary>
+            Initialize everything.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.Keyboard_Resize(System.Object,System.EventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.IsNatural(System.Int32)">
+            <summary>
+            Is it a white key?
+            </summary>
+            <param name="notenum">Which note</param>
+            <returns>True/false</returns>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.CreateKeyMap">
+            <summary>
+            Create the midi note/keyboard mapping.
+            </summary>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.Keyboard_KeyDown(System.Object,System.Windows.Forms.KeyEventArgs)">
+            <summary>
+            Use alpha keyboard to drive piano.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.Keyboard_KeyUp(System.Object,System.Windows.Forms.KeyEventArgs)">
+            <summary>
+            Use alpha keyboard to drive piano.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.Keyboard_VKeyEvent(System.Object,MidiLib.VirtualKey.VKeyEventArgs)">
+            <summary>
+            Pass along an event from a virtual key.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.CreateKeys">
+            <summary>
+            Create the key controls.
+            </summary>
+        </member>
+        <member name="M:MidiLib.VirtualKeyboard.DrawKeys">
+            <summary>
+            Re/draw the keys.
+            </summary>
+        </member>
+        <member name="T:MidiLib.VirtualKey">
+            <summary>One individual key.</summary>
+        </member>
+        <member name="F:MidiLib.VirtualKey._owner">
+            <summary>Hook to owner.</summary>
+        </member>
+        <member name="F:MidiLib.VirtualKey._noteNames">
+            <summary>For showing names.</summary>
+        </member>
+        <member name="P:MidiLib.VirtualKey.IsPressed">
+            <summary>Key status.</summary>
+        </member>
+        <member name="P:MidiLib.VirtualKey.IsNatural">
+            <summary>Key status.</summary>
+        </member>
+        <member name="P:MidiLib.VirtualKey.NoteId">
+            <summary>Associated midi note.</summary>
+        </member>
+        <member name="T:MidiLib.VirtualKey.VKeyEventArgs">
+            <summary>Notify handlers of key change.</summary>
+        </member>
+        <member name="M:MidiLib.VirtualKey.#ctor(MidiLib.VirtualKeyboard,System.Boolean,System.Int32)">
+            <summary>
+            Normal constructor.
+            </summary>
+            <param name="owner"></param>
+            <param name="isNatural"></param>
+            <param name="noteId"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.PressVKey(System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="velocity"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.ReleaseVKey">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:MidiLib.VirtualKey.CalcVelocity">
+            <summary>
+            Calc velocity from Y position.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MidiLib.VirtualKey.OnMouseEnter(System.EventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.OnMouseLeave(System.EventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.OnMouseDown(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.OnMouseUp(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.OnMouseMove(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MidiLib.VirtualKey.OnPaint(System.Windows.Forms.PaintEventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="e"></param>
         </member>
     </members>
 </doc>
