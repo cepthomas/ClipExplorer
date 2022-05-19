@@ -25,7 +25,7 @@
             this.btnLoop = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.txtViewer = new NBagOfUis.TextViewer();
-            this.sldVolume = new AudioLib.Slider();
+            this.sldVolume = new NBagOfUis.Slider();
             this.btnRewind = new System.Windows.Forms.Button();
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
@@ -201,7 +201,7 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.ToolStripDropDownButton fileDropDownButton;
-        private AudioLib.Slider sldVolume;
+        private NBagOfUis.Slider sldVolume;
         private System.Windows.Forms.Button btnRewind;
         private System.Windows.Forms.CheckBox chkPlay;
         private System.Windows.Forms.ToolStripButton btnSettings;

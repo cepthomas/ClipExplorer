@@ -2,7 +2,7 @@ using System.Windows.Forms;
 
 namespace ClipExplorer
 {
-    partial class MidiPlayer
+    partial class MidiExplorer
     {
         /// <summary> 
         /// Required designer variable.
@@ -19,7 +19,7 @@ namespace ClipExplorer
         {
             this.components = new System.ComponentModel.Container();
             this.barBar = new MidiLib.BarBar();
-            this.sldTempo = new AudioLib.Slider();
+            this.sldTempo = new NBagOfUis.Slider();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.lbPatterns = new System.Windows.Forms.CheckedListBox();
             this.btnAllPatterns = new System.Windows.Forms.Button();
@@ -201,7 +201,7 @@ namespace ClipExplorer
             this.btnClearPatterns.UseVisualStyleBackColor = true;
             this.btnClearPatterns.Click += new System.EventHandler(this.AllOrNone_Click);
             // 
-            // MidiPlayer
+            // MidiExplorer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -212,9 +212,9 @@ namespace ClipExplorer
             this.Controls.Add(this.barBar);
             this.Controls.Add(this.sldTempo);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.Name = "MidiPlayer";
+            this.Name = "MidiExplorer";
             this.Size = new System.Drawing.Size(588, 494);
-            this.Load += new System.EventHandler(this.MidiPlayer_Load);
+            this.Load += new System.EventHandler(this.MidiExplorer_Load);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -227,7 +227,7 @@ namespace ClipExplorer
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripSeparator toolStripSeparator2;
         private MidiLib.BarBar barBar;
-        private AudioLib.Slider sldTempo;
+        private NBagOfUis.Slider sldTempo;
         private System.Windows.Forms.CheckedListBox lbPatterns;
         private System.Windows.Forms.ToolStripButton btnLogMidi;
         private System.Windows.Forms.ToolStripButton btnKillMidi;

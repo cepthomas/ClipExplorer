@@ -8,7 +8,7 @@ namespace ClipExplorer
 {
     public enum PlayState { Stopped = 0, Playing = 1, Complete = 2 }
 
-    interface IPlayer : IDisposable
+    interface IExplorer : IDisposable
     {
         #region Properties
         /// <summary>Current master volume - between MIN_VOLUME and MAX_VOLUME. Default is DEFAULT_VOLUME.</summary>

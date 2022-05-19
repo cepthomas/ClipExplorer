@@ -102,7 +102,7 @@
         </member>
         <member name="M:AudioLib.Pan.#ctor">
             <summary>
-            Creates a new PanSlider control.
+            Creates a new Pan control.
             </summary>
         </member>
         <member name="M:AudioLib.Pan.Pan_Load(System.Object,System.EventArgs)">
@@ -256,105 +256,6 @@
             </summary>
             <param name="e"></param>
         </member>
-        <member name="T:AudioLib.Slider">
-            <summary>
-            Slider control.
-            </summary>
-        </member>
-        <member name="F:AudioLib.Slider._value">
-            <summary>Current value.</summary>
-        </member>
-        <member name="F:AudioLib.Slider._minimum">
-            <summary>Min value.</summary>
-        </member>
-        <member name="F:AudioLib.Slider._maximum">
-            <summary>Max value.</summary>
-        </member>
-        <member name="F:AudioLib.Slider._resolution">
-            <summary>Restrict to discrete steps.</summary>
-        </member>
-        <member name="F:AudioLib.Slider._resetVal">
-            <summary>If user resets. This is the first value assigned to Value.</summary>
-        </member>
-        <member name="F:AudioLib.Slider._brush">
-            <summary>The brush.</summary>
-        </member>
-        <member name="F:AudioLib.Slider._format">
-            <summary>For drawing text.</summary>
-        </member>
-        <member name="P:AudioLib.Slider.Label">
-            <summary>Optional label.</summary>
-        </member>
-        <member name="P:AudioLib.Slider.DrawColor">
-            <summary>For styling.</summary>
-        </member>
-        <member name="P:AudioLib.Slider.Orientation">
-            <summary>Fader orientation</summary>
-        </member>
-        <member name="P:AudioLib.Slider.Resolution">
-            <summary>Per step resolution of this slider.</summary>
-        </member>
-        <member name="P:AudioLib.Slider.Minimum">
-            <summary>Minimum Value of the slider.</summary>
-        </member>
-        <member name="P:AudioLib.Slider.Maximum">
-            <summary>Maximum Value of the slider.</summary>
-        </member>
-        <member name="P:AudioLib.Slider.Value">
-            <summary>The current value of the slider.</summary>
-        </member>
-        <member name="E:AudioLib.Slider.ValueChanged">
-            <summary>Slider value changed event.</summary>
-        </member>
-        <member name="M:AudioLib.Slider.#ctor">
-            <summary>
-            Creates a new Slider control.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Slider.Slider_Load(System.Object,System.EventArgs)">
-            <summary>
-            
-            </summary>
-            <param name="sender"></param>
-            <param name="e"></param>
-        </member>
-        <member name="M:AudioLib.Slider.Dispose(System.Boolean)">
-            <summary>
-            Clean up any resources being used.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Slider.Rescale">
-            <summary>
-            If min or max or resolution changed by client.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Slider.OnPaint(System.Windows.Forms.PaintEventArgs)">
-            <summary>
-            Draw the slider.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Slider.OnMouseMove(System.Windows.Forms.MouseEventArgs)">
-            <summary>
-            Handle dragging.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Slider.OnMouseDown(System.Windows.Forms.MouseEventArgs)">
-            <summary>
-            Handle dragging.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Slider.SetValueFromMouse(System.Windows.Forms.MouseEventArgs)">
-            <summary>
-            ommon updater.
-            </summary>
-            <param name="e"></param>
-        </member>
-        <member name="M:AudioLib.Slider.OnKeyDown(System.Windows.Forms.KeyEventArgs)">
-            <summary>
-            Handle the nudge key.
-            </summary>
-            <param name="e"></param>
-        </member>
         <member name="T:AudioLib.TimeBar">
             <summary>The control.</summary>
         </member>
@@ -496,6 +397,78 @@
             </summary>
             <param name="val"></param>
             <returns></returns>
+        </member>
+        <member name="T:AudioLib.Volume">
+            <summary>
+            Volume control. TODOX also log/db.
+            </summary>
+        </member>
+        <member name="F:AudioLib.Volume._value">
+            <summary>Current value.</summary>
+        </member>
+        <member name="F:AudioLib.Volume._minimum">
+            <summary>Min value.</summary>
+        </member>
+        <member name="F:AudioLib.Volume._maximum">
+            <summary>Max value.</summary>
+        </member>
+        <member name="F:AudioLib.Volume._brush">
+            <summary>The brush.</summary>
+        </member>
+        <member name="F:AudioLib.Volume._format">
+            <summary>For drawing text.</summary>
+        </member>
+        <member name="P:AudioLib.Volume.Label">
+            <summary>Optional label.</summary>
+        </member>
+        <member name="P:AudioLib.Volume.DrawColor">
+            <summary>For styling.</summary>
+        </member>
+        <member name="P:AudioLib.Volume.Orientation">
+            <summary>Fader orientation</summary>
+        </member>
+        <member name="P:AudioLib.Volume.Value">
+            <summary>The current value of the slider.</summary>
+        </member>
+        <member name="E:AudioLib.Volume.ValueChanged">
+            <summary>Volume value changed event.</summary>
+        </member>
+        <member name="M:AudioLib.Volume.#ctor">
+            <summary>
+            Creates a new Volume control.
+            </summary>
+        </member>
+        <member name="M:AudioLib.Volume.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+        </member>
+        <member name="M:AudioLib.Volume.OnPaint(System.Windows.Forms.PaintEventArgs)">
+            <summary>
+            Draw the slider.
+            </summary>
+        </member>
+        <member name="M:AudioLib.Volume.OnMouseMove(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Handle dragging.
+            </summary>
+        </member>
+        <member name="M:AudioLib.Volume.OnMouseDown(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            Handle dragging.
+            </summary>
+        </member>
+        <member name="M:AudioLib.Volume.SetValueFromMouse(System.Windows.Forms.MouseEventArgs)">
+            <summary>
+            ommon updater.
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:AudioLib.Volume.OnKeyDown(System.Windows.Forms.KeyEventArgs)">
+            <summary>
+            Handle the nudge key.
+            </summary>
+            <param name="e"></param>
         </member>
         <member name="F:AudioLib.WaveViewer._rawVals">
             <summary>From client.</summary>

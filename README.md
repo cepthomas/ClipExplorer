@@ -1,4 +1,4 @@
-# ClipExplorer TODO update
+# ClipExplorer TODOX update
 
 A windows tool for playing audio and midi file clips and Yamaha style files.
 This is primarily intended to be used for auditioning parts for use in compositions created in a real DAW.

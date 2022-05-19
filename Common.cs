@@ -12,12 +12,6 @@ namespace ClipExplorer
     public class Common
     {
         #region Constants
-        public const double MIN_VOLUME = 0.0;
-        public const double MAX_VOLUME = 2.0;
-        public const double DEFAULT_VOLUME = 0.8;
-        #endregion
-
-        #region Constants
         /// <summary>Current global user settings.</summary>
         public static UserSettings Settings { get; set; } = new UserSettings();
 

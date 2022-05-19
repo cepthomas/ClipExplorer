@@ -381,6 +381,30 @@
         <member name="P:MidiLib.ChannelControl.UnselectedColor">
             <summary>Indicate user not selected.</summary>
         </member>
+        <member name="F:MidiLib.ChannelControl._value">
+            <summary>Current value.</summary>
+        </member>
+        <member name="F:MidiLib.ChannelControl._minimum">
+            <summary>Min value.</summary>
+        </member>
+        <member name="F:MidiLib.ChannelControl._maximum">
+            <summary>Max value.</summary>
+        </member>
+        <member name="F:MidiLib.ChannelControl._resolution">
+            <summary>Restrict to discrete steps.</summary>
+        </member>
+        <member name="F:MidiLib.ChannelControl._brush">
+            <summary>The volume brush.</summary>
+        </member>
+        <member name="F:MidiLib.ChannelControl._format">
+            <summary>For drawing text.</summary>
+        </member>
+        <member name="P:MidiLib.ChannelControl.DrawColor">
+            <summary>For styling.</summary>
+        </member>
+        <member name="P:MidiLib.ChannelControl.Value">
+            <summary>The current value of the slider.</summary>
+        </member>
         <member name="M:MidiLib.ChannelControl.#ctor">
             <summary>
             Normal constructor.
@@ -446,89 +470,6 @@
             Required method for Designer support - do not modify 
             the contents of this method with the code editor.
             </summary>
-        </member>
-        <member name="T:MidiLib.MidiEventArgs">
-            <summary>
-            Midi has received something. It's up to the client to make sense of it.
-            Property value of -1 indicates invalid or not pertinent e.g a controller event doesn't have velocity.
-            </summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.Channel">
-            <summary>Channel number.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.Note">
-            <summary>The note number to play.</summary>%
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.Velocity">
-            <summary>The volume.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.ControllerId">
-            <summary>Specific controller.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.ControllerValue">
-            <summary>The controller payload.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.ErrorInfo">
-            <summary>Something to tell the client.</summary>
-        </member>
-        <member name="F:MidiLib.MidiEventArgs.PITCH_CONTROL">
-            <summary>Special id to carry pitch info.</summary>
-        </member>
-        <member name="M:MidiLib.MidiEventArgs.ToString">
-            <summary>Read me.</summary>
-        </member>
-        <member name="T:MidiLib.Listener">
-            <summary>
-            Midi input handler.
-            </summary>
-        </member>
-        <member name="F:MidiLib.Listener._midiIn">
-            <summary>Midi input device.</summary>
-        </member>
-        <member name="F:MidiLib.Listener._midiTraceFile">
-            <summary>Where to log to.</summary>
-        </member>
-        <member name="P:MidiLib.Listener.LogMidi">
-            <summary>Log outbound traffic. Warning - can get busy.</summary>
-        </member>
-        <member name="P:MidiLib.Listener.Enable">
-            <summary>Capture on/off.</summary>
-        </member>
-        <member name="E:MidiLib.Listener.InputEvent">
-            <summary>Handler for message arrived.</summary>
-        </member>
-        <member name="M:MidiLib.Listener.#ctor(System.String,System.String)">
-            <summary>
-            Normal constructor.
-            </summary>
-            <param name="midiDevice">Client supplies name of device.</param>
-            <param name="midiTracePath">Where to log.</param>
-        </member>
-        <member name="M:MidiLib.Listener.#ctor">
-            <summary>
-            Empty constructor to satisfy nullability.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Listener.Dispose">
-            <summary>
-            Resource clean up.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Listener.MidiIn_MessageReceived(System.Object,NAudio.Midi.MidiInMessageEventArgs)">
-            <summary>
-            Process input midi event.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Listener.MidiIn_ErrorReceived(System.Object,NAudio.Midi.MidiInMessageEventArgs)">
-            <summary>
-            Process error midi event - Parameter 1 is invalid.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Listener.Log(MidiLib.MidiEventArgs)">
-            <summary>
-            Send event information to the client to sort out.
-            </summary>
-            <param name="evt"></param>
         </member>
         <member name="T:MidiLib.NullMidiEvent">
             <summary>Placeholder to avoid handling null everywhere.</summary>
@@ -681,6 +622,7 @@
             <summary>
             Makes csv dumps of some events grouped by pattern/channel. This is as the events appear in the original file.
             </summary>
+            <param name="exportPath">Where to boss?</param>
             <param name="patternName">Specific pattern.</param>
             <param name="channels">Specific channnels or all if empty.</param>
             <param name="includeOther">false if just notes or true if everything.</param>
@@ -779,6 +721,180 @@
         <member name="F:MidiLib.MidiDefs._controllerNames">
             <summary>The midi controller definitions.</summary>
         </member>
+        <member name="T:MidiLib.MidiEventArgs">
+            <summary>
+            Midi has received something. It's up to the client to make sense of it.
+            Property value of -1 indicates invalid or not pertinent e.g a controller event doesn't have velocity.
+            </summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.Channel">
+            <summary>Channel number.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.Note">
+            <summary>The note number to play.</summary>%
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.Velocity">
+            <summary>The volume.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.ControllerId">
+            <summary>Specific controller.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.ControllerValue">
+            <summary>The controller payload.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.ErrorInfo">
+            <summary>Something to tell the client.</summary>
+        </member>
+        <member name="F:MidiLib.MidiEventArgs.PITCH_CONTROL">
+            <summary>Special id to carry pitch info.</summary>
+        </member>
+        <member name="M:MidiLib.MidiEventArgs.ToString">
+            <summary>Read me.</summary>
+        </member>
+        <member name="T:MidiLib.MidiListener">
+            <summary>
+            Midi input handler.
+            </summary>
+        </member>
+        <member name="F:MidiLib.MidiListener._midiIn">
+            <summary>Midi input device.</summary>
+        </member>
+        <member name="F:MidiLib.MidiListener._midiTraceFile">
+            <summary>Where to log to.</summary>
+        </member>
+        <member name="P:MidiLib.MidiListener.LogMidi">
+            <summary>Log outbound traffic. Warning - can get busy.</summary>
+        </member>
+        <member name="P:MidiLib.MidiListener.Enable">
+            <summary>Capture on/off.</summary>
+        </member>
+        <member name="E:MidiLib.MidiListener.InputEvent">
+            <summary>Handler for message arrived.</summary>
+        </member>
+        <member name="M:MidiLib.MidiListener.#ctor(System.String,System.String)">
+            <summary>
+            Normal constructor.
+            </summary>
+            <param name="midiDevice">Client supplies name of device.</param>
+            <param name="midiTracePath">Where to log.</param>
+        </member>
+        <member name="M:MidiLib.MidiListener.#ctor">
+            <summary>
+            Empty constructor to satisfy nullability.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiListener.Dispose">
+            <summary>
+            Resource clean up.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiListener.MidiIn_MessageReceived(System.Object,NAudio.Midi.MidiInMessageEventArgs)">
+            <summary>
+            Process input midi event.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiListener.MidiIn_ErrorReceived(System.Object,NAudio.Midi.MidiInMessageEventArgs)">
+            <summary>
+            Process error midi event - Parameter 1 is invalid.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiListener.Log(MidiLib.MidiEventArgs)">
+            <summary>
+            Send event information to the client to sort out.
+            </summary>
+            <param name="evt"></param>
+        </member>
+        <member name="T:MidiLib.RunState">
+            <summary>Player state.</summary>
+        </member>
+        <member name="T:MidiLib.MidiPlayer">
+            <summary>
+            A "good enough" midi player.
+            </summary>
+        </member>
+        <member name="F:MidiLib.MidiPlayer._midiOut">
+            <summary>Midi output device.</summary>
+        </member>
+        <member name="F:MidiLib.MidiPlayer._allChannels">
+            <summary>The internal channel objects.</summary>
+        </member>
+        <member name="F:MidiLib.MidiPlayer._currentSubdiv">
+            <summary>Backing.</summary>
+        </member>
+        <member name="F:MidiLib.MidiPlayer._midiLogFile">
+            <summary>Where to log to.</summary>
+        </member>
+        <member name="P:MidiLib.MidiPlayer.State">
+            <summary>What are we doing right now.</summary>
+        </member>
+        <member name="P:MidiLib.MidiPlayer.Volume">
+            <summary>Current master volume.</summary>
+        </member>
+        <member name="P:MidiLib.MidiPlayer.CurrentSubdiv">
+            <summary>Current position in subdivs.</summary>
+        </member>
+        <member name="P:MidiLib.MidiPlayer.LogMidi">
+            <summary>Log outbound traffic. Warning - can get busy.</summary>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.#ctor(System.String,MidiLib.ChannelCollection,System.String)">
+            <summary>
+            Normal constructor.
+            </summary>
+            <param name="midiDevice">Client supplies name of device.</param>
+            <param name="channels">The actual channels.</param>
+            <param name="midiLogPath">Where to log wire events (optional).</param>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.#ctor">
+            <summary>
+            Empty constructor to satisfy nullability.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.Dispose">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.Reset">
+            <summary>
+            Hard reset before loading a pattern.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.Run(System.Boolean)">
+            <summary>
+            Start/stop everything.
+            </summary>
+            <param name="go"></param>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.UpdateCurrent(System.Int32)">
+            <summary>
+            Set position.
+            </summary>
+            <param name="newval"></param>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.DoNextStep">
+            <summary>
+            Synchronously outputs the next midi events. Does solo/mute.
+            This is running on the background thread.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.Kill(System.Int32)">
+            <summary>
+            Send all notes off.
+            </summary>
+            <param name="channelNumber">1-based channel</param>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.KillAll">
+            <summary>
+            Send all notes off.
+            </summary>
+        </member>
+        <member name="M:MidiLib.MidiPlayer.MidiSend(NAudio.Midi.MidiEvent)">
+            <summary>
+            Send midi.
+            </summary>
+            <param name="evt"></param>
+        </member>
         <member name="T:MidiLib.MidiTime">
             <summary>Helpers to translate between midi standard and arbtrary internal representation.</summary>
         </member>
@@ -861,97 +977,6 @@
         <member name="M:MidiLib.PatternInfo.ToString">
             <summary>Readable version.</summary>
             <returns></returns>
-        </member>
-        <member name="T:MidiLib.RunState">
-            <summary>Player state.</summary>
-        </member>
-        <member name="T:MidiLib.Player">
-            <summary>
-            A "good enough" midi player.
-            </summary>
-        </member>
-        <member name="F:MidiLib.Player._midiOut">
-            <summary>Midi output device.</summary>
-        </member>
-        <member name="F:MidiLib.Player._allChannels">
-            <summary>The internal channel objects.</summary>
-        </member>
-        <member name="F:MidiLib.Player._currentSubdiv">
-            <summary>Backing.</summary>
-        </member>
-        <member name="F:MidiLib.Player._midiLogFile">
-            <summary>Where to log to.</summary>
-        </member>
-        <member name="P:MidiLib.Player.State">
-            <summary>What are we doing right now.</summary>
-        </member>
-        <member name="P:MidiLib.Player.Volume">
-            <summary>Current master volume.</summary>
-        </member>
-        <member name="P:MidiLib.Player.CurrentSubdiv">
-            <summary>Current position in subdivs.</summary>
-        </member>
-        <member name="P:MidiLib.Player.LogMidi">
-            <summary>Log outbound traffic. Warning - can get busy.</summary>
-        </member>
-        <member name="M:MidiLib.Player.#ctor(System.String,MidiLib.ChannelCollection,System.String)">
-            <summary>
-            Normal constructor.
-            </summary>
-            <param name="midiDevice">Client supplies name of device.</param>
-            <param name="channels">The actual channels.</param>
-            <param name="midiLogPath">Where to log wire events (optional).</param>
-        </member>
-        <member name="M:MidiLib.Player.#ctor">
-            <summary>
-            Empty constructor to satisfy nullability.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Player.Dispose">
-            <summary> 
-            Clean up any resources being used.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Player.Reset">
-            <summary>
-            Hard reset before loading a pattern.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Player.Run(System.Boolean)">
-            <summary>
-            Start/stop everything.
-            </summary>
-            <param name="go"></param>
-        </member>
-        <member name="M:MidiLib.Player.UpdateCurrent(System.Int32)">
-            <summary>
-            Set position.
-            </summary>
-            <param name="newval"></param>
-        </member>
-        <member name="M:MidiLib.Player.DoNextStep">
-            <summary>
-            Synchronously outputs the next midi events. Does solo/mute.
-            This is running on the background thread.
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:MidiLib.Player.Kill(System.Int32)">
-            <summary>
-            Send all notes off.
-            </summary>
-            <param name="channelNumber">1-based channel</param>
-        </member>
-        <member name="M:MidiLib.Player.KillAll">
-            <summary>
-            Send all notes off.
-            </summary>
-        </member>
-        <member name="M:MidiLib.Player.MidiSend(NAudio.Midi.MidiEvent)">
-            <summary>
-            Send midi.
-            </summary>
-            <param name="evt"></param>
         </member>
         <member name="T:MidiLib.VirtualKeyboard">
             <summary>

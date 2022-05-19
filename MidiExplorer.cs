@@ -13,7 +13,7 @@ using NBagOfUis;
 using MidiLib;
 
 
-//TODO exports:
+//TODOX exports:
 //fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export All", null, Export_Click));
 //fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Pattern", null, Export_Click));
 //fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Midi", null, Export_Click)); 
@@ -25,7 +25,7 @@ namespace ClipExplorer
     /// There are some limitations: Windows multimedia timer has 1 msec resolution at best. This causes a trade-off between
     /// ppq resolution and accuracy. The timer is also inherently wobbly.
     /// </summary>
-    public partial class MidiPlayer : UserControl, IPlayer
+    public partial class MidiExplorer : UserControl, IExplorer
     {
         #region Constants
         /// <summary>Only 4/4 time supported.</summary>
@@ -37,7 +37,7 @@ namespace ClipExplorer
 
         #region Fields
         /// <summary>Midi player.</summary>
-        Player _player;
+        MidiPlayer _player;
 
         /// <summary>The internal channel objects.</summary>
         readonly ChannelCollection _allChannels = new();
@@ -72,7 +72,7 @@ namespace ClipExplorer
         /// <summary>
         /// Normal constructor.
         /// </summary>
-        public MidiPlayer()
+        public MidiExplorer()
         {
             InitializeComponent();
            _player = new();
@@ -83,7 +83,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MidiPlayer_Load(object? sender, EventArgs e)
+        void MidiExplorer_Load(object? sender, EventArgs e)
         {
             try
             {
@@ -320,7 +320,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Control_ChannelChange(object? sender, ChannelControl.ChannelChangeEventArgs e) // TODOM
+        void Control_ChannelChange(object? sender, ChannelControl.ChannelChangeEventArgs e)
         {
             ChannelControl chc = (ChannelControl)sender!;
 
@@ -479,7 +479,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Patterns_SelectedIndexChanged(object? sender, EventArgs e) //TODOM
+        void Patterns_SelectedIndexChanged(object? sender, EventArgs e)
         {
             var pinfo = _mdata.AllPatterns.Where(p => p.PatternName == lbPatterns.SelectedItem.ToString()).First();
 
@@ -498,7 +498,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void AllOrNone_Click(object? sender, EventArgs e) //TODOM
+        void AllOrNone_Click(object? sender, EventArgs e)
         {
             bool check = sender == btnAllPatterns;
             for(int i = 0; i < lbPatterns.Items.Count; i++)
@@ -514,7 +514,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void DrumChannel_SelectedIndexChanged(object? sender, EventArgs e) //TODOM
+        void DrumChannel_SelectedIndexChanged(object? sender, EventArgs e)
         {
             UpdateDrumChannels();
         }
@@ -522,7 +522,7 @@ namespace ClipExplorer
         /// <summary>
         /// Update all channels based on current UI.
         /// </summary>
-        void UpdateDrumChannels() //TODOM
+        void UpdateDrumChannels()
         {
             _channelControls.ForEach(ctl => ctl.IsDrums =
                 (ctl.ChannelNumber == cmbDrumChannel1.SelectedIndex) ||
@@ -534,7 +534,7 @@ namespace ClipExplorer
         /// <summary>
         /// Export current file to human readable or midi.
         /// </summary>
-        void Export_Click(object? sender, EventArgs e) //TODOM
+        void Export_Click(object? sender, EventArgs e) //TODOX
         {
             var stext = ((ToolStripMenuItem)sender!).Text;
 

@@ -17,7 +17,7 @@ using NBagOfUis;
 
 namespace ClipExplorer
 {
-    public partial class WavePlayer : UserControl, IPlayer
+    public partial class AudioExplorer : UserControl, IExplorer
     {
         #region Fields
         /// <summary>Wave output play device.</summary>
@@ -26,6 +26,9 @@ namespace ClipExplorer
         /// <summary>Input device for playing wav file.</summary>
         AudioFileReader? _audioFileReader = null;
 
+        /// <summary>Current state.</summary>
+        PlayState _state = PlayState.Stopped;
+            
         /// <summary>Stream read chunk.</summary>
         const int READ_BUFF_SIZE = 1000000;
 
@@ -50,14 +53,18 @@ namespace ClipExplorer
         }
 
         /// <inheritdoc />
-        public PlayState State { get => throw new NotImplementedException(); set => throw new NotImplementedException(); } //TODO
+        public PlayState State
+        {
+            get { return _state; }
+            set { _state = value; if (_state == PlayState.Playing) Play(); else Stop(); }
+        }
         #endregion
 
         #region Lifecycle
         /// <summary>
         /// Constructor.
         /// </summary>
-        public WavePlayer()
+        public AudioExplorer()
         {
             InitializeComponent();
         }
@@ -89,7 +96,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void WavePlayer_Load(object? sender, EventArgs e)
+        private void AudioExplorer_Load(object? sender, EventArgs e)
         {
             // Init settings.
             SettingsChanged();
@@ -210,7 +217,7 @@ namespace ClipExplorer
         /// Might be useful in the future.
         /// </summary>
         /// <returns></returns>
-        public List<string> Dump()
+        public List<string> Dump() //  TODOX find better home. Add export to menu.
         {
             List<string> ret = new();
 
@@ -369,6 +376,7 @@ namespace ClipExplorer
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
+            _state = PlayState.Complete;
         }
 
         /// <summary>

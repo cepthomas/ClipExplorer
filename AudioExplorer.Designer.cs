@@ -2,7 +2,7 @@ using AudioLib;
 
 namespace ClipExplorer
 {
-    partial class WavePlayer
+    partial class AudioExplorer
     {
         /// <summary> 
         /// Required designer variable.
@@ -18,7 +18,7 @@ namespace ClipExplorer
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WavePlayer));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AudioExplorer));
             this.waveViewerL = new AudioLib.WaveViewer();
             this.levelR = new AudioLib.Meter();
             this.levelL = new AudioLib.Meter();
@@ -160,7 +160,7 @@ namespace ClipExplorer
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 27);
             // 
-            // WavePlayer
+            // AudioExplorer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -171,9 +171,9 @@ namespace ClipExplorer
             this.Controls.Add(this.levelR);
             this.Controls.Add(this.levelL);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.Name = "WavePlayer";
+            this.Name = "AudioExplorer";
             this.Size = new System.Drawing.Size(589, 454);
-            this.Load += new System.EventHandler(this.WavePlayer_Load);
+            this.Load += new System.EventHandler(this.AudioExplorer_Load);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
