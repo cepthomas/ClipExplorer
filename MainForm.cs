@@ -27,13 +27,13 @@ namespace ClipExplorer
         readonly string _fileTypes = "Audio Files|*.wav;*.mp3;*.m4a;*.flac|Midi Files|*.mid|Style Files|*.sty;*.pcs;*.sst;*.prs|";
 
         /// <summary>Audio device.</summary>
-        AudioExplorer? _audioExplorer = null;
+        AudioExplorer? _audioExplorer;
 
         /// <summary>Midi device.</summary>
-        MidiExplorer? _midiExplorer = null;
+        MidiExplorer? _midiExplorer;
 
         /// <summary>Current play device.</summary>
-        IExplorer? _explorer = null;
+        IExplorer? _explorer;
 
         /// <summary>Prevent button press recursion.</summary>
         bool _guard = false;
@@ -46,6 +46,7 @@ namespace ClipExplorer
         public MainForm()
         {
             InitializeComponent();
+            _explorer = _midiExplorer;
         }
 
         /// <summary>

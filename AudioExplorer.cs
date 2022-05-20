@@ -13,6 +13,8 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NBagOfTricks;
 using NBagOfUis;
+using AudioLib;
+
 
 
 namespace ClipExplorer
@@ -21,19 +23,13 @@ namespace ClipExplorer
     {
         #region Fields
         /// <summary>Wave output play device.</summary>
-        WaveOut? _waveOut = null;
+        AudioPlayer? _player;
 
         /// <summary>Input device for audio file.</summary>
-        AudioFileReader? _audioFileReader = null;
+        AudioFileReader? _audioFileReader;
 
-        /// <summary>Current state.</summary>
-        PlayState _state = PlayState.Stopped;
-            
         /// <summary>Stream read chunk.</summary>
         const int READ_BUFF_SIZE = 1000000;
-
-        /// <summary>The volume.</summary>
-        double _volume = Volume.DEFAULT_VOLUME;
         #endregion
 
         #region Events
@@ -46,17 +42,13 @@ namespace ClipExplorer
 
         #region Properties
         /// <inheritdoc />
-        public double Volume
-        {
-            get { return _volume; }
-            set { _volume = MathUtils.Constrain(value, Volume.MIN_VOLUME, Volume.MAX_VOLUME); if (_waveOut != null) _waveOut.Volume = (float)_volume; }
-        }
+        public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
 
         /// <inheritdoc />
         public PlayState State
         {
-            get { return _state; }
-            set { _state = value; if (_state == PlayState.Playing) Play(); else Stop(); }
+            get { return (PlayState)_player.State; }
+            set { _player.State = (AudioState)value; if (value == PlayState.Playing) Play(); else Stop(); }
         }
         #endregion
 
@@ -81,12 +73,10 @@ namespace ClipExplorer
             }
 
             // My stuff here.
-            _waveOut?.Stop();
-            _waveOut?.Dispose();
-            _waveOut = null;
+            _player?.Run(false);
+            _player?.Dispose();
 
             _audioFileReader?.Dispose();
-            _audioFileReader = null;
 
             base.Dispose(disposing);
         }
@@ -112,20 +102,8 @@ namespace ClipExplorer
             timeBar.ProgressColor = Common.Settings.ControlColor;
 
             // Create output device.
-            for (int id = -1; id < WaveOut.DeviceCount; id++)
-            {
-                var cap = WaveOut.GetCapabilities(id);
-                if (Common.Settings.WavOutDevice == cap.ProductName)
-                {
-                    _waveOut = new WaveOut
-                    {
-                        DeviceNumber = id,
-                        DesiredLatency = int.Parse(Common.Settings.Latency)
-                    };
-                    _waveOut.PlaybackStopped += WaveOut_PlaybackStopped;
-                    break;
-                }
-            }
+            _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
+            //TODOX _player.PlaybackStopped += WaveOut_PlaybackStopped;
         }
         #endregion
 
@@ -158,8 +136,7 @@ namespace ClipExplorer
                 var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
                 postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                _waveOut!.Init(postVolumeMeter);
-                _waveOut!.Volume = (float)Common.Settings.Volume;
+                _player!.Init(postVolumeMeter);
 
                 ShowClip();
             }
@@ -178,30 +155,22 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
-            if (_audioFileReader is not null)
-            {
-                _waveOut!.Play();
-            }
+            _player!.Run(true);
         }
 
         /// <inheritdoc />
         public void Stop()
         {
-            if (_audioFileReader is not null)
-            {
-                _waveOut!.Pause(); // or Stop?
-                ResetMeters();
-            }
+            _player!.Run(false);
+            ResetMeters();
         }
 
         /// <inheritdoc />
         public void Rewind()
         {
-            if (_audioFileReader is not null)
-            {
-                _audioFileReader.Position = 0;
-                timeBar.Current = TimeSpan.Zero;
-            }
+            _audioFileReader!.Position = 0;
+            _player.Rewind();
+            timeBar.Current = TimeSpan.Zero;
         }
         #endregion
 
@@ -217,7 +186,6 @@ namespace ClipExplorer
         /// Might be useful in the future.
         /// </summary>
         /// <returns></returns>
-//        void Export_Click(object? sender, EventArgs e) //TODOX
         public List<string> Export() //  TODOX find better home. Add export to menu.
         {
             List<string> ret = new();
@@ -377,7 +345,7 @@ namespace ClipExplorer
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
-            _state = PlayState.Complete;
+            //_state = PlayState.Complete;
         }
 
         /// <summary>

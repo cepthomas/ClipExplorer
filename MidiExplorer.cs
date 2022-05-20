@@ -37,7 +37,7 @@ namespace ClipExplorer
 
         #region Fields
         /// <summary>Midi player.</summary>
-        MidiPlayer _player;
+        MidiPlayer? _player;
 
         /// <summary>The internal channel objects.</summary>
         readonly ChannelCollection _allChannels = new();
@@ -62,10 +62,10 @@ namespace ClipExplorer
 
         #region Properties
         /// <inheritdoc />
-        public double Volume { get; set; }
+        public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
 
         /// <inheritdoc />
-        public PlayState State { get { return (PlayState)_player.State; } set { _player.State = (RunState)value; } }
+        public PlayState State { get { return (PlayState)_player.State; } set { _player.State = (MidiState)value; } }
         #endregion
 
         #region Lifecycle
@@ -75,7 +75,6 @@ namespace ClipExplorer
         public MidiExplorer()
         {
             InitializeComponent();
-           _player = new();
         }
 
         /// <summary>
@@ -112,19 +111,14 @@ namespace ClipExplorer
             sldTempo.DrawColor = Common.Settings.ControlColor;
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
-         //   chkLogMidi.FlatAppearance.CheckedBackColor = Common.Settings.ControlColor;
-
             // Hook up some simple UI handlers.
             btnKillMidi.Click += (_, __) => { _player.KillAll(); };
-            //btnKill.Click += (_, __) => _player.KillAll();
             btnLogMidi.Click += (_, __) => { _player.LogMidi = btnLogMidi.Checked; };
             sldTempo.ValueChanged += (_, __) => { SetTimer(); };
 
             // Set up timer.
             sldTempo.Value = Common.Settings.DefaultTempo;
             SetTimer();
-
-
 
             // Init channels and selectors.
             _allChannels.ForEach(ch => ch.IsDrums = ch.ChannelNumber == MidiDefs.DEFAULT_DRUM_CHANNEL);
@@ -139,7 +133,6 @@ namespace ClipExplorer
             cmbDrumChannel1.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
             cmbDrumChannel2.SelectedIndex = 0;
             cmbDrumChannel2.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
-
         }
 
         /// <summary> 
@@ -311,10 +304,6 @@ namespace ClipExplorer
         #endregion
 
         #region UI event handlers
-
-        #endregion
-
-
         /// <summary>
         /// The user clicked something in one of the channel controls.
         /// </summary>
@@ -356,16 +345,6 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Logger.
-        /// </summary>
-        /// <param name="cat"></param>
-        /// <param name="msg"></param>
-        void LogMessage(string cat, string msg)
-        {
-            Log?.Invoke(this, new LogEventArgs(cat, msg));
-        }
-
-        /// <summary>
         /// User changed tempo.
         /// </summary>
         /// <param name="sender"></param>
@@ -377,22 +356,6 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Convert tempo to period and set mm timer.
-        /// </summary>
-        void SetTimer()
-        {
-            MidiTime mt = new()
-            {
-                InternalPpq = PPQ,
-                MidiPpq = _mdata.DeltaTicksPerQuarterNote,
-                Tempo = sldTempo.Value
-            };
-
-            double period = mt.RoundedInternalPeriod();
-            _mmTimer.SetTimer((int)Math.Round(period), MmTimerCallback);
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
@@ -400,6 +363,7 @@ namespace ClipExplorer
         void BarBar_CurrentTimeChanged(object? sender, EventArgs e)
         {
         }
+        #endregion
 
         #region Process patterns
         /// <summary>
@@ -609,6 +573,34 @@ namespace ClipExplorer
             {
                 LogMessage("ERR", $"{ex.Message}");
             }
+        }
+        #endregion
+
+        #region Misc functions
+        /// <summary>
+        /// Logger.
+        /// </summary>
+        /// <param name="cat"></param>
+        /// <param name="msg"></param>
+        void LogMessage(string cat, string msg)
+        {
+            Log?.Invoke(this, new LogEventArgs(cat, msg));
+        }
+
+        /// <summary>
+        /// Convert tempo to period and set mm timer.
+        /// </summary>
+        void SetTimer()
+        {
+            MidiTime mt = new()
+            {
+                InternalPpq = PPQ,
+                MidiPpq = _mdata.DeltaTicksPerQuarterNote,
+                Tempo = sldTempo.Value
+            };
+
+            double period = mt.RoundedInternalPeriod();
+            _mmTimer.SetTimer((int)Math.Round(period), MmTimerCallback);
         }
         #endregion
     }
