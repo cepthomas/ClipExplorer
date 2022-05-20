@@ -23,7 +23,7 @@ namespace ClipExplorer
         /// <summary>Wave output play device.</summary>
         WaveOut? _waveOut = null;
 
-        /// <summary>Input device for playing wav file.</summary>
+        /// <summary>Input device for audio file.</summary>
         AudioFileReader? _audioFileReader = null;
 
         /// <summary>Current state.</summary>
@@ -33,7 +33,7 @@ namespace ClipExplorer
         const int READ_BUFF_SIZE = 1000000;
 
         /// <summary>The volume.</summary>
-        double _volume = 0.8;
+        double _volume = Volume.DEFAULT_VOLUME;
         #endregion
 
         #region Events
@@ -49,7 +49,7 @@ namespace ClipExplorer
         public double Volume
         {
             get { return _volume; }
-            set { _volume = MathUtils.Constrain(value, 0, 1); if (_waveOut != null) _waveOut.Volume = (float)_volume; }
+            set { _volume = MathUtils.Constrain(value, Volume.MIN_VOLUME, Volume.MAX_VOLUME); if (_waveOut != null) _waveOut.Volume = (float)_volume; }
         }
 
         /// <inheritdoc />
@@ -92,7 +92,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// 
+        /// Init everything.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -217,7 +217,8 @@ namespace ClipExplorer
         /// Might be useful in the future.
         /// </summary>
         /// <returns></returns>
-        public List<string> Dump() //  TODOX find better home. Add export to menu.
+//        void Export_Click(object? sender, EventArgs e) //TODOX
+        public List<string> Export() //  TODOX find better home. Add export to menu.
         {
             List<string> ret = new();
 
