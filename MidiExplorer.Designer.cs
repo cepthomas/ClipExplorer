@@ -30,16 +30,15 @@ namespace ClipExplorer
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.patternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.midiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.cmbDrumChannel1 = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.cmbDrumChannel2 = new System.Windows.Forms.ToolStripComboBox();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.btnLogMidi = new System.Windows.Forms.ToolStripButton();
             this.btnKillMidi = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -121,14 +120,16 @@ namespace ClipExplorer
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileDropDown,
-            this.toolStripSeparator4,
+            this.toolStripSeparator1,
+            this.toolStripLabel1,
             this.cmbDrumChannel1,
             this.toolStripLabel2,
             this.cmbDrumChannel2,
-            this.toolStripSeparator3,
+            this.toolStripSeparator2,
             this.btnLogMidi,
             this.btnKillMidi,
-            this.toolStripLabel1});
+            this.toolStripSeparator3
+            });
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(594, 28);
@@ -171,11 +172,6 @@ namespace ClipExplorer
             this.midiToolStripMenuItem.Text = "Midi";
             this.midiToolStripMenuItem.ToolTipText = "Export selected patterns to midii files";
             this.midiToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
-            // 
-            // toolStripSeparator4
-            // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 28);
             // 
             // cmbDrumChannel1
             // 
@@ -268,6 +264,7 @@ namespace ClipExplorer
         private ToolStrip toolStrip1;
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripSeparator toolStripSeparator2;
+        private ToolStripSeparator toolStripSeparator3;
         private MidiLib.BarBar barBar;
         private NBagOfUis.Slider sldTempo;
         private System.Windows.Forms.CheckedListBox lbPatterns;
@@ -279,11 +276,9 @@ namespace ClipExplorer
         private System.Windows.Forms.ToolStripComboBox cmbDrumChannel2;
         private System.Windows.Forms.Button btnAllPatterns;
         private System.Windows.Forms.Button btnClearPatterns;
-        private ToolStripSeparator toolStripSeparator3;
         private ToolStripDropDownButton fileDropDown;
         private ToolStripMenuItem allToolStripMenuItem;
         private ToolStripMenuItem patternToolStripMenuItem;
         private ToolStripMenuItem midiToolStripMenuItem;
-        private ToolStripSeparator toolStripSeparator4;
     }
 }

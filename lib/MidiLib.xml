@@ -214,9 +214,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:MidiLib.ChannelState">
-            <summary>Channel state.</summary>
-        </member>
         <member name="T:MidiLib.Channel">
             <summary>Describes one midi channel.</summary>
         </member>
@@ -242,7 +239,7 @@
             <summary>Current patch.</summary>
         </member>
         <member name="P:MidiLib.Channel.Volume">
-            <summary>Current volume - between MIN_VOLUME and MAX_VOLUME. Default is DEFAULT_VOLUME.</summary>
+            <summary>Current volume constrained to legal values.</summary>
         </member>
         <member name="P:MidiLib.Channel.MaxSubdiv">
             <summary>The duration of the whole channel.</summary>
@@ -364,7 +361,7 @@
             <summary>Current patch.</summary>
         </member>
         <member name="P:MidiLib.ChannelControl.Volume">
-            <summary>Current volume.</summary>
+            <summary>Current volume. Channel.Volume performs the constraints.</summary>
         </member>
         <member name="P:MidiLib.ChannelControl.MaxSubdiv">
             <summary>The duration of the whole channel.</summary>
@@ -381,41 +378,10 @@
         <member name="P:MidiLib.ChannelControl.UnselectedColor">
             <summary>Indicate user not selected.</summary>
         </member>
-        <member name="F:MidiLib.ChannelControl._value">
-            <summary>Current value.</summary>
-        </member>
-        <member name="F:MidiLib.ChannelControl._minimum">
-            <summary>Min value.</summary>
-        </member>
-        <member name="F:MidiLib.ChannelControl._maximum">
-            <summary>Max value.</summary>
-        </member>
-        <member name="F:MidiLib.ChannelControl._resolution">
-            <summary>Restrict to discrete steps.</summary>
-        </member>
-        <member name="F:MidiLib.ChannelControl._brush">
-            <summary>The volume brush.</summary>
-        </member>
-        <member name="F:MidiLib.ChannelControl._format">
-            <summary>For drawing text.</summary>
-        </member>
-        <member name="P:MidiLib.ChannelControl.DrawColor">
-            <summary>For styling.</summary>
-        </member>
-        <member name="P:MidiLib.ChannelControl.Value">
-            <summary>The current value of the slider.</summary>
-        </member>
         <member name="M:MidiLib.ChannelControl.#ctor">
             <summary>
             Normal constructor.
             </summary>
-        </member>
-        <member name="M:MidiLib.ChannelControl.ChannelControl_Load(System.Object,System.EventArgs)">
-            <summary>
-            
-            </summary>
-            <param name="sender"></param>
-            <param name="e"></param>
         </member>
         <member name="M:MidiLib.ChannelControl.Volume_ValueChanged(System.Object,System.EventArgs)">
             <summary>
@@ -471,8 +437,44 @@
             the contents of this method with the code editor.
             </summary>
         </member>
+        <member name="T:MidiLib.MidiState">
+            <summary>Player state.</summary>
+        </member>
+        <member name="T:MidiLib.ChannelState">
+            <summary>Channel state.</summary>
+        </member>
         <member name="T:MidiLib.NullMidiEvent">
             <summary>Placeholder to avoid handling null everywhere.</summary>
+        </member>
+        <member name="T:MidiLib.MidiEventArgs">
+            <summary>
+            Midi has received something. It's up to the client to make sense of it.
+            Property value of -1 indicates invalid or not pertinent e.g a controller event doesn't have velocity.
+            </summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.Channel">
+            <summary>Channel number.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.Note">
+            <summary>The note number to play.</summary>%
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.Velocity">
+            <summary>The volume.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.ControllerId">
+            <summary>Specific controller.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.ControllerValue">
+            <summary>The controller payload.</summary>
+        </member>
+        <member name="P:MidiLib.MidiEventArgs.ErrorInfo">
+            <summary>Something to tell the client.</summary>
+        </member>
+        <member name="F:MidiLib.MidiEventArgs.PITCH_CONTROL">
+            <summary>Special id to carry pitch info.</summary>
+        </member>
+        <member name="M:MidiLib.MidiEventArgs.ToString">
+            <summary>Read me.</summary>
         </member>
         <member name="T:MidiLib.EventDesc">
             <summary>
@@ -721,36 +723,6 @@
         <member name="F:MidiLib.MidiDefs._controllerNames">
             <summary>The midi controller definitions.</summary>
         </member>
-        <member name="T:MidiLib.MidiEventArgs">
-            <summary>
-            Midi has received something. It's up to the client to make sense of it.
-            Property value of -1 indicates invalid or not pertinent e.g a controller event doesn't have velocity.
-            </summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.Channel">
-            <summary>Channel number.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.Note">
-            <summary>The note number to play.</summary>%
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.Velocity">
-            <summary>The volume.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.ControllerId">
-            <summary>Specific controller.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.ControllerValue">
-            <summary>The controller payload.</summary>
-        </member>
-        <member name="P:MidiLib.MidiEventArgs.ErrorInfo">
-            <summary>Something to tell the client.</summary>
-        </member>
-        <member name="F:MidiLib.MidiEventArgs.PITCH_CONTROL">
-            <summary>Special id to carry pitch info.</summary>
-        </member>
-        <member name="M:MidiLib.MidiEventArgs.ToString">
-            <summary>Read me.</summary>
-        </member>
         <member name="T:MidiLib.MidiListener">
             <summary>
             Midi input handler.
@@ -803,9 +775,6 @@
             Send event information to the client to sort out.
             </summary>
             <param name="evt"></param>
-        </member>
-        <member name="T:MidiLib.RunState">
-            <summary>Player state.</summary>
         </member>
         <member name="T:MidiLib.MidiPlayer">
             <summary>
@@ -1011,13 +980,6 @@
             <summary>
             Constructor.
             </summary>
-        </member>
-        <member name="M:MidiLib.VirtualKeyboard.Keyboard_Load(System.Object,System.EventArgs)">
-            <summary>
-            Initialize everything.
-            </summary>
-            <param name="sender"></param>
-            <param name="e"></param>
         </member>
         <member name="M:MidiLib.VirtualKeyboard.Keyboard_Resize(System.Object,System.EventArgs)">
             <summary>

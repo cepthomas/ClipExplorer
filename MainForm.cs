@@ -27,10 +27,10 @@ namespace ClipExplorer
         readonly string _fileTypes = "Audio Files|*.wav;*.mp3;*.m4a;*.flac|Midi Files|*.mid|Style Files|*.sty;*.pcs;*.sst;*.prs|";
 
         /// <summary>Audio device.</summary>
-        AudioExplorer _audioExplorer;
+        readonly AudioExplorer _audioExplorer;
 
         /// <summary>Midi device.</summary>
-        MidiExplorer _midiExplorer;
+        readonly MidiExplorer _midiExplorer;
 
         /// <summary>Current play device.</summary>
         IExplorer _explorer;
@@ -81,39 +81,52 @@ namespace ClipExplorer
             chkPlay.CheckedChanged += (_, __) => { UpdateState(); };
             btnRewind.Click += (_, __) => { Rewind(); };
 
-            // Create devices.
-            _audioExplorer = new()
-            {
-                Location = new(btnRewind.Right + 5, btnRewind.Top),
-                Visible = true,
-                Volume = Common.Settings.Volume
-            };
-            _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
-            _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            Controls.Add(_audioExplorer);
-
-            _midiExplorer = new()
-            {
-                Location = new(btnRewind.Right + 5, btnRewind.Top),
-                Visible = false,
-                Volume = Common.Settings.Volume
-            };
-            _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
-            _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            Controls.Add(_midiExplorer);
-
-            _explorer = _midiExplorer;
-
-            // Initialize tree from user settings.
+            // Initialize tree from user settings. TODOX sort order not quite right.
             InitNavigator();
 
             LogMessage("INF", "Hello. C=clear, W=wrap");
 
-            // Look for filename passed in.
-            string[] args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
+            // Create devices.
+            try
             {
-                OpenFile(args[1]);
+                _audioExplorer = new()
+                {
+                    Location = new(btnRewind.Right + 5, btnRewind.Top),
+                    Visible = false,
+                    //BorderStyle = BorderStyle.FixedSingle,
+                    Volume = Common.Settings.Volume
+                };
+                _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
+                _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
+                Controls.Add(_audioExplorer); //TODOX combine child and parent toolstrips? also midi.
+
+                _midiExplorer = new()
+                {
+                    Location = new(btnRewind.Right + 5, btnRewind.Top),
+                    Visible = false,
+                    //BorderStyle = BorderStyle.FixedSingle,
+                    Volume = Common.Settings.Volume
+                };
+                _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
+                _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
+                Controls.Add(_midiExplorer);
+
+                _explorer = _midiExplorer;
+
+                // Look for filename passed in.
+                string[] args = Environment.GetCommandLineArgs();
+                if (args.Length > 1)
+                {
+                    OpenFile(args[1]);
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                LogMessage("ERR", $"Something wrong with your device config:{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                LogMessage("ERR", $"Something else went wrong:{ex.Message}");
             }
         }
 
@@ -135,12 +148,12 @@ namespace ClipExplorer
         protected override void Dispose(bool disposing)
         {
             // Resources.
-            _audioExplorer.Dispose();
-            _midiExplorer.Dispose();
+            _audioExplorer?.Dispose();
+            _midiExplorer?.Dispose();
 
-            if (disposing && (components is not null))
+            if (disposing)
             {
-                components.Dispose();
+                components?.Dispose();
             }
 
             base.Dispose(disposing);
@@ -488,12 +501,12 @@ namespace ClipExplorer
 
             if (midiChange)
             {
-                _midiExplorer.SettingsChanged();
+                _midiExplorer?.SettingsChanged();
             }
 
             if (audioChange)
             {
-                _audioExplorer.SettingsChanged();
+                _audioExplorer?.SettingsChanged();
             }
 
             if (navChange)

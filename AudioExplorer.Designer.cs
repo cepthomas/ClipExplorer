@@ -25,6 +25,7 @@ namespace ClipExplorer
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDown = new System.Windows.Forms.ToolStripDropDownButton();
+            this.textToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -97,11 +98,20 @@ namespace ClipExplorer
             // fileDropDown
             // 
             this.fileDropDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.fileDropDown.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.textToolStripMenuItem});
             this.fileDropDown.Image = ((System.Drawing.Image)(resources.GetObject("fileDropDown.Image")));
             this.fileDropDown.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDown.Name = "fileDropDown";
             this.fileDropDown.Size = new System.Drawing.Size(66, 24);
             this.fileDropDown.Text = "Export";
+            // 
+            // textToolStripMenuItem
+            // 
+            this.textToolStripMenuItem.Name = "textToolStripMenuItem";
+            this.textToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.textToolStripMenuItem.Text = "Text";
+            this.textToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
             // 
             // toolStripSeparator1
             // 
@@ -135,5 +145,6 @@ namespace ClipExplorer
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripDropDownButton fileDropDown;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem textToolStripMenuItem;
     }
 }

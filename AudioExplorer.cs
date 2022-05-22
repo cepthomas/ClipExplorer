@@ -83,14 +83,14 @@ namespace ClipExplorer
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components is not null))
+            if (disposing)
             {
-                components.Dispose();
+                components?.Dispose();
             }
 
             // My stuff here.
-            _player.Run(false);
-            _player.Dispose();
+            _player?.Run(false);
+            _player?.Dispose();
 
             _audioFileReader?.Dispose();
 
@@ -108,7 +108,6 @@ namespace ClipExplorer
             {
                 // Clean up first.
                 _audioFileReader?.Dispose();
-                _audioFileReader = null;
                 waveViewerL.Reset();
                 waveViewerR.Reset();
 
@@ -116,7 +115,7 @@ namespace ClipExplorer
                 _audioFileReader = new AudioFileReader(fn);
 
                 timeBar.Length = _audioFileReader.TotalTime;
-                timeBar.Start = TimeSpan.Zero;
+                timeBar.Start = TimeSpan.Zero; 
                 timeBar.End = TimeSpan.Zero;
                 timeBar.Current = TimeSpan.Zero;
 
@@ -125,11 +124,16 @@ namespace ClipExplorer
                 sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
 
                 var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+                //postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                _player.Init(postVolumeMeter);
+                _player.Init(sampleChannel);
+
+                LogMessage("INF", $"L:{_audioFileReader.Length} P:{_audioFileReader.Position} T:{_audioFileReader.TotalTime}");
+
 
                 ShowClip();
+
+                LogMessage("INF", $"L:{_audioFileReader.Length} P:{_audioFileReader.Position} T:{_audioFileReader.TotalTime}");
             }
 
             if (!ok)
@@ -229,6 +233,8 @@ namespace ClipExplorer
                 timeBar.Start = TimeSpan.Zero;
                 timeBar.End = TimeSpan.Zero;
                 timeBar.Current = TimeSpan.Zero;
+
+                _audioFileReader.Position = 0; // rewind
             }
         }
 
@@ -288,6 +294,7 @@ namespace ClipExplorer
         {
             //waveformPainterL.AddMax(e.MaxSampleValues[0]);
             //waveformPainterR.AddMax(e.MaxSampleValues[1]);
+            timeBar.Current = _audioFileReader!.CurrentTime;
         }
 
         /// <summary>
@@ -299,25 +306,42 @@ namespace ClipExplorer
         {
             //levelL.AddValue(e.MaxSampleValues[0]);
             //levelR.AddValue(e.MaxSampleValues.Length > 1 ? e.MaxSampleValues[1] : 0); // stereo?
-            timeBar.Current = _audioFileReader!.CurrentTime;
-
             //waveViewerL.Marker1 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
             //waveViewerR.Marker2 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
         }
 
         /// <summary>
-        /// 
+        /// Export current file to human readable.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Export_Click(object sender, EventArgs e)
+        void Export_Click(object? sender, EventArgs e)
         {
+            var stext = ((ToolStripMenuItem)sender!).Text;
+
             if(_audioFileReader is not null)
             {
-                using SaveFileDialog saveDlg = new() { Title = "Export audio to text file" };
-                if (saveDlg.ShowDialog() == DialogResult.OK)
+                try
                 {
-                    _player.Export(saveDlg.FileName, _audioFileReader);
+                    switch (stext)
+                    {
+                        case "Text":
+                            {
+                                string name = Path.GetFileNameWithoutExtension(_audioFileReader.FileName);
+                                // Clean the file name.
+                                name = name.Replace('.', '-').Replace(' ', '_');
+                                var newfn = Path.Join(Common.ExportPath, $"{name}.txt");
+                                _player.Export(newfn, _audioFileReader);
+                                LogMessage("INF", $"Exported to {newfn}");
+                            }
+                            break;
+
+                        default:
+                            LogMessage("ERR", $"Ooops: {stext}");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMessage("ERR", $"{ex.Message}");
                 }
             }
         }

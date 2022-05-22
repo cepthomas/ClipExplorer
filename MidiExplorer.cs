@@ -127,11 +127,12 @@ namespace ClipExplorer
             _mmTimer.Stop();
             _mmTimer.Dispose();
 
-            _player.Dispose();
+            _player?.Run(false);
+            _player?.Dispose();
 
-            if (disposing && (components is not null))
+            if (disposing)
             {
-                components.Dispose();
+                components?.Dispose();
             }
 
             base.Dispose(disposing);

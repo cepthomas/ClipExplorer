@@ -4,6 +4,84 @@
         <name>AudioLib</name>
     </assembly>
     <members>
+        <member name="T:AudioLib.AudioState">
+            <summary>Player state.</summary>
+        </member>
+        <member name="T:AudioLib.AudioPlayer">
+            <summary>
+            A simple audio file player.
+            </summary>
+        </member>
+        <member name="F:AudioLib.AudioPlayer._waveOut">
+            <summary>Wave output play device.</summary>
+        </member>
+        <member name="F:AudioLib.AudioPlayer._state">
+            <summary>Current state.</summary>
+        </member>
+        <member name="F:AudioLib.AudioPlayer.READ_BUFF_SIZE">
+            <summary>Stream read chunk.</summary>
+        </member>
+        <member name="F:AudioLib.AudioPlayer._volume">
+            <summary>The volume.</summary>
+        </member>
+        <member name="E:AudioLib.AudioPlayer.PlaybackStopped">
+            <summary>Wave playing done.</summary>
+        </member>
+        <member name="P:AudioLib.AudioPlayer.Volume">
+            <inheritdoc />
+        </member>
+        <member name="P:AudioLib.AudioPlayer.State">
+            <inheritdoc />
+        </member>
+        <member name="M:AudioLib.AudioPlayer.#ctor(System.String,System.Int32)">
+            <summary>
+            Normal constructor.
+            </summary>
+            <param name="wavOutDevice">Device name.</param>
+            <param name="latency">How slow.</param>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.#ctor">
+            <summary>
+            Empty constructor to satisfy nullability.
+            </summary>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.Dispose">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.Init(NAudio.Wave.ISampleProvider)">
+            <summary>
+            Bind the source to output.
+            </summary>
+            <param name="smpl"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.Run(System.Boolean)">
+            <summary>
+            Start/stop everything.
+            </summary>
+            <param name="go">Or no.</param>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.Rewind">
+            <summary>
+            Go back jack.
+            </summary>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.Export(System.String,NAudio.Wave.AudioFileReader)">
+            <summary>
+            Export wave data to text file. TODO This doesn't really belong here, ok for now.
+            </summary>
+            <param name="exportFileName"></param>
+            <param name="rdr">Data source.</param>
+        </member>
+        <member name="M:AudioLib.AudioPlayer.WaveOut_PlaybackStopped(System.Object,NAudio.Wave.StoppedEventArgs)">
+            <summary>
+            Usually end of file but could be error. Client can handle.
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
         <member name="T:AudioLib.MeterType">
             <summary>Display types.</summary>
         </member>
@@ -48,11 +126,6 @@
         <member name="M:AudioLib.Meter.#ctor">
             <summary>
             Basic volume meter.
-            </summary>
-        </member>
-        <member name="M:AudioLib.Meter.Meter_Load(System.Object,System.EventArgs)">
-            <summary>
-            Init stuff.
             </summary>
         </member>
         <member name="M:AudioLib.Meter.Dispose(System.Boolean)">
@@ -104,13 +177,6 @@
             <summary>
             Creates a new Pan control.
             </summary>
-        </member>
-        <member name="M:AudioLib.Pan.Pan_Load(System.Object,System.EventArgs)">
-            <summary>
-            
-            </summary>
-            <param name="sender"></param>
-            <param name="e"></param>
         </member>
         <member name="M:AudioLib.Pan.Dispose(System.Boolean)">
             <summary>
@@ -211,13 +277,6 @@
             <summary>
             Creates a new pot control.
             </summary>
-        </member>
-        <member name="M:AudioLib.Pot.Pot_Load(System.Object,System.EventArgs)">
-            <summary>
-            
-            </summary>
-            <param name="sender"></param>
-            <param name="e"></param>
         </member>
         <member name="M:AudioLib.Pot.Dispose(System.Boolean)">
             <summary> 
@@ -400,17 +459,11 @@
         </member>
         <member name="T:AudioLib.Volume">
             <summary>
-            Volume control. TODOX also log/db.
+            Volume control.
             </summary>
         </member>
         <member name="F:AudioLib.Volume._value">
             <summary>Current value.</summary>
-        </member>
-        <member name="F:AudioLib.Volume._minimum">
-            <summary>Min value.</summary>
-        </member>
-        <member name="F:AudioLib.Volume._maximum">
-            <summary>Max value.</summary>
         </member>
         <member name="F:AudioLib.Volume._brush">
             <summary>The brush.</summary>
@@ -504,7 +557,7 @@
             <summary>How to draw.</summary>
         </member>
         <member name="P:AudioLib.WaveViewer.Marker1">
-            <summary>Marker 1 data index or -1 to disable.</summary>
+            <summary>Marker 1 data index or -1 to disable.</summary>//TODOX do something with these + show progress. Make into array.
         </member>
         <member name="P:AudioLib.WaveViewer.Marker2">
             <summary>Marker 2 data index or -1 to disable.</summary>
@@ -513,13 +566,6 @@
             <summary>
             Constructor.
             </summary>
-        </member>
-        <member name="M:AudioLib.WaveViewer.WaveViewer_Load(System.Object,System.EventArgs)">
-            <summary>
-            
-            </summary>
-            <param name="sender"></param>
-            <param name="e"></param>
         </member>
         <member name="M:AudioLib.WaveViewer.Dispose(System.Boolean)">
             <summary>
