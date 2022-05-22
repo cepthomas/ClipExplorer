@@ -45,7 +45,7 @@
             this.toolStripSeparator1});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1110, 28);
+            this.toolStrip1.Size = new System.Drawing.Size(1110, 27);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -55,7 +55,7 @@
             this.fileDropDownButton.Image = global::ClipExplorer.Properties.Resources.glyphicons_37_file;
             this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDownButton.Name = "fileDropDownButton";
-            this.fileDropDownButton.Size = new System.Drawing.Size(34, 25);
+            this.fileDropDownButton.Size = new System.Drawing.Size(34, 24);
             this.fileDropDownButton.Text = "File";
             this.fileDropDownButton.ToolTipText = "File operations";
             this.fileDropDownButton.DropDownOpening += new System.EventHandler(this.File_DropDownOpening);
@@ -66,7 +66,7 @@
             this.btnSettings.Image = global::ClipExplorer.Properties.Resources.glyphicons_137_cogwheel;
             this.btnSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSettings.Name = "btnSettings";
-            this.btnSettings.Size = new System.Drawing.Size(29, 25);
+            this.btnSettings.Size = new System.Drawing.Size(29, 24);
             this.btnSettings.Text = "toolStripButton1";
             this.btnSettings.ToolTipText = "Make it your own";
             this.btnSettings.Click += new System.EventHandler(this.Settings_Click);
@@ -77,7 +77,7 @@
             this.btnAbout.Image = global::ClipExplorer.Properties.Resources.glyphicons_195_question_sign;
             this.btnAbout.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnAbout.Name = "btnAbout";
-            this.btnAbout.Size = new System.Drawing.Size(29, 25);
+            this.btnAbout.Size = new System.Drawing.Size(29, 24);
             this.btnAbout.Text = "toolStripButton1";
             this.btnAbout.ToolTipText = "Get some info";
             this.btnAbout.Click += new System.EventHandler(this.About_Click);
@@ -89,7 +89,7 @@
             this.btnAutoplay.Image = global::ClipExplorer.Properties.Resources.glyphicons_221_play_button;
             this.btnAutoplay.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnAutoplay.Name = "btnAutoplay";
-            this.btnAutoplay.Size = new System.Drawing.Size(29, 25);
+            this.btnAutoplay.Size = new System.Drawing.Size(29, 24);
             this.btnAutoplay.Text = "toolStripButton1";
             this.btnAutoplay.ToolTipText = "Autoplay the selection";
             // 
@@ -100,14 +100,14 @@
             this.btnLoop.Image = global::ClipExplorer.Properties.Resources.glyphicons_82_refresh;
             this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnLoop.Name = "btnLoop";
-            this.btnLoop.Size = new System.Drawing.Size(29, 25);
+            this.btnLoop.Size = new System.Drawing.Size(29, 24);
             this.btnLoop.Text = "toolStripButton1";
             this.btnLoop.ToolTipText = "Loop forever";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 28);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
             // 
             // txtViewer
             // 
@@ -189,12 +189,12 @@
             this.Name = "MainForm";
             this.Text = "Clip Explorer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
         #endregion
 

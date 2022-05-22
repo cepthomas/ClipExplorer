@@ -27,13 +27,13 @@ namespace ClipExplorer
         readonly string _fileTypes = "Audio Files|*.wav;*.mp3;*.m4a;*.flac|Midi Files|*.mid|Style Files|*.sty;*.pcs;*.sst;*.prs|";
 
         /// <summary>Audio device.</summary>
-        AudioExplorer? _audioExplorer;
+        AudioExplorer _audioExplorer;
 
         /// <summary>Midi device.</summary>
-        MidiExplorer? _midiExplorer;
+        MidiExplorer _midiExplorer;
 
         /// <summary>Current play device.</summary>
-        IExplorer? _explorer;
+        IExplorer _explorer;
 
         /// <summary>Prevent button press recursion.</summary>
         bool _guard = false;
@@ -46,14 +46,7 @@ namespace ClipExplorer
         public MainForm()
         {
             InitializeComponent();
-            _explorer = _midiExplorer;
-        }
 
-        /// <summary>
-        /// Initialize form controls.
-        /// </summary>
-        void MainForm_Load(object? sender, EventArgs e)
-        {
             Icon = Properties.Resources.zebra;
 
             // Get settings and set up paths.
@@ -85,22 +78,31 @@ namespace ClipExplorer
             sldVolume.Value = Common.Settings.Volume;
 
             // Hook up some simple UI handlers.
-            //chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? Play() : Stop(); };
             chkPlay.CheckedChanged += (_, __) => { UpdateState(); };
             btnRewind.Click += (_, __) => { Rewind(); };
 
             // Create devices.
-            _audioExplorer = new() { Visible = false, Volume = Common.Settings.Volume };
+            _audioExplorer = new()
+            {
+                Location = new(btnRewind.Right + 5, btnRewind.Top),
+                Visible = true,
+                Volume = Common.Settings.Volume
+            };
             _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
             _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            _audioExplorer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
-            //splitContainer1.Panel2.Controls.Add(_wavePlayer);
+            Controls.Add(_audioExplorer);
 
-            _midiExplorer = new() { Visible = false, Volume = Common.Settings.Volume };
+            _midiExplorer = new()
+            {
+                Location = new(btnRewind.Right + 5, btnRewind.Top),
+                Visible = false,
+                Volume = Common.Settings.Volume
+            };
             _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
             _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            _midiExplorer.Location = new(chkPlay.Left, chkPlay.Bottom + 5);
-            //splitContainer1.Panel2.Controls.Add(_midiPlayer);
+            Controls.Add(_midiExplorer);
+
+            _explorer = _midiExplorer;
 
             // Initialize tree from user settings.
             InitNavigator();
@@ -133,8 +135,8 @@ namespace ClipExplorer
         protected override void Dispose(bool disposing)
         {
             // Resources.
-            _audioExplorer?.Dispose();
-            _midiExplorer?.Dispose();
+            _audioExplorer.Dispose();
+            _midiExplorer.Dispose();
 
             if (disposing && (components is not null))
             {
@@ -275,14 +277,14 @@ namespace ClipExplorer
                         case ".mp3":
                         case ".m4a":
                         case ".flac":
-                            _audioExplorer!.Visible = true;
-                            _midiExplorer!.Visible = false;
+                            _audioExplorer.Visible = true;
+                            _midiExplorer.Visible = false;
                             _explorer = _audioExplorer;
                             break;
 
                         case ".mid":
-                            _audioExplorer!.Visible = false;
-                            _midiExplorer!.Visible = true;
+                            _audioExplorer.Visible = false;
+                            _midiExplorer.Visible = true;
                             _explorer = _midiExplorer;
                             break;
 
@@ -294,7 +296,7 @@ namespace ClipExplorer
 
                     if (ok)
                     {
-                        ok = _explorer!.OpenFile(fn);
+                        ok = _explorer.OpenFile(fn);
                         _fn = fn;
                         Common.Settings.RecentFiles.UpdateMru(fn);
                         SetText();
@@ -440,15 +442,7 @@ namespace ClipExplorer
         {
             float vol = (float)sldVolume.Value;
             Common.Settings.Volume = vol;
-            if (_explorer is null)
-            {
-                _midiExplorer!.Volume = vol;
-                _audioExplorer!.Volume = vol;
-            }
-            else
-            {
-                _explorer.Volume = vol;
-            }
+            _explorer.Volume = vol;
         }
         #endregion
 
@@ -492,9 +486,14 @@ namespace ClipExplorer
                 MessageBox.Show("Restart required for device changes to take effect");
             }
 
-            if ((midiChange && _explorer is MidiExplorer) || (audioChange && _explorer is AudioExplorer))
+            if (midiChange)
             {
-                _explorer.SettingsChanged();
+                _midiExplorer.SettingsChanged();
+            }
+
+            if (audioChange)
+            {
+                _audioExplorer.SettingsChanged();
             }
 
             if (navChange)

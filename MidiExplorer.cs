@@ -13,11 +13,6 @@ using NBagOfUis;
 using MidiLib;
 
 
-//TODOX exports:
-//fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export All", null, Export_Click));
-//fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Pattern", null, Export_Click));
-//fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export Midi", null, Export_Click)); 
-
 namespace ClipExplorer
 {
     /// <summary>
@@ -37,7 +32,7 @@ namespace ClipExplorer
 
         #region Fields
         /// <summary>Midi player.</summary>
-        MidiPlayer? _player;
+        readonly MidiPlayer _player;
 
         /// <summary>The internal channel objects.</summary>
         readonly ChannelCollection _allChannels = new();
@@ -75,27 +70,11 @@ namespace ClipExplorer
         public MidiExplorer()
         {
             InitializeComponent();
-        }
-
-        /// <summary>
-        /// Init UI.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void MidiExplorer_Load(object? sender, EventArgs e)
-        {
-            try
-            {
-                _player = new(Common.Settings.MidiOutDevice, _allChannels);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                Environment.Exit(1);
-            }
 
             // Init settings.
             SettingsChanged();
+
+            _player = new(Common.Settings.MidiOutDevice, _allChannels);
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
@@ -148,7 +127,7 @@ namespace ClipExplorer
             _mmTimer.Stop();
             _mmTimer.Dispose();
 
-            _player?.Dispose();
+            _player.Dispose();
 
             if (disposing && (components is not null))
             {
@@ -498,7 +477,7 @@ namespace ClipExplorer
         /// <summary>
         /// Export current file to human readable or midi.
         /// </summary>
-        void Export_Click(object? sender, EventArgs e) //TODOX
+        void Export_Click(object? sender, EventArgs e)
         {
             var stext = ((ToolStripMenuItem)sender!).Text;
 
@@ -519,14 +498,14 @@ namespace ClipExplorer
 
                 switch (stext)
                 {
-                    case "Export All":
+                    case "All":
                         {
                             var s = _mdata.ExportAllEvents(Common.ExportPath, channels);
                             LogMessage("INF", $"Exported to {s}");
                         }
                         break;
 
-                    case "Export Pattern":
+                    case "Pattern":
                         {
                             if (_mdata.AllPatterns.Count == 1)
                             {
@@ -544,7 +523,7 @@ namespace ClipExplorer
                         }
                         break;
 
-                    case "Export Midi":
+                    case "Midi":
                         {
                             if (_mdata.AllPatterns.Count == 1)
                             {

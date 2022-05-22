@@ -16,14 +16,13 @@ using NBagOfUis;
 using AudioLib;
 
 
-
 namespace ClipExplorer
 {
     public partial class AudioExplorer : UserControl, IExplorer
     {
         #region Fields
         /// <summary>Wave output play device.</summary>
-        AudioPlayer? _player;
+        readonly AudioPlayer _player;
 
         /// <summary>Input device for audio file.</summary>
         AudioFileReader? _audioFileReader;
@@ -59,6 +58,23 @@ namespace ClipExplorer
         public AudioExplorer()
         {
             InitializeComponent();
+
+            // Init settings.
+            SettingsChanged();
+
+            ResetMeters();
+
+            // Init UI.
+            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
+            waveViewerL.DrawColor = Color.Black;
+            waveViewerR.DrawColor = Color.Black;
+            //levelL.DrawColor = Common.Settings.ControlColor;
+            //levelR.DrawColor = Common.Settings.ControlColor;
+            timeBar.ProgressColor = Common.Settings.ControlColor;
+
+            // Create output device.
+            _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
+            _player.PlaybackStopped += Player_PlaybackStopped;
         }
 
         /// <summary> 
@@ -73,37 +89,12 @@ namespace ClipExplorer
             }
 
             // My stuff here.
-            _player?.Run(false);
-            _player?.Dispose();
+            _player.Run(false);
+            _player.Dispose();
 
             _audioFileReader?.Dispose();
 
             base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Init everything.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void AudioExplorer_Load(object? sender, EventArgs e)
-        {
-            // Init settings.
-            SettingsChanged();
-
-            ResetMeters();
-
-            // Init UI.
-            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
-            waveViewerL.DrawColor = Color.Black;
-            waveViewerR.DrawColor = Color.Black;
-            levelL.DrawColor = Common.Settings.ControlColor;
-            levelR.DrawColor = Common.Settings.ControlColor;
-            timeBar.ProgressColor = Common.Settings.ControlColor;
-
-            // Create output device.
-            _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
-            //TODOX _player.PlaybackStopped += WaveOut_PlaybackStopped;
         }
         #endregion
 
@@ -136,7 +127,7 @@ namespace ClipExplorer
                 var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
                 postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                _player!.Init(postVolumeMeter);
+                _player.Init(postVolumeMeter);
 
                 ShowClip();
             }
@@ -155,13 +146,13 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
-            _player!.Run(true);
+            _player.Run(true);
         }
 
         /// <inheritdoc />
         public void Stop()
         {
-            _player!.Run(false);
+            _player.Run(false);
             ResetMeters();
         }
 
@@ -180,66 +171,6 @@ namespace ClipExplorer
         {
             // Nothing to do.
             return true;
-        }
-
-        /// <summary>
-        /// Might be useful in the future.
-        /// </summary>
-        /// <returns></returns>
-        public List<string> Export() //  TODOX find better home. Add export to menu.
-        {
-            List<string> ret = new();
-
-            if (_audioFileReader is not null)
-            {
-                _audioFileReader!.Position = 0; // rewind
-                var sampleChannel = new SampleChannel(_audioFileReader, false);
-
-                // Read all data.
-                long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
-                var data = new float[len];
-                int offset = 0;
-                int num = -1;
-
-                while (num != 0)
-                {
-                    try // see OpenFile().
-                    {
-                        num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
-                        offset += num;
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-
-                // Make a csv file of data for external processing.
-                if (sampleChannel.WaveFormat.Channels == 2) // stereo
-                {
-                    ret.Add($"Index,Left,Right");
-                    long stlen = len / 2;
-
-                    for (long i = 0; i < stlen; i++)
-                    {
-                        ret.Add($"{i + 1}, {data[i * 2]}, {data[i * 2 + 1]}");
-                    }
-                }
-                else // mono
-                {
-                    ret.Add($"Index,Val");
-                    for (int i = 0; i < data.Length; i++)
-                    {
-                        ret.Add($"{i + 1}, {data[i]}");
-                    }
-                }
-            }
-            else
-            {
-                LogMessage("ERR", "Audio file not open");
-                ret.Clear();
-            }
-
-            return ret;
         }
         #endregion
 
@@ -316,8 +247,8 @@ namespace ClipExplorer
         /// </summary>
         void ResetMeters()
         {
-            levelL.AddValue(0);
-            levelR.AddValue(0);
+            //levelL.AddValue(0);
+            //levelR.AddValue(0);
         }
         #endregion
 
@@ -337,7 +268,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void WaveOut_PlaybackStopped(object? sender, StoppedEventArgs e)
+        void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
             if (e.Exception is not null)
             {
@@ -366,12 +297,29 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object? sender, StreamVolumeEventArgs e)
         {
-            levelL.AddValue(e.MaxSampleValues[0]);
-            levelR.AddValue(e.MaxSampleValues.Length > 1 ? e.MaxSampleValues[1] : 0); // stereo?
+            //levelL.AddValue(e.MaxSampleValues[0]);
+            //levelR.AddValue(e.MaxSampleValues.Length > 1 ? e.MaxSampleValues[1] : 0); // stereo?
             timeBar.Current = _audioFileReader!.CurrentTime;
 
             //waveViewerL.Marker1 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
             //waveViewerR.Marker2 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Export_Click(object sender, EventArgs e)
+        {
+            if(_audioFileReader is not null)
+            {
+                using SaveFileDialog saveDlg = new() { Title = "Export audio to text file" };
+                if (saveDlg.ShowDialog() == DialogResult.OK)
+                {
+                    _player.Export(saveDlg.FileName, _audioFileReader);
+                }
+            }
         }
         #endregion
     }
