@@ -70,7 +70,7 @@
         </member>
         <member name="M:AudioLib.AudioPlayer.Export(System.String,NAudio.Wave.AudioFileReader)">
             <summary>
-            Export wave data to text file. TODO This doesn't really belong here, ok for now.
+            Export wave data to text file. TODO This doesn't really belong here, but ok for now.
             </summary>
             <param name="exportFileName"></param>
             <param name="rdr">Data source.</param>

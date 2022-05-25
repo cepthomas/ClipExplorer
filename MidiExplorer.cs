@@ -112,6 +112,8 @@ namespace ClipExplorer
             cmbDrumChannel1.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
             cmbDrumChannel2.SelectedIndex = 0;
             cmbDrumChannel2.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
+
+            Visible = false;
         }
 
         /// <summary> 
@@ -197,7 +199,6 @@ namespace ClipExplorer
                 }
 
                 Rewind();
-
             }
             catch (Exception ex)
             {
@@ -364,7 +365,7 @@ namespace ClipExplorer
             int y = sldTempo.Top;
 
             // For scaling subdivs to internal.
-            MidiLib.MidiTime mt = new()
+            MidiTime mt = new()
             {
                 InternalPpq = PPQ,
                 MidiPpq = _mdata.DeltaTicksPerQuarterNote,
@@ -387,15 +388,17 @@ namespace ClipExplorer
                     _allChannels.SetEvents(chnum, chEvents, mt);
 
                     // Make new control.
-                    ChannelControl control = new() { Location = new(x, y) };
+                    ChannelControl control = new()
+                    {
+                        Location = new(x, y),
+                        BorderStyle = BorderStyle.FixedSingle
+                    };
 
                     // Bind to internal channel object.
                     _allChannels.Bind(chnum, control);
 
                     // Now init the control - after binding!
                     control.Patch = pinfo.Patches[i];
-                    //control.IsDrums = GetDrumChannels().Contains(chnum);
-
                     control.ChannelChange += Control_ChannelChange;
                     Controls.Add(control);
                     _channelControls.Add(control);

@@ -23,8 +23,10 @@ namespace ClipExplorer
         /// <summary>Current file.</summary>
         string _fn = "";
 
-        /// <summary>Supported file types in OpenFileDialog form.</summary>
-        readonly string _fileTypes = "Audio Files|*.wav;*.mp3;*.m4a;*.flac|Midi Files|*.mid|Style Files|*.sty;*.pcs;*.sst;*.prs|";
+        /// <summary>Supported file types.</summary>
+        readonly string _audioFileTypes = "*.wav;*.mp3;*.m4a;*.flac";
+        readonly string _midiFileTypes = "*.mid";
+        readonly string _styleFileTypes = "*.sty;*.pcs;*.sst;*.prs";
 
         /// <summary>Audio device.</summary>
         readonly AudioExplorer _audioExplorer;
@@ -60,7 +62,7 @@ namespace ClipExplorer
             Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
             Size = new Size(Common.Settings.FormGeometry.Width, Common.Settings.FormGeometry.Height);
             WindowState = FormWindowState.Normal;
-            KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
+            KeyPreview = true; // for routing kbd strokes through OnKeyDown
             SetText();
 
             // The text output.
@@ -81,7 +83,7 @@ namespace ClipExplorer
             chkPlay.CheckedChanged += (_, __) => { UpdateState(); };
             btnRewind.Click += (_, __) => { Rewind(); };
 
-            // Initialize tree from user settings. TODOX sort order not quite right.
+            // Initialize tree from user settings.
             InitNavigator();
 
             LogMessage("INF", "Hello. C=clear, W=wrap");
@@ -89,24 +91,12 @@ namespace ClipExplorer
             // Create devices.
             try
             {
-                _audioExplorer = new()
-                {
-                    Location = new(btnRewind.Right + 5, btnRewind.Top),
-                    Visible = false,
-                    //BorderStyle = BorderStyle.FixedSingle,
-                    Volume = Common.Settings.Volume
-                };
+                _audioExplorer = new() { Location = new(btnRewind.Right + 5, btnRewind.Top), Volume = Common.Settings.Volume };
                 _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
                 _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
                 Controls.Add(_audioExplorer); //TODOX combine child and parent toolstrips? also midi.
 
-                _midiExplorer = new()
-                {
-                    Location = new(btnRewind.Right + 5, btnRewind.Top),
-                    Visible = false,
-                    //BorderStyle = BorderStyle.FixedSingle,
-                    Volume = Common.Settings.Volume
-                };
+                _midiExplorer = new() { Location = new(btnRewind.Right + 5, btnRewind.Top), Volume = Common.Settings.Volume };
                 _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
                 _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
                 Controls.Add(_midiExplorer);
@@ -133,10 +123,8 @@ namespace ClipExplorer
         /// <summary>
         /// Clean up on shutdown. Dispose() will get the rest.
         /// </summary>
-        void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            //Stop();
-
             chkPlay.Checked = false; // ==> Stop()
             SaveSettings();
         }
@@ -218,6 +206,7 @@ namespace ClipExplorer
         /// </summary>
         bool Play()
         {
+            Debug.WriteLine("MainForm.Play()");
             _explorer.Play();
             return true;
         }
@@ -284,27 +273,23 @@ namespace ClipExplorer
             {
                 try
                 {
-                    switch (Path.GetExtension(fn).ToLower())
+                    var ext = Path.GetExtension(fn).ToLower();
+                    if (_audioFileTypes.Contains(ext))
                     {
-                        case ".wav":
-                        case ".mp3":
-                        case ".m4a":
-                        case ".flac":
-                            _audioExplorer.Visible = true;
-                            _midiExplorer.Visible = false;
-                            _explorer = _audioExplorer;
-                            break;
-
-                        case ".mid":
-                            _audioExplorer.Visible = false;
-                            _midiExplorer.Visible = true;
-                            _explorer = _midiExplorer;
-                            break;
-
-                        default:
-                            LogMessage(this, "ERR", $"Invalid file type: {fn}");
-                            ok = false;
-                            break;
+                        _audioExplorer.Visible = true;
+                        _midiExplorer.Visible = false;
+                        _explorer = _audioExplorer;
+                    }
+                    else if (_midiFileTypes.Contains(ext) || _styleFileTypes.Contains(ext))
+                    {
+                        _audioExplorer.Visible = false;
+                        _midiExplorer.Visible = true;
+                        _explorer = _midiExplorer;
+                    }
+                    else
+                    {
+                        LogMessage(this, "ERR", $"Invalid file type: {fn}");
+                        ok = false;
                     }
 
                     if (ok)
@@ -337,7 +322,8 @@ namespace ClipExplorer
         /// </summary>
         void InitNavigator()
         {
-            ftree.FilterExts = _fileTypes.SplitByTokens("|;*").Where(s => s.StartsWith(".")).ToList();
+            var s = _audioFileTypes + _midiFileTypes + _styleFileTypes;
+            ftree.FilterExts = s.SplitByTokens("|;*");
             ftree.RootDirs = Common.Settings.RootDirs;
             ftree.SingleClickSelect = true;
 
@@ -398,9 +384,10 @@ namespace ClipExplorer
         /// </summary>
         void Open_Click(object? sender, EventArgs e)
         {
+            var fileTypes = $"All files|*.*|Audio Files|{_audioFileTypes}|Midi Files|{_midiFileTypes}|Style Files|{_styleFileTypes}";
             using OpenFileDialog openDlg = new()
             {
-                Filter = _fileTypes,
+                Filter = fileTypes,
                 Title = "Select a file"
             };
 
@@ -418,7 +405,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void MainForm_KeyDown(object? sender, KeyEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
             switch (e.KeyCode)
             {

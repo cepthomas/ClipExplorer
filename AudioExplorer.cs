@@ -62,7 +62,7 @@ namespace ClipExplorer
             // Init settings.
             SettingsChanged();
 
-            ResetMeters();
+            //ResetMeters();
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
@@ -75,6 +75,8 @@ namespace ClipExplorer
             // Create output device.
             _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
             _player.PlaybackStopped += Player_PlaybackStopped;
+
+            Visible = false;
         }
 
         /// <summary> 
@@ -124,16 +126,11 @@ namespace ClipExplorer
                 sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
 
                 var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                //postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-                _player.Init(sampleChannel);
-
-                LogMessage("INF", $"L:{_audioFileReader.Length} P:{_audioFileReader.Position} T:{_audioFileReader.TotalTime}");
-
+                _player.Init(postVolumeMeter);
 
                 ShowClip();
-
-                LogMessage("INF", $"L:{_audioFileReader.Length} P:{_audioFileReader.Position} T:{_audioFileReader.TotalTime}");
             }
 
             if (!ok)
@@ -150,14 +147,18 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
+            Debug.WriteLine("AudioExplorer.Play()");
+
             _player.Run(true);
         }
 
         /// <inheritdoc />
         public void Stop()
         {
+            Debug.WriteLine("AudioExplorer.Play()");
+
             _player.Run(false);
-            ResetMeters();
+            //ResetMeters();
         }
 
         /// <inheritdoc />
@@ -248,14 +249,14 @@ namespace ClipExplorer
             Log?.Invoke(this, new LogEventArgs(cat, msg));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        void ResetMeters()
-        {
-            //levelL.AddValue(0);
-            //levelR.AddValue(0);
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //void ResetMeters()
+        //{
+        //    levelL.AddValue(0);
+        //    levelR.AddValue(0);
+        //}
         #endregion
 
         #region UI event handlers
@@ -276,6 +277,10 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
+            var ss = (AudioPlayer)sender;
+            Debug.WriteLine($"AudioPlayer S:{ss.State} L:{_audioFileReader.Length} C:{_audioFileReader.CurrentTime} T:{_audioFileReader.TotalTime}");
+
+
             if (e.Exception is not null)
             {
                 LogMessage("ERR", e.Exception.Message);
@@ -294,7 +299,6 @@ namespace ClipExplorer
         {
             //waveformPainterL.AddMax(e.MaxSampleValues[0]);
             //waveformPainterR.AddMax(e.MaxSampleValues[1]);
-            timeBar.Current = _audioFileReader!.CurrentTime;
         }
 
         /// <summary>
@@ -308,6 +312,7 @@ namespace ClipExplorer
             //levelR.AddValue(e.MaxSampleValues.Length > 1 ? e.MaxSampleValues[1] : 0); // stereo?
             //waveViewerL.Marker1 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
             //waveViewerR.Marker2 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
+            timeBar.Current = _audioFileReader!.CurrentTime;
         }
 
         /// <summary>
