@@ -18,7 +18,6 @@ namespace ClipExplorer
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AudioExplorer));
             this.waveViewerL = new AudioLib.WaveViewer();
             this.waveViewerR = new AudioLib.WaveViewer();
             this.timeBar = new AudioLib.TimeBar();
@@ -100,7 +99,6 @@ namespace ClipExplorer
             this.fileDropDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.fileDropDown.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.textToolStripMenuItem});
-            this.fileDropDown.Image = ((System.Drawing.Image)(resources.GetObject("fileDropDown.Image")));
             this.fileDropDown.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDown.Name = "fileDropDown";
             this.fileDropDown.Size = new System.Drawing.Size(66, 24);

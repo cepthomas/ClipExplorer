@@ -18,7 +18,6 @@ namespace ClipExplorer
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MidiExplorer));
             this.barBar = new MidiLib.BarBar();
             this.sldTempo = new NBagOfUis.Slider();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
@@ -30,14 +29,14 @@ namespace ClipExplorer
             this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.patternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.midiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.cmbDrumChannel1 = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.cmbDrumChannel2 = new System.Windows.Forms.ToolStripComboBox();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.btnLogMidi = new System.Windows.Forms.ToolStripButton();
             this.btnKillMidi = new System.Windows.Forms.ToolStripButton();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -128,8 +127,7 @@ namespace ClipExplorer
             this.toolStripSeparator2,
             this.btnLogMidi,
             this.btnKillMidi,
-            this.toolStripSeparator3
-            });
+            this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(594, 28);
@@ -143,7 +141,6 @@ namespace ClipExplorer
             this.allToolStripMenuItem,
             this.patternToolStripMenuItem,
             this.midiToolStripMenuItem});
-            this.fileDropDown.Image = ((System.Drawing.Image)(resources.GetObject("fileDropDown.Image")));
             this.fileDropDown.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDown.Name = "fileDropDown";
             this.fileDropDown.Size = new System.Drawing.Size(66, 25);
@@ -173,6 +170,18 @@ namespace ClipExplorer
             this.midiToolStripMenuItem.ToolTipText = "Export selected patterns to midii files";
             this.midiToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
             // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 28);
+            // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(40, 25);
+            this.toolStripLabel1.Text = "DC1:";
+            // 
             // cmbDrumChannel1
             // 
             this.cmbDrumChannel1.AutoSize = false;
@@ -196,10 +205,10 @@ namespace ClipExplorer
             this.cmbDrumChannel2.ToolTipText = "Drum channel - secndary";
             this.cmbDrumChannel2.SelectedIndexChanged += new System.EventHandler(this.DrumChannel_SelectedIndexChanged);
             // 
-            // toolStripSeparator3
+            // toolStripSeparator2
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 28);
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 28);
             // 
             // btnLogMidi
             // 
@@ -222,22 +231,10 @@ namespace ClipExplorer
             this.btnKillMidi.Text = "toolStripButton1";
             this.btnKillMidi.ToolTipText = "Kill all midi channels";
             // 
-            // toolStripLabel1
+            // toolStripSeparator3
             // 
-            this.toolStripLabel1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(40, 25);
-            this.toolStripLabel1.Text = "DC1:";
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 28);
             // 
             // MidiExplorer
             // 

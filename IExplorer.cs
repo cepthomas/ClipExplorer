@@ -11,6 +11,9 @@ namespace ClipExplorer
     interface IExplorer : IDisposable
     {
         #region Properties
+        /// <summary>Are we ok?</summary>
+        public bool Valid { get; }
+
         /// <summary>Current master volume - between MIN_VOLUME and MAX_VOLUME. Default is DEFAULT_VOLUME.</summary>
         double Volume { get; set; }
 

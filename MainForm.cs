@@ -14,6 +14,7 @@ using NBagOfTricks;
 using NBagOfUis;
 using MidiLib;
 
+//TODOX ClipExplorer: run control and audio playing screwed up.
 
 namespace ClipExplorer
 {
@@ -89,34 +90,32 @@ namespace ClipExplorer
             LogMessage("INF", "Hello. C=clear, W=wrap");
 
             // Create devices.
-            try
+            Point loc = new(chkPlay.Left, chkPlay.Bottom + 5);
+            _audioExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
+            _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
+            _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
+            Controls.Add(_audioExplorer); //TODO combine child and parent toolstrips? also midi.
+            if(!_audioExplorer.Valid)
             {
-                _audioExplorer = new() { Location = new(btnRewind.Right + 5, btnRewind.Top), Volume = Common.Settings.Volume };
-                _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
-                _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-                Controls.Add(_audioExplorer); //TODOX combine child and parent toolstrips? also midi.
-
-                _midiExplorer = new() { Location = new(btnRewind.Right + 5, btnRewind.Top), Volume = Common.Settings.Volume };
-                _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
-                _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-                Controls.Add(_midiExplorer);
-
-                _explorer = _midiExplorer;
-
-                // Look for filename passed in.
-                string[] args = Environment.GetCommandLineArgs();
-                if (args.Length > 1)
-                {
-                    OpenFile(args[1]);
-                }
+                LogMessage("ERR", $"Something wrong with your audio output device:{Common.Settings.WavOutDevice}");
             }
-            catch (ArgumentException ex)
+
+            _midiExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
+            _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
+            _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
+            Controls.Add(_midiExplorer);
+            if (!_midiExplorer.Valid)
             {
-                LogMessage("ERR", $"Something wrong with your device config:{ex.Message}");
+                LogMessage("ERR", $"Something wrong with your midi output device:{Common.Settings.MidiOutDevice}");
             }
-            catch (Exception ex)
+
+            _explorer = _midiExplorer;
+
+            // Look for filename passed in.
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
             {
-                LogMessage("ERR", $"Something else went wrong:{ex.Message}");
+                OpenFile(args[1]);
             }
         }
 
@@ -159,8 +158,13 @@ namespace ClipExplorer
             {
                 return;
             }
-
             _guard = true;
+
+            if(!_explorer.Valid)
+            {
+                chkPlay.Checked = false;
+                return;
+            }
 
             //LogMessage($"DBG State:{_player.State}  btnLoop{btnLoop.Checked}  TotalSubdivs:{_player.TotalSubdivs}");
 
@@ -206,8 +210,11 @@ namespace ClipExplorer
         /// </summary>
         bool Play()
         {
-            Debug.WriteLine("MainForm.Play()");
-            _explorer.Play();
+            if (!_explorer.Valid)
+            {
+                Debug.WriteLine("MainForm.Play()");
+                _explorer.Play();
+            }
             return true;
         }
 

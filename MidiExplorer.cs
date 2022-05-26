@@ -57,6 +57,9 @@ namespace ClipExplorer
 
         #region Properties
         /// <inheritdoc />
+        public bool Valid { get { return _player.Valid; } }
+
+        /// <inheritdoc />
         public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
 
         /// <inheritdoc />

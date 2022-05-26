@@ -118,7 +118,7 @@
             this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(648, 128);
+            this.txtViewer.Size = new System.Drawing.Size(527, 128);
             this.txtViewer.TabIndex = 58;
             this.txtViewer.WordWrap = true;
             // 
@@ -127,14 +127,14 @@
             this.sldVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.sldVolume.DrawColor = System.Drawing.Color.Fuchsia;
             this.sldVolume.Label = "vol";
-            this.sldVolume.Location = new System.Drawing.Point(558, 103);
+            this.sldVolume.Location = new System.Drawing.Point(664, 41);
             this.sldVolume.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.sldVolume.Maximum = 2D;
             this.sldVolume.Minimum = 0D;
             this.sldVolume.Name = "sldVolume";
             this.sldVolume.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.sldVolume.Resolution = 0.05D;
-            this.sldVolume.Size = new System.Drawing.Size(98, 40);
+            this.sldVolume.Size = new System.Drawing.Size(98, 49);
             this.sldVolume.TabIndex = 42;
             this.toolTip.SetToolTip(this.sldVolume, "Master volume");
             this.sldVolume.Value = 1D;
