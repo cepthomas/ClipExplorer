@@ -280,7 +280,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
-            Debug.WriteLine($"AudioPlayer S:{_player.State} L:{_audioFileReader.Length} C:{_audioFileReader.CurrentTime} T:{_audioFileReader.TotalTime}");
+            //Debug.WriteLine($"AudioPlayer S:{_player.State} L:{_audioFileReader.Length} C:{_audioFileReader.CurrentTime} T:{_audioFileReader.TotalTime}");
 
             if (e.Exception is not null)
             {

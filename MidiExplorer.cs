@@ -22,14 +22,6 @@ namespace ClipExplorer
     /// </summary>
     public partial class MidiExplorer : UserControl, IExplorer
     {
-        #region Constants
-        /// <summary>Only 4/4 time supported.</summary>
-        const int BEATS_PER_BAR = 4;
-
-        /// <summary>Our internal ppq aka resolution - used for sending realtime midi messages.</summary>
-        const int PPQ = 32;
-        #endregion
-
         #region Fields
         /// <summary>Midi player.</summary>
         readonly MidiPlayer _player;
@@ -83,10 +75,6 @@ namespace ClipExplorer
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
             // Time controller.
-            barBar.ZeroBased = Common.Settings.ZeroBased;
-            barBar.BeatsPerBar = BEATS_PER_BAR;
-            barBar.SubdivsPerBeat = PPQ;
-            barBar.Snap = Common.Settings.Snap;
             barBar.ProgressColor = Common.Settings.ControlColor;
             barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
 
@@ -132,8 +120,8 @@ namespace ClipExplorer
             _mmTimer.Stop();
             _mmTimer.Dispose();
 
-            _player?.Run(false);
-            _player?.Dispose();
+            _player.Run(false);
+            _player.Dispose();
 
             if (disposing)
             {
@@ -222,12 +210,12 @@ namespace ClipExplorer
             {
                 SetTimer();
                 _mmTimer.Start();
-                _player.Run(true);
             }
             else
             {
                 Rewind();
             }
+            _player.Run(true);
         }
 
         /// <inheritdoc />
@@ -242,7 +230,8 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Rewind()
         {
-            barBar.Current = BarSpan.Zero;
+            _player.CurrentSubdiv = 0;
+            barBar.Current = BarTime.Zero;
         }
         #endregion
 
@@ -251,10 +240,8 @@ namespace ClipExplorer
         public bool SettingsChanged()
         {
             bool ok = true;
-            barBar.ZeroBased = Common.Settings.ZeroBased;
-            barBar.BeatsPerBar = BEATS_PER_BAR;
-            barBar.SubdivsPerBeat = PPQ;
-            barBar.Snap = Common.Settings.Snap;
+            LibSettings.ZeroBased = Common.Settings.ZeroBased;
+            LibSettings.Snap = Common.Settings.Snap;
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
             return ok;
@@ -368,13 +355,7 @@ namespace ClipExplorer
             int y = sldTempo.Top;
 
             // For scaling subdivs to internal.
-            MidiTime mt = new()
-            {
-                InternalPpq = PPQ,
-                MidiPpq = _mdata.DeltaTicksPerQuarterNote,
-                Tempo = Common.Settings.DefaultTempo
-            };
-
+            MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, Common.Settings.DefaultTempo);
             sldTempo.Value = pinfo.Tempo;
 
             for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
@@ -416,10 +397,10 @@ namespace ClipExplorer
                 }
             }
 
-            barBar.Length = new BarSpan(lastSubdiv);
-            barBar.Start = BarSpan.Zero;
-            barBar.End = barBar.Length - BarSpan.OneSubdiv;
-            barBar.Current = BarSpan.Zero;
+            barBar.Length = new BarTime(lastSubdiv);
+            barBar.Start = BarTime.Zero;
+            barBar.End = barBar.Length - BarTime.OneSubdiv;
+            barBar.Current = BarTime.Zero;
 
             UpdateDrumChannels();
         }
@@ -578,13 +559,7 @@ namespace ClipExplorer
         /// </summary>
         void SetTimer()
         {
-            MidiTime mt = new()
-            {
-                InternalPpq = PPQ,
-                MidiPpq = _mdata.DeltaTicksPerQuarterNote,
-                Tempo = sldTempo.Value
-            };
-
+            MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, sldTempo.Value);
             double period = mt.RoundedInternalPeriod();
             _mmTimer.SetTimer((int)Math.Round(period), MmTimerCallback);
         }

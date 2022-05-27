@@ -60,9 +60,10 @@ namespace ClipExplorer
             di.Create();
 
             // Init main form from settings
+            WindowState = FormWindowState.Normal;
+            StartPosition = FormStartPosition.Manual;
             Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
             Size = new Size(Common.Settings.FormGeometry.Width, Common.Settings.FormGeometry.Height);
-            WindowState = FormWindowState.Normal;
             KeyPreview = true; // for routing kbd strokes through OnKeyDown
             SetText();
 
@@ -83,6 +84,10 @@ namespace ClipExplorer
             // Hook up some simple UI handlers.
             chkPlay.CheckedChanged += (_, __) => { UpdateState(); };
             btnRewind.Click += (_, __) => { Rewind(); };
+
+            // Debug stuff.
+            btnDebug.Click += (_, __) => { LogMessage("DBG", $"X:{Location.X} Y:{Location.Y}"); };
+            btnDebug.Visible = false;
 
             // Initialize tree from user settings.
             InitNavigator();
@@ -210,7 +215,7 @@ namespace ClipExplorer
         /// </summary>
         bool Play()
         {
-            if (!_explorer.Valid)
+            if (_explorer.Valid)
             {
                 Debug.WriteLine("MainForm.Play()");
                 _explorer.Play();

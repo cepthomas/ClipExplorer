@@ -30,6 +30,7 @@
             this.chkPlay = new System.Windows.Forms.CheckBox();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.ftree = new NBagOfUis.FilTree();
+            this.btnDebug = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -42,7 +43,8 @@
             this.btnAbout,
             this.btnAutoplay,
             this.btnLoop,
-            this.toolStripSeparator1});
+            this.toolStripSeparator1,
+            this.btnDebug});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1110, 27);
@@ -173,6 +175,14 @@
             this.ftree.TabIndex = 89;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);
             // 
+            // btnDebug
+            // 
+            this.btnDebug.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnDebug.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnDebug.Name = "btnDebug";
+            this.btnDebug.Size = new System.Drawing.Size(58, 24);
+            this.btnDebug.Text = "Debug";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -209,5 +219,6 @@
         private System.Windows.Forms.ToolStripButton btnLoop;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private NBagOfUis.FilTree ftree;
+        private System.Windows.Forms.ToolStripButton btnDebug;
     }
 }

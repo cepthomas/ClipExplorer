@@ -45,7 +45,6 @@ namespace ClipExplorer
             // 
             this.barBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.barBar.BeatsPerBar = 4;
             this.barBar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.barBar.FontLarge = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.barBar.FontSmall = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
@@ -55,11 +54,8 @@ namespace ClipExplorer
             this.barBar.Name = "barBar";
             this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(576, 62);
-            this.barBar.Snap = MidiLib.BarBar.SnapType.Bar;
-            this.barBar.SubdivsPerBeat = 8;
             this.barBar.TabIndex = 70;
             this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
-            this.barBar.ZeroBased = false;
             // 
             // sldTempo
             // 

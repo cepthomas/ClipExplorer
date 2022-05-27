@@ -74,7 +74,7 @@ namespace ClipExplorer
         [Description("Snap to bar | beat | subdiv.")]
         [Category("Midi")]
         [Browsable(true)]
-        public BarBar.SnapType Snap { get; set; } = BarBar.SnapType.Bar;
+        public SnapType Snap { get; set; } = SnapType.Bar;
         #endregion
 
         #region Audio
