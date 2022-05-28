@@ -20,6 +20,10 @@ namespace ClipExplorer
 {
     public partial class MainForm : Form
     {
+        #region Types
+        public enum ExplorerState { Stop, Play, Rewind, Complete }
+        #endregion
+
         #region Fields
         /// <summary>Current file.</summary>
         string _fn = "";
@@ -82,12 +86,13 @@ namespace ClipExplorer
             sldVolume.Value = Common.Settings.Volume;
 
             // Hook up some simple UI handlers.
-            chkPlay.CheckedChanged += (_, __) => { UpdateState(); };
-            btnRewind.Click += (_, __) => { Rewind(); };
+            chkPlay.CheckedChanged += (_, __) => { UpdateState(chkPlay.Checked ? ExplorerState.Play : ExplorerState.Stop); };
+            btnRewind.Click += (_, __) => { UpdateState(ExplorerState.Rewind); };
 
             // Debug stuff.
-            btnDebug.Click += (_, __) => { LogMessage("DBG", $"X:{Location.X} Y:{Location.Y}"); };
-            btnDebug.Visible = false;
+            //btnDebug.Visible = false;
+            //btnDebug.Click += (_, __) => { LogMessage("DBG", $"X:{Location.X} Y:{Location.Y}"); };
+            //btnDebug.Click += (_, __) => { chkPlay.Checked = true; };
 
             // Initialize tree from user settings.
             InitNavigator();
@@ -97,7 +102,7 @@ namespace ClipExplorer
             // Create devices.
             Point loc = new(chkPlay.Left, chkPlay.Bottom + 5);
             _audioExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
-            _audioExplorer.PlaybackCompleted += Player_PlaybackCompleted;
+            _audioExplorer.PlaybackCompleted += (_, __) => { UpdateState(ExplorerState.Complete); };
             _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             Controls.Add(_audioExplorer); //TODO combine child and parent toolstrips? also midi.
             if(!_audioExplorer.Valid)
@@ -106,7 +111,7 @@ namespace ClipExplorer
             }
 
             _midiExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
-            _midiExplorer.PlaybackCompleted += Player_PlaybackCompleted;
+            _midiExplorer.PlaybackCompleted += (_, __) => { UpdateState(ExplorerState.Complete); };
             _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             Controls.Add(_midiExplorer);
             if (!_midiExplorer.Valid)
@@ -129,7 +134,7 @@ namespace ClipExplorer
         /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            chkPlay.Checked = false; // ==> Stop()
+            UpdateState(ExplorerState.Stop);
             SaveSettings();
         }
 
@@ -154,10 +159,15 @@ namespace ClipExplorer
 
         #region State management
         /// <summary>
-        /// General state management. Triggered by play button or the player via mm timer function.
+        /// General state management.
         /// </summary>
-        void UpdateState()
+        void UpdateState(ExplorerState state) 
         {
+            if(!_explorer.Valid)
+            {
+                return;
+            }
+
             // Suppress recursive updates caused by programatically pressing the play button.
             if (_guard)
             {
@@ -165,105 +175,40 @@ namespace ClipExplorer
             }
             _guard = true;
 
-            if(!_explorer.Valid)
+            //LogMessage($"DBG", $"state:{state}  chkPlay{chkPlay.Checked}  btnLoop{btnLoop.Checked}  Playing:{_explorer.Playing}");
+
+            switch (state)
             {
-                chkPlay.Checked = false;
-                return;
-            }
-
-            //LogMessage($"DBG State:{_player.State}  btnLoop{btnLoop.Checked}  TotalSubdivs:{_player.TotalSubdivs}");
-
-            switch (_explorer.State)
-            {
-                case PlayState.Complete:
-                    Rewind();
-
+                case ExplorerState.Complete:
+                    _explorer.Rewind();
                     if (btnLoop.Checked)
                     {
                         chkPlay.Checked = true;
-                        Play();
+                        _explorer.Play();
                     }
                     else
                     {
                         chkPlay.Checked = false;
-                        Stop();
+                        _explorer.Stop();
                     }
                     break;
 
-                case PlayState.Playing:
-                    if (!chkPlay.Checked)
-                    {
-                        Stop();
-                    }
+                case ExplorerState.Play:
+                    chkPlay.Checked = true;
+                    _explorer.Play();
                     break;
 
-                case PlayState.Stopped:
-                    if (chkPlay.Checked)
-                    {
-                        Play();
-                    }
+                case ExplorerState.Stop:
+                    chkPlay.Checked = false;
+                    _explorer.Stop();
+                    break;
+
+                case ExplorerState.Rewind:
+                    _explorer.Rewind();
                     break;
             }
 
             _guard = false;
-        }
-        #endregion
-
-        #region Transport control
-        /// <summary>
-        /// Internal handler.
-        /// </summary>
-        bool Play()
-        {
-            if (_explorer.Valid)
-            {
-                Debug.WriteLine("MainForm.Play()");
-                _explorer.Play();
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Internal handler.
-        /// </summary>
-        bool Stop()
-        {
-            _explorer.Stop();
-            return true;
-        }
-
-        /// <summary>
-        /// Go back Jack. Doesn't affect the run state.
-        /// </summary>
-        void Rewind()
-        {
-            // Might come from another thread.
-            this.InvokeIfRequired(_ =>
-            {
-                _explorer.Rewind();
-            });
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Player_PlaybackCompleted(object? sender, EventArgs e)
-        {
-            // Usually comes from a different thread.
-            this.InvokeIfRequired(_ =>
-            {
-                if (btnLoop.Checked)
-                {
-                    Play();
-                }
-                else
-                {
-                    chkPlay.Checked = false;
-                    Rewind();
-                }
-            });
         }
         #endregion
 
@@ -277,7 +222,7 @@ namespace ClipExplorer
         {
             bool ok = true;
 
-            chkPlay.Checked = false; // ==> Stop()
+            UpdateState(ExplorerState.Stop);
 
             LogMessage(this, "INF", $"Opening file: {fn}");
 
@@ -288,15 +233,31 @@ namespace ClipExplorer
                     var ext = Path.GetExtension(fn).ToLower();
                     if (_audioFileTypes.Contains(ext))
                     {
-                        _audioExplorer.Visible = true;
-                        _midiExplorer.Visible = false;
-                        _explorer = _audioExplorer;
+                        if(_audioExplorer.Valid)
+                        {
+                            _audioExplorer.Visible = true;
+                            _midiExplorer.Visible = false;
+                            _explorer = _audioExplorer;
+                        }
+                        else
+                        {
+                            LogMessage("ERR", "Your audio device is invalid.");
+                            ok = false;
+                        }
                     }
                     else if (_midiFileTypes.Contains(ext) || _styleFileTypes.Contains(ext))
                     {
-                        _audioExplorer.Visible = false;
-                        _midiExplorer.Visible = true;
-                        _explorer = _midiExplorer;
+                        if (_midiExplorer.Valid)
+                        {
+                            _audioExplorer.Visible = false;
+                            _midiExplorer.Visible = true;
+                            _explorer = _midiExplorer;
+                        }
+                        else
+                        {
+                            LogMessage("ERR", "Your midi device is invalid.");
+                            ok = false;
+                        }
                     }
                     else
                     {
@@ -310,11 +271,6 @@ namespace ClipExplorer
                         _fn = fn;
                         Common.Settings.RecentFiles.UpdateMru(fn);
                         SetText();
-
-                        if (Common.Settings.Autoplay)
-                        {
-                            chkPlay.Checked = true; // ==> Play()
-                        }
                     }
                 }
                 catch (Exception ex)
@@ -323,6 +279,17 @@ namespace ClipExplorer
                     _fn = "";
                     SetText();
                     ok = false;
+                }
+            }
+
+            chkPlay.Enabled = ok;
+
+            if (ok)
+            {
+                if (Common.Settings.Autoplay)
+                {
+                    UpdateState(ExplorerState.Rewind);
+                    UpdateState(ExplorerState.Play);
                 }
             }
 
@@ -423,7 +390,7 @@ namespace ClipExplorer
             {
                 case Keys.Space:
                     // Toggle.
-                    chkPlay.Checked = !chkPlay.Checked;
+                    UpdateState(chkPlay.Checked ? ExplorerState.Stop : ExplorerState.Play);
                     e.Handled = true;
                     break;
 

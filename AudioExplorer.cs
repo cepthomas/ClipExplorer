@@ -47,11 +47,7 @@ namespace ClipExplorer
         public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
 
         /// <inheritdoc />
-        public PlayState State
-        {
-            get { return (PlayState)_player.State; }
-            set { _player.State = (AudioState)value; if (value == PlayState.Playing) Play(); else Stop(); }
-        }
+        public bool Playing { get { return _player.Playing; } }
         #endregion
 
         #region Lifecycle
@@ -280,15 +276,12 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Player_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
-            //Debug.WriteLine($"AudioPlayer S:{_player.State} L:{_audioFileReader.Length} C:{_audioFileReader.CurrentTime} T:{_audioFileReader.TotalTime}");
-
             if (e.Exception is not null)
             {
                 LogMessage("ERR", e.Exception.Message);
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
-            //_state = PlayState.Complete;
         }
 
         /// <summary>

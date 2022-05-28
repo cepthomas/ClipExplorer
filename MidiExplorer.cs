@@ -55,7 +55,7 @@ namespace ClipExplorer
         public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
 
         /// <inheritdoc />
-        public PlayState State { get { return (PlayState)_player.State; } set { _player.State = (MidiState)value; } }
+        public bool Playing { get { return _player.Playing; } }
         #endregion
 
         #region Lifecycle
@@ -74,10 +74,8 @@ namespace ClipExplorer
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
-            // Time controller.
+            // Time controls.
             barBar.ProgressColor = Common.Settings.ControlColor;
-            barBar.CurrentTimeChanged += BarBar_CurrentTimeChanged;
-
             sldTempo.DrawColor = Common.Settings.ControlColor;
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
@@ -100,9 +98,7 @@ namespace ClipExplorer
                 cmbDrumChannel2.Items.Add(i);
             }
             cmbDrumChannel1.SelectedIndex = MidiDefs.DEFAULT_DRUM_CHANNEL;
-            cmbDrumChannel1.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
             cmbDrumChannel2.SelectedIndex = 0;
-            cmbDrumChannel2.SelectedIndexChanged += DrumChannel_SelectedIndexChanged;
 
             Visible = false;
         }
@@ -205,16 +201,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
-            // Start or restart?
-            if (!_mmTimer.Running)
-            {
-                SetTimer();
-                _mmTimer.Start();
-            }
-            else
-            {
-                Rewind();
-            }
+            _mmTimer.Start();
             _player.Run(true);
         }
 
@@ -231,7 +218,7 @@ namespace ClipExplorer
         public void Rewind()
         {
             _player.CurrentSubdiv = 0;
-            barBar.Current = BarTime.Zero;
+            barBar.Current = new(0);
         }
         #endregion
 
@@ -240,8 +227,8 @@ namespace ClipExplorer
         public bool SettingsChanged()
         {
             bool ok = true;
-            LibSettings.ZeroBased = Common.Settings.ZeroBased;
-            LibSettings.Snap = Common.Settings.Snap;
+            MidiSettings.ZeroBased = Common.Settings.ZeroBased;
+            MidiSettings.Snap = Common.Settings.Snap;
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
             return ok;
@@ -256,16 +243,12 @@ namespace ClipExplorer
         {
             try
             {
-                _player.DoNextStep();
-
-                //// Bump over to main thread.
-                //this.InvokeIfRequired(_ => UpdateState());
                 // Bump time. Check for end of play. Client will take care of transport control.
-                if (barBar.IncrementCurrent(1))
+                barBar.IncrementCurrent(1);
+                if (_player.DoNextStep())
                 {
                     PlaybackCompleted?.Invoke(this, new EventArgs());
                 }
-
             }
             catch (Exception ex)
             {
@@ -314,26 +297,6 @@ namespace ClipExplorer
                 _player.SendPatch(chc.ChannelNumber, chc.Patch);
             }
         }
-
-        /// <summary>
-        /// User changed tempo.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Tempo_ValueChanged(object? sender, EventArgs e)
-        {
-            //_tempo = (int)sldTempo.Value;
-            SetTimer();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void BarBar_CurrentTimeChanged(object? sender, EventArgs e)
-        {
-        }
         #endregion
 
         #region Process patterns
@@ -350,7 +313,6 @@ namespace ClipExplorer
             _channelControls.Clear();
 
             // Create the new controls.
-            int lastSubdiv = 0;
             int x = sldTempo.Right + 5;
             int y = sldTempo.Top;
 
@@ -387,8 +349,6 @@ namespace ClipExplorer
                     Controls.Add(control);
                     _channelControls.Add(control);
 
-                    lastSubdiv = Math.Max(lastSubdiv, control.MaxSubdiv);
-
                     // Adjust positioning.
                     y += control.Height + 5;
 
@@ -397,10 +357,10 @@ namespace ClipExplorer
                 }
             }
 
-            barBar.Length = new BarTime(lastSubdiv);
-            barBar.Start = BarTime.Zero;
-            barBar.End = barBar.Length - BarTime.OneSubdiv;
-            barBar.Current = BarTime.Zero;
+            barBar.Start = new(0);
+            barBar.End = new(_allChannels.TotalSubdivs - 1);
+            barBar.Length = new(_allChannels.TotalSubdivs);
+            barBar.Current = new(0);
 
             UpdateDrumChannels();
         }
@@ -555,7 +515,7 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// Convert tempo to period and set mm timer.
+        /// Convert tempo to period and set mm timer accordingly.
         /// </summary>
         void SetTimer()
         {

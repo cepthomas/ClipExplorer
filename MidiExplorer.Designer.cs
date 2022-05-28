@@ -73,7 +73,6 @@ namespace ClipExplorer
             this.sldTempo.TabIndex = 63;
             this.toolTip.SetToolTip(this.sldTempo, "Tempo adjuster");
             this.sldTempo.Value = 100D;
-            this.sldTempo.ValueChanged += new System.EventHandler(this.Tempo_ValueChanged);
             // 
             // lbPatterns
             // 
@@ -163,7 +162,7 @@ namespace ClipExplorer
             this.midiToolStripMenuItem.Name = "midiToolStripMenuItem";
             this.midiToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.midiToolStripMenuItem.Text = "Midi";
-            this.midiToolStripMenuItem.ToolTipText = "Export selected patterns to midii files";
+            this.midiToolStripMenuItem.ToolTipText = "Export selected patterns to midi files";
             this.midiToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
             // 
             // toolStripSeparator1

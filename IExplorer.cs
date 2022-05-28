@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace ClipExplorer
 {
-    public enum PlayState { Stopped = 0, Playing = 1, Complete = 2 }
-
     interface IExplorer : IDisposable
     {
         #region Properties
@@ -18,7 +16,7 @@ namespace ClipExplorer
         double Volume { get; set; }
 
         /// <summary>What are we doing right now.</summary>
-        PlayState State { get; set; }
+        public bool Playing { get; }
         #endregion
 
         #region Events
