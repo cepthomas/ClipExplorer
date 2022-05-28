@@ -14,7 +14,7 @@ using NBagOfTricks;
 using NBagOfUis;
 using MidiLib;
 
-//TODOX ClipExplorer: run control and audio playing screwed up.
+//TODOX ClipExplorer: audio loop/playing screwed up.
 
 namespace ClipExplorer
 {
@@ -168,7 +168,7 @@ namespace ClipExplorer
                 return;
             }
 
-            // Suppress recursive updates caused by programatically pressing the play button.
+            // Suppress recursive updates caused by programatically pressing the play button. Crude but simple.
             if (_guard)
             {
                 return;

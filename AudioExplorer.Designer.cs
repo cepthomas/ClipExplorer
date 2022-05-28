@@ -80,7 +80,6 @@ namespace ClipExplorer
             this.timeBar.SnapMsec = 0;
             this.timeBar.TabIndex = 69;
             this.toolTip.SetToolTip(this.timeBar, "Time in min:sec:msec");
-            this.timeBar.CurrentTimeChanged += new System.EventHandler(this.TimeBar_CurrentTimeChanged);
             // 
             // toolStrip1
             // 

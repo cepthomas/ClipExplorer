@@ -83,6 +83,7 @@ namespace ClipExplorer
             btnKillMidi.Click += (_, __) => { _player.KillAll(); };
             btnLogMidi.Click += (_, __) => { _player.LogMidi = btnLogMidi.Checked; };
             sldTempo.ValueChanged += (_, __) => { SetTimer(); };
+            barBar.CurrentTimeChanged += (_, __) => { _player.CurrentSubdiv = barBar.Current.TotalSubdivs; };
 
             // Set up timer.
             sldTempo.Value = Common.Settings.DefaultTempo;

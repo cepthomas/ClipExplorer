@@ -70,6 +70,7 @@ namespace ClipExplorer
             //levelL.DrawColor = Common.Settings.ControlColor;
             //levelR.DrawColor = Common.Settings.ControlColor;
             timeBar.ProgressColor = Common.Settings.ControlColor;
+            //TODOX timeBar.CurrentTimeChanged += (_, __) => { _player.CurrentTime = timeBar.Current; };
 
             // Create output device.
             _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
@@ -259,16 +260,6 @@ namespace ClipExplorer
         #endregion
 
         #region UI event handlers
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void TimeBar_CurrentTimeChanged(object? sender, EventArgs e)
-        {
-            //CurrentTime = timeBar.Current;
-        }
-
         /// <summary>
         /// Usually end of file but could be error.
         /// </summary>
