@@ -79,7 +79,6 @@ namespace ClipExplorer
             this.timeBar.Size = new System.Drawing.Size(586, 62);
             this.timeBar.SnapMsec = 0;
             this.timeBar.TabIndex = 69;
-            this.toolTip.SetToolTip(this.timeBar, "Time in min:sec:msec");
             // 
             // toolStrip1
             // 
@@ -106,7 +105,7 @@ namespace ClipExplorer
             // textToolStripMenuItem
             // 
             this.textToolStripMenuItem.Name = "textToolStripMenuItem";
-            this.textToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.textToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
             this.textToolStripMenuItem.Text = "Text";
             this.textToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
             // 

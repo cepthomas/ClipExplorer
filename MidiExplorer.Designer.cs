@@ -55,7 +55,6 @@ namespace ClipExplorer
             this.barBar.ProgressColor = System.Drawing.Color.White;
             this.barBar.Size = new System.Drawing.Size(576, 62);
             this.barBar.TabIndex = 70;
-            this.toolTip.SetToolTip(this.barBar, "Time in bar:beat:subdivision");
             // 
             // sldTempo
             // 
@@ -144,7 +143,7 @@ namespace ClipExplorer
             // allToolStripMenuItem
             // 
             this.allToolStripMenuItem.Name = "allToolStripMenuItem";
-            this.allToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.allToolStripMenuItem.Size = new System.Drawing.Size(138, 26);
             this.allToolStripMenuItem.Text = "All";
             this.allToolStripMenuItem.ToolTipText = "Export all midi events to text file";
             this.allToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
@@ -152,7 +151,7 @@ namespace ClipExplorer
             // patternToolStripMenuItem
             // 
             this.patternToolStripMenuItem.Name = "patternToolStripMenuItem";
-            this.patternToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.patternToolStripMenuItem.Size = new System.Drawing.Size(138, 26);
             this.patternToolStripMenuItem.Text = "Pattern";
             this.patternToolStripMenuItem.ToolTipText = "Export selected patterns to text file";
             this.patternToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
@@ -160,7 +159,7 @@ namespace ClipExplorer
             // midiToolStripMenuItem
             // 
             this.midiToolStripMenuItem.Name = "midiToolStripMenuItem";
-            this.midiToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.midiToolStripMenuItem.Size = new System.Drawing.Size(138, 26);
             this.midiToolStripMenuItem.Text = "Midi";
             this.midiToolStripMenuItem.ToolTipText = "Export selected patterns to midi files";
             this.midiToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);

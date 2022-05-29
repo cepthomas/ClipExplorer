@@ -4,9 +4,6 @@
         <name>AudioLib</name>
     </assembly>
     <members>
-        <member name="T:AudioLib.AudioState">
-            <summary>Player state.</summary>
-        </member>
         <member name="T:AudioLib.AudioPlayer">
             <summary>
             A simple audio file player.
@@ -14,9 +11,6 @@
         </member>
         <member name="F:AudioLib.AudioPlayer._waveOut">
             <summary>Wave output play device.</summary>
-        </member>
-        <member name="F:AudioLib.AudioPlayer._state">
-            <summary>Current state.</summary>
         </member>
         <member name="F:AudioLib.AudioPlayer.READ_BUFF_SIZE">
             <summary>Stream read chunk.</summary>
@@ -27,11 +21,14 @@
         <member name="E:AudioLib.AudioPlayer.PlaybackStopped">
             <summary>Wave playing done.</summary>
         </member>
-        <member name="P:AudioLib.AudioPlayer.Volume">
-            <inheritdoc />
+        <member name="P:AudioLib.AudioPlayer.Valid">
+            <summary>Are we ok?</summary>
         </member>
-        <member name="P:AudioLib.AudioPlayer.State">
-            <inheritdoc />
+        <member name="P:AudioLib.AudioPlayer.Volume">
+            <summary>Volume.</summary>
+        </member>
+        <member name="P:AudioLib.AudioPlayer.Playing">
+            <summary>State.</summary>
         </member>
         <member name="M:AudioLib.AudioPlayer.#ctor(System.String,System.Int32)">
             <summary>
@@ -39,11 +36,6 @@
             </summary>
             <param name="wavOutDevice">Device name.</param>
             <param name="latency">How slow.</param>
-        </member>
-        <member name="M:AudioLib.AudioPlayer.#ctor">
-            <summary>
-            Empty constructor to satisfy nullability.
-            </summary>
         </member>
         <member name="M:AudioLib.AudioPlayer.Dispose">
             <summary> 
@@ -557,7 +549,7 @@
             <summary>How to draw.</summary>
         </member>
         <member name="P:AudioLib.WaveViewer.Marker1">
-            <summary>Marker 1 data index or -1 to disable.</summary>//TODOX do something with these + show progress. Make into array.
+            <summary>Marker 1 data index or -1 to disable.</summary>
         </member>
         <member name="P:AudioLib.WaveViewer.Marker2">
             <summary>Marker 2 data index or -1 to disable.</summary>
