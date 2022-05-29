@@ -25,20 +25,20 @@ namespace ClipExplorer
         #region General        
         [DisplayName("Root Directories")]
         [Description("Where to look in order as they appear.")]
-        [Category("General")]
+        [Category("\tGeneral")]
         [Browsable(true)]
         [Editor(typeof(StringListEditor), typeof(UITypeEditor))] // Ideally a multi folder picker.
         public List<string> RootDirs { get; set; } = new();
 
         [DisplayName("Dump To Clipboard")]
         [Description("Otherwise to file.")]
-        [Category("General")]
+        [Category("\tGeneral")]
         [Browsable(true)]
         public bool DumpToClip { get; set; } = false;
 
         [DisplayName("Control Color")]
         [Description("Pick what you like.")]
-        [Category("General")]
+        [Category("\tGeneral")]
         [Browsable(true)]
         [JsonConverter(typeof(JsonColorConverter))]
         public Color ControlColor { get; set; } = Color.MediumOrchid;
@@ -91,6 +91,12 @@ namespace ClipExplorer
         [Browsable(true)]
         [TypeConverter(typeof(FixedListTypeConverter))]
         public string Latency { get; set; } = "200";
+
+        [DisplayName("Snap To Grid")]
+        [Description("Snap to msec.")]
+        [Category("Audio")]
+        [Browsable(true)]
+        public int SnapMsec { get; set; } = 100;
         #endregion
         #endregion
 

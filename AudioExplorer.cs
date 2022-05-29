@@ -61,16 +61,12 @@ namespace ClipExplorer
             // Init settings.
             SettingsChanged();
 
-            //ResetMeters();
-
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
             waveViewerL.DrawColor = Color.Black;
             waveViewerR.DrawColor = Color.Black;
-            //levelL.DrawColor = Common.Settings.ControlColor;
-            //levelR.DrawColor = Common.Settings.ControlColor;
             timeBar.ProgressColor = Common.Settings.ControlColor;
-            //TODOX timeBar.CurrentTimeChanged += (_, __) => { _player.CurrentTime = timeBar.Current; };
+            timeBar.CurrentTimeChanged += (_, __) => { if(_audioFileReader is not null) _audioFileReader.CurrentTime = timeBar.Current; };
 
             // Create output device.
             _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
@@ -124,7 +120,6 @@ namespace ClipExplorer
                 // Create reader.
                 var sampleChannel = new SampleChannel(_audioFileReader, false);
                 sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
-
                 var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
                 postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
@@ -147,24 +142,22 @@ namespace ClipExplorer
         /// <inheritdoc />
         public void Play()
         {
-            Debug.WriteLine("AudioExplorer.Play()");
-
             _player.Run(true);
         }
 
         /// <inheritdoc />
         public void Stop()
         {
-            Debug.WriteLine("AudioExplorer.Play()");
-
             _player.Run(false);
-            //ResetMeters();
         }
 
         /// <inheritdoc />
         public void Rewind()
         {
-            _audioFileReader!.Position = 0;
+            if(_audioFileReader is not null)
+            {
+                _audioFileReader.Position = 0;
+            }
             _player.Rewind();
             timeBar.Current = TimeSpan.Zero;
         }
@@ -174,7 +167,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public bool SettingsChanged()
         {
-            // Nothing to do.
+            timeBar.SnapMsec = Common.Settings.SnapMsec;
             return true;
         }
         #endregion
@@ -248,15 +241,6 @@ namespace ClipExplorer
         {
             Log?.Invoke(this, new LogEventArgs(cat, msg));
         }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //void ResetMeters()
-        //{
-        //    levelL.AddValue(0);
-        //    levelR.AddValue(0);
-        //}
         #endregion
 
         #region UI event handlers
@@ -276,28 +260,25 @@ namespace ClipExplorer
         }
 
         /// <summary>
-        /// 
+        /// Hook for processing.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void SampleChannel_PreVolumeMeter(object? sender, StreamVolumeEventArgs e)
         {
-            //waveformPainterL.AddMax(e.MaxSampleValues[0]);
-            //waveformPainterR.AddMax(e.MaxSampleValues[1]);
         }
 
         /// <summary>
-        /// 
+        /// Hook for processing.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void PostVolumeMeter_StreamVolume(object? sender, StreamVolumeEventArgs e)
         {
-            //levelL.AddValue(e.MaxSampleValues[0]);
-            //levelR.AddValue(e.MaxSampleValues.Length > 1 ? e.MaxSampleValues[1] : 0); // stereo?
-            //waveViewerL.Marker1 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
-            //waveViewerR.Marker2 = (int)(_audioFileReader.Position / _audioFileReader.BlockAlign);
-            timeBar.Current = _audioFileReader!.CurrentTime;
+            if (_audioFileReader is not null)
+            {
+                timeBar.Current = _audioFileReader.CurrentTime;
+            }
         }
 
         /// <summary>

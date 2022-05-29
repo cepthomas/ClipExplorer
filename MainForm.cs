@@ -14,7 +14,6 @@ using NBagOfTricks;
 using NBagOfUis;
 using MidiLib;
 
-//TODOX ClipExplorer: audio loop/playing screwed up.
 
 namespace ClipExplorer
 {
@@ -41,9 +40,6 @@ namespace ClipExplorer
 
         /// <summary>Current play device.</summary>
         IExplorer _explorer;
-
-        /// <summary>Prevent button press recursion.</summary>
-        bool _guard = false;
         #endregion
 
         #region Lifecycle
@@ -86,8 +82,9 @@ namespace ClipExplorer
             sldVolume.Value = Common.Settings.Volume;
 
             // Hook up some simple UI handlers.
-            chkPlay.CheckedChanged += (_, __) => { UpdateState(chkPlay.Checked ? ExplorerState.Play : ExplorerState.Stop); };
             btnRewind.Click += (_, __) => { UpdateState(ExplorerState.Rewind); };
+
+            chkPlay.CheckedChanged += ChkPlay_CheckedChanged;
 
             // Debug stuff.
             //btnDebug.Visible = false;
@@ -102,16 +99,16 @@ namespace ClipExplorer
             // Create devices.
             Point loc = new(chkPlay.Left, chkPlay.Bottom + 5);
             _audioExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
-            _audioExplorer.PlaybackCompleted += (_, __) => { UpdateState(ExplorerState.Complete); };
+            _audioExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
             _audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
-            Controls.Add(_audioExplorer); //TODO combine child and parent toolstrips? also midi.
+            Controls.Add(_audioExplorer); // TODO combine child and parent toolstrips? also midi.
             if(!_audioExplorer.Valid)
             {
                 LogMessage("ERR", $"Something wrong with your audio output device:{Common.Settings.WavOutDevice}");
             }
 
             _midiExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
-            _midiExplorer.PlaybackCompleted += (_, __) => { UpdateState(ExplorerState.Complete); };
+            _midiExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
             _midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             Controls.Add(_midiExplorer);
             if (!_midiExplorer.Valid)
@@ -163,52 +160,65 @@ namespace ClipExplorer
         /// </summary>
         void UpdateState(ExplorerState state) 
         {
-            if(!_explorer.Valid)
+            if (_explorer.Valid)
             {
-                return;
-            }
+                // Unhook.
+                chkPlay.CheckedChanged -= ChkPlay_CheckedChanged;
+                //LogMessage($"DBG", $"state:{state}  chkPlay{chkPlay.Checked}  btnLoop{btnLoop.Checked}  Playing:{_explorer.Playing}");
 
-            // Suppress recursive updates caused by programatically pressing the play button. Crude but simple.
-            if (_guard)
-            {
-                return;
-            }
-            _guard = true;
-
-            //LogMessage($"DBG", $"state:{state}  chkPlay{chkPlay.Checked}  btnLoop{btnLoop.Checked}  Playing:{_explorer.Playing}");
-
-            switch (state)
-            {
-                case ExplorerState.Complete:
-                    _explorer.Rewind();
-                    if (btnLoop.Checked)
+                try
+                {
+                    switch (state)
                     {
-                        chkPlay.Checked = true;
-                        _explorer.Play();
+                        case ExplorerState.Complete:
+                            _explorer.Rewind();
+                            if (btnLoop.Checked)
+                            {
+                                chkPlay.Checked = true;
+                                _explorer.Play();
+                            }
+                            else
+                            {
+                                chkPlay.Checked = false;
+                                _explorer.Stop();
+                            }
+                            break;
+
+                        case ExplorerState.Play:
+                            chkPlay.Checked = true;
+                            _explorer.Play();
+                            break;
+
+                        case ExplorerState.Stop:
+                            chkPlay.Checked = false;
+                            _explorer.Stop();
+                            break;
+
+                        case ExplorerState.Rewind:
+                            _explorer.Rewind();
+                            break;
                     }
-                    else
-                    {
-                        chkPlay.Checked = false;
-                        _explorer.Stop();
-                    }
-                    break;
-
-                case ExplorerState.Play:
-                    chkPlay.Checked = true;
-                    _explorer.Play();
-                    break;
-
-                case ExplorerState.Stop:
-                    chkPlay.Checked = false;
-                    _explorer.Stop();
-                    break;
-
-                case ExplorerState.Rewind:
-                    _explorer.Rewind();
-                    break;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                finally
+                {
+                    // Rehook.
+                    chkPlay.CheckedChanged += ChkPlay_CheckedChanged;
+                }
             }
+        }
 
-            _guard = false;
+        /// <summary>
+        /// Play button handler.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ChkPlay_CheckedChanged(object? sender, EventArgs e)
+        {
+            UpdateState(chkPlay.Checked ? ExplorerState.Play : ExplorerState.Stop);
         }
         #endregion
 
