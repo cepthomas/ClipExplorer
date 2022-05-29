@@ -20,27 +20,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="doc\**" />
-    <Compile Remove="lib\**" />
-    <Compile Remove="test\**" />
-    <EmbeddedResource Remove="doc\**" />
-    <EmbeddedResource Remove="lib\**" />
-    <EmbeddedResource Remove="test\**" />
-    <None Remove="doc\**" />
-    <None Remove="lib\**" />
-    <None Remove="test\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="MainForm_X.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="clipex.sublime-project" />
-    <None Remove="clipex.sublime-workspace" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -65,16 +44,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AudioLib\AudioLib.csproj" />
-    <ProjectReference Include="..\MidiLib\MidiLib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="NBagOfTricks">
       <HintPath>lib\NBagOfTricks.dll</HintPath>
     </Reference>
     <Reference Include="NBagOfUis">
       <HintPath>lib\NBagOfUis.dll</HintPath>
+    </Reference>
+    <Reference Include="AudioLib">
+      <HintPath>lib\AudioLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MidiLib">
+      <HintPath>lib\MidiLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 
