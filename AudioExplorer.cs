@@ -299,7 +299,7 @@ namespace ClipExplorer
                                 string name = Path.GetFileNameWithoutExtension(_audioFileReader.FileName);
                                 // Clean the file name.
                                 name = name.Replace('.', '-').Replace(' ', '_');
-                                var newfn = Path.Join(Common.ExportPath, $"{name}.txt");
+                                var newfn = Path.Join(Common.OutPath, $"{name}.txt");
                                 _player.Export(newfn, _audioFileReader);
                                 LogMessage("INF", $"Exported to {newfn}");
                             }

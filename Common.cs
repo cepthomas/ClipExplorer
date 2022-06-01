@@ -16,7 +16,7 @@ namespace ClipExplorer
         public static UserSettings Settings { get; set; } = new UserSettings();
 
         /// <summary>Where to put things.</summary>
-        public static string ExportPath { get; set; } = "";
+        public static string OutPath { get; set; } = "";
         #endregion
     }
 

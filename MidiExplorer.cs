@@ -30,7 +30,7 @@ namespace ClipExplorer
         readonly ChannelCollection _allChannels = new();
 
         /// <summary>All the channel controls.</summary>
-        readonly List<ChannelControl> _channelControls = new();
+        readonly List<PlayerControl> _playerControls = new();
 
         /// <summary>The fast timer.</summary>
         readonly MmTimerEx _mmTimer = new();
@@ -260,13 +260,13 @@ namespace ClipExplorer
 
         #region UI event handlers
         /// <summary>
-        /// The user clicked something in one of the channel controls.
+        /// The user clicked something in one of the player controls.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Control_ChannelChange(object? sender, ChannelControl.ChannelChangeEventArgs e)
+        void Control_ChannelChange(object? sender, PlayerControl.ChannelChangeEventArgs e)
         {
-            ChannelControl chc = (ChannelControl)sender!;
+            PlayerControl chc = (PlayerControl)sender!;
 
             if (e.StateChange)
             {
@@ -310,8 +310,8 @@ namespace ClipExplorer
             _player.Reset();
 
             // Clean out our controls collection.
-            _channelControls.ForEach(c => Controls.Remove(c));
-            _channelControls.Clear();
+            _playerControls.ForEach(c => Controls.Remove(c));
+            _playerControls.Clear();
 
             // Create the new controls.
             int x = sldTempo.Right + 5;
@@ -335,7 +335,7 @@ namespace ClipExplorer
                     _allChannels.SetEvents(chnum, chEvents, mt);
 
                     // Make new control.
-                    ChannelControl control = new()
+                    PlayerControl control = new()
                     {
                         Location = new(x, y),
                         BorderStyle = BorderStyle.FixedSingle
@@ -348,7 +348,7 @@ namespace ClipExplorer
                     control.Patch = pinfo.Patches[i];
                     control.ChannelChange += Control_ChannelChange;
                     Controls.Add(control);
-                    _channelControls.Add(control);
+                    _playerControls.Add(control);
 
                     // Adjust positioning.
                     y += control.Height + 5;
@@ -416,7 +416,7 @@ namespace ClipExplorer
         /// </summary>
         void UpdateDrumChannels()
         {
-            _channelControls.ForEach(ctl => ctl.IsDrums =
+            _playerControls.ForEach(ctl => ctl.IsDrums =
                 (ctl.ChannelNumber == cmbDrumChannel1.SelectedIndex) ||
                 (ctl.ChannelNumber == cmbDrumChannel2.SelectedIndex));
         }
@@ -440,7 +440,7 @@ namespace ClipExplorer
                 }
 
                 List<int> channels = new();
-                foreach (var cc in _channelControls.Where(c => c.Selected))
+                foreach (var cc in _playerControls.Where(c => c.Selected))
                 {
                     channels.Add(cc.ChannelNumber);
                 }
@@ -449,7 +449,7 @@ namespace ClipExplorer
                 {
                     case "All":
                         {
-                            var s = _mdata.ExportAllEvents(Common.ExportPath, channels);
+                            var s = _mdata.ExportAllEvents(Common.OutPath, channels);
                             LogMessage("INF", $"Exported to {s}");
                         }
                         break;
@@ -458,14 +458,14 @@ namespace ClipExplorer
                         {
                             if (_mdata.AllPatterns.Count == 1)
                             {
-                                var s = _mdata.ExportGroupedEvents(Common.ExportPath, "", channels, true);
+                                var s = _mdata.ExportGroupedEvents(Common.OutPath, "", channels, true);
                                 LogMessage("INF", $"Exported default to {s}");
                             }
                             else
                             {
                                 foreach (var patternName in patternNames)
                                 {
-                                    var s = _mdata.ExportGroupedEvents(Common.ExportPath, patternName, channels, true);
+                                    var s = _mdata.ExportGroupedEvents(Common.OutPath, patternName, channels, true);
                                     LogMessage("INF", $"Exported pattern {patternName} to {s}");
                                 }
                             }
@@ -477,7 +477,7 @@ namespace ClipExplorer
                             if (_mdata.AllPatterns.Count == 1)
                             {
                                 // Use original ppq.
-                                var s = _mdata.ExportMidi(Common.ExportPath, "", channels, _mdata.DeltaTicksPerQuarterNote);
+                                var s = _mdata.ExportMidi(Common.OutPath, "", channels, _mdata.DeltaTicksPerQuarterNote);
                                 LogMessage("INF", $"Export midi to {s}");
                             }
                             else
@@ -485,7 +485,7 @@ namespace ClipExplorer
                                 foreach (var patternName in patternNames)
                                 {
                                     // Use original ppq.
-                                    var s = _mdata.ExportMidi(Common.ExportPath, patternName, channels, _mdata.DeltaTicksPerQuarterNote);
+                                    var s = _mdata.ExportMidi(Common.OutPath, patternName, channels, _mdata.DeltaTicksPerQuarterNote);
                                     LogMessage("INF", $"Export midi to {s}");
                                 }
                             }

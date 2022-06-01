@@ -55,8 +55,8 @@ namespace ClipExplorer
             // Get settings and set up paths.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
             Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
-            Common.ExportPath = Path.Combine(appDir, "export");
-            DirectoryInfo di = new(Common.ExportPath);
+            Common.OutPath = Path.Combine(appDir, "out");
+            DirectoryInfo di = new(Common.OutPath);
             di.Create();
 
             // Init main form from settings
