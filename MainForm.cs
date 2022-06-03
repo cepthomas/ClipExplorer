@@ -13,7 +13,7 @@ using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfUis;
 using MidiLib;
-
+using NAudio.Wave;
 
 namespace ClipExplorer
 {
@@ -90,6 +90,19 @@ namespace ClipExplorer
             //btnDebug.Visible = false;
             //btnDebug.Click += (_, __) => { LogMessage("DBG", $"X:{Location.X} Y:{Location.Y}"); };
             //btnDebug.Click += (_, __) => { chkPlay.Checked = true; };
+            btnDebug.Click += (_, __) =>
+            {
+                for (int id = -1; id < WaveOut.DeviceCount; id++)
+                {
+                    var cap = WaveOut.GetCapabilities(id);
+                    LogMessage("-|-", $"WaveOut {id} {cap.ProductName}");
+                }
+                for (int id = -1; id < WaveIn.DeviceCount; id++)
+                {
+                    var cap = WaveIn.GetCapabilities(id);
+                    LogMessage("-|-", $"WaveIn {id} {cap.ProductName}");
+                }
+            };
 
             // Initialize tree from user settings.
             InitNavigator();

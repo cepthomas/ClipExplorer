@@ -32,3 +32,4 @@ This application uses these FOSS components:
 - [NBagOfTricks](https://github.com/cepthomas/NBagOfTricks/blob/main/README.md)
 - [NBagOfUis](https://github.com/cepthomas/NBagOfUis/blob/main/README.md)
 - [MidiLib](https://github.com/cepthomas/MidiLib/blob/main/README.md).
+- [AudioLib](https://github.com/cepthomas/AudioLib/blob/main/README.md).
