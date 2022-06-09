@@ -19,16 +19,4 @@ namespace ClipExplorer
         public static string OutPath { get; set; } = "";
         #endregion
     }
-
-    /// <summary>Player has something to say or show.</summary>
-    public class LogEventArgs : EventArgs
-    {
-        public string Category { get; private set; } = "";
-        public string Message { get; private set; } = "";
-        public LogEventArgs(string cat, string msg)
-        {
-            Category = cat;
-            Message = msg;
-        }
-    }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using NAudio.Midi;
 using NBagOfTricks;
+using NBagOfTricks.Slog;
 using NBagOfUis;
 using MidiLib;
 
@@ -23,6 +24,9 @@ namespace ClipExplorer
     public partial class MidiExplorer : UserControl, IExplorer
     {
         #region Fields
+        /// <summary>My logger.</summary>
+        readonly Logger _logger = LogManager.CreateLogger("MidiExplorer");
+
         /// <summary>Midi player.</summary>
         readonly MidiPlayer _player;
 
@@ -43,8 +47,8 @@ namespace ClipExplorer
         /// <inheritdoc />
         public event EventHandler? PlaybackCompleted;
 
-        /// <inheritdoc />
-        public event EventHandler<LogEventArgs>? Log;
+        ///// <inheritdoc />
+        //public event EventHandler<LogEventArgs>? Log;
         #endregion
 
         #region Properties
@@ -150,7 +154,7 @@ namespace ClipExplorer
 
                 if(_mdata.AllPatterns.Count == 0)
                 {
-                    LogMessage("ERR", $"Something wrong with this file: {fn}");
+                    _logger.LogError($"Something wrong with this file: {fn}");
                     ok = false;
                 }
                 else if(_mdata.AllPatterns.Count == 1) // plain midi
@@ -171,7 +175,7 @@ namespace ClipExplorer
                                 break;
 
                             case "":
-                                LogMessage("ERR", "Well, this should never happen!");
+                                _logger.LogError("Well, this should never happen!");
                                 break;
 
                             default:
@@ -190,7 +194,7 @@ namespace ClipExplorer
             }
             catch (Exception ex)
             {
-                LogMessage("ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
+                _logger.LogError($"Couldn't open the file: {fn} because: {ex.Message}");
                 ok = false;
             }
 
@@ -450,7 +454,7 @@ namespace ClipExplorer
                     case "All":
                         {
                             var s = _mdata.ExportAllEvents(Common.OutPath, channels);
-                            LogMessage("INF", $"Exported to {s}");
+                            _logger.LogInfo($"Exported to {s}");
                         }
                         break;
 
@@ -459,14 +463,14 @@ namespace ClipExplorer
                             if (_mdata.AllPatterns.Count == 1)
                             {
                                 var s = _mdata.ExportGroupedEvents(Common.OutPath, "", channels, true);
-                                LogMessage("INF", $"Exported default to {s}");
+                                _logger.LogInfo($"Exported default to {s}");
                             }
                             else
                             {
                                 foreach (var patternName in patternNames)
                                 {
                                     var s = _mdata.ExportGroupedEvents(Common.OutPath, patternName, channels, true);
-                                    LogMessage("INF", $"Exported pattern {patternName} to {s}");
+                                    _logger.LogInfo($"Exported pattern {patternName} to {s}");
                                 }
                             }
                         }
@@ -478,7 +482,7 @@ namespace ClipExplorer
                             {
                                 // Use original ppq.
                                 var s = _mdata.ExportMidi(Common.OutPath, "", channels, _mdata.DeltaTicksPerQuarterNote);
-                                LogMessage("INF", $"Export midi to {s}");
+                                _logger.LogInfo($"Export midi to {s}");
                             }
                             else
                             {
@@ -486,35 +490,25 @@ namespace ClipExplorer
                                 {
                                     // Use original ppq.
                                     var s = _mdata.ExportMidi(Common.OutPath, patternName, channels, _mdata.DeltaTicksPerQuarterNote);
-                                    LogMessage("INF", $"Export midi to {s}");
+                                    _logger.LogInfo($"Export midi to {s}");
                                 }
                             }
                         }
                         break;
 
                     default:
-                        LogMessage("ERR", $"Ooops: {stext}");
+                        _logger.LogError($"Ooops: {stext}");
                         break;
                 }
             }
             catch (Exception ex)
             {
-                LogMessage("ERR", $"{ex.Message}");
+                _logger.LogError($"{ex.Message}");
             }
         }
         #endregion
 
         #region Misc functions
-        /// <summary>
-        /// Logger.
-        /// </summary>
-        /// <param name="cat"></param>
-        /// <param name="msg"></param>
-        void LogMessage(string cat, string msg)
-        {
-            Log?.Invoke(this, new LogEventArgs(cat, msg));
-        }
-
         /// <summary>
         /// Convert tempo to period and set mm timer accordingly.
         /// </summary>

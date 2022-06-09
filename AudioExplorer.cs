@@ -11,7 +11,7 @@ using System.IO;
 using System.Diagnostics;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using NBagOfTricks;
+using NBagOfTricks.Slog;
 using NBagOfUis;
 using AudioLib;
 
@@ -21,6 +21,9 @@ namespace ClipExplorer
     public partial class AudioExplorer : UserControl, IExplorer
     {
         #region Fields
+        /// <summary>My logger.</summary>
+        readonly Logger _logger = LogManager.CreateLogger("AudioExplorer");
+
         /// <summary>Wave output play device.</summary>
         readonly AudioPlayer _player;
 
@@ -35,8 +38,8 @@ namespace ClipExplorer
         /// <inheritdoc />
         public event EventHandler? PlaybackCompleted;
 
-        /// <inheritdoc />
-        public event EventHandler<LogEventArgs>? Log;
+        ///// <inheritdoc />
+        //public event EventHandler<LogEventArgs>? Log;
         #endregion
 
         #region Properties
@@ -231,16 +234,6 @@ namespace ClipExplorer
                 _audioFileReader.Position = 0; // rewind
             }
         }
-
-        /// <summary>
-        /// Logger.
-        /// </summary>
-        /// <param name="cat"></param>
-        /// <param name="msg"></param>
-        void LogMessage(string cat, string msg)
-        {
-            Log?.Invoke(this, new LogEventArgs(cat, msg));
-        }
         #endregion
 
         #region UI event handlers
@@ -253,7 +246,7 @@ namespace ClipExplorer
         {
             if (e.Exception is not null)
             {
-                LogMessage("ERR", e.Exception.Message);
+                _logger.LogException(e.Exception, "Other NAudio error");
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
@@ -301,18 +294,18 @@ namespace ClipExplorer
                                 name = name.Replace('.', '-').Replace(' ', '_');
                                 var newfn = Path.Join(Common.OutPath, $"{name}.txt");
                                 _player.Export(newfn, _audioFileReader);
-                                LogMessage("INF", $"Exported to {newfn}");
+                                _logger.LogInfo($"Exported to {newfn}");
                             }
                             break;
 
                         default:
-                            LogMessage("ERR", $"Ooops: {stext}");
+                            _logger.LogError($"Ooops: {stext}");
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage("ERR", $"{ex.Message}");
+                    _logger.LogError($"{ex.Message}");
                 }
             }
         }
