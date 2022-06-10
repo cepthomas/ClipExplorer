@@ -157,6 +157,7 @@ namespace ClipExplorer
             LogManager.Stop();
             UpdateState(ExplorerState.Stop);
             SaveSettings();
+            base.OnFormClosing(e);
         }
 
         /// <summary>
