@@ -268,7 +268,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Control_ChannelChange(object? sender, PlayerControl.ChannelChangeEventArgs e)
+        void Control_ChannelChangeEvent(object? sender, ChannelChangeEventArgs e)
         {
             PlayerControl chc = (PlayerControl)sender!;
 
@@ -350,7 +350,7 @@ namespace ClipExplorer
 
                     // Now init the control - after binding!
                     control.Patch = pinfo.Patches[i];
-                    control.ChannelChange += Control_ChannelChange;
+                    control.ChannelChangeEvent += Control_ChannelChangeEvent;
                     Controls.Add(control);
                     _playerControls.Add(control);
 
