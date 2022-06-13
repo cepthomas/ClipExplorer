@@ -154,7 +154,7 @@ namespace ClipExplorer
 
                 if(_mdata.AllPatterns.Count == 0)
                 {
-                    _logger.LogError($"Something wrong with this file: {fn}");
+                    _logger.Error($"Something wrong with this file: {fn}");
                     ok = false;
                 }
                 else if(_mdata.AllPatterns.Count == 1) // plain midi
@@ -175,7 +175,7 @@ namespace ClipExplorer
                                 break;
 
                             case "":
-                                _logger.LogError("Well, this should never happen!");
+                                _logger.Error("Well, this should never happen!");
                                 break;
 
                             default:
@@ -194,7 +194,7 @@ namespace ClipExplorer
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Couldn't open the file: {fn} because: {ex.Message}");
+                _logger.Error($"Couldn't open the file: {fn} because: {ex.Message}");
                 ok = false;
             }
 
@@ -454,7 +454,7 @@ namespace ClipExplorer
                     case "All":
                         {
                             var s = _mdata.ExportAllEvents(Common.OutPath, channels);
-                            _logger.LogInfo($"Exported to {s}");
+                            _logger.Info($"Exported to {s}");
                         }
                         break;
 
@@ -463,14 +463,14 @@ namespace ClipExplorer
                             if (_mdata.AllPatterns.Count == 1)
                             {
                                 var s = _mdata.ExportGroupedEvents(Common.OutPath, "", channels, true);
-                                _logger.LogInfo($"Exported default to {s}");
+                                _logger.Info($"Exported default to {s}");
                             }
                             else
                             {
                                 foreach (var patternName in patternNames)
                                 {
                                     var s = _mdata.ExportGroupedEvents(Common.OutPath, patternName, channels, true);
-                                    _logger.LogInfo($"Exported pattern {patternName} to {s}");
+                                    _logger.Info($"Exported pattern {patternName} to {s}");
                                 }
                             }
                         }
@@ -482,7 +482,7 @@ namespace ClipExplorer
                             {
                                 // Use original ppq.
                                 var s = _mdata.ExportMidi(Common.OutPath, "", channels, _mdata.DeltaTicksPerQuarterNote);
-                                _logger.LogInfo($"Export midi to {s}");
+                                _logger.Info($"Export midi to {s}");
                             }
                             else
                             {
@@ -490,20 +490,20 @@ namespace ClipExplorer
                                 {
                                     // Use original ppq.
                                     var s = _mdata.ExportMidi(Common.OutPath, patternName, channels, _mdata.DeltaTicksPerQuarterNote);
-                                    _logger.LogInfo($"Export midi to {s}");
+                                    _logger.Info($"Export midi to {s}");
                                 }
                             }
                         }
                         break;
 
                     default:
-                        _logger.LogError($"Ooops: {stext}");
+                        _logger.Error($"Ooops: {stext}");
                         break;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{ex.Message}");
+                _logger.Error($"{ex.Message}");
             }
         }
         #endregion

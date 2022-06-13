@@ -246,7 +246,7 @@ namespace ClipExplorer
         {
             if (e.Exception is not null)
             {
-                _logger.LogException(e.Exception, "Other NAudio error");
+                _logger.Exception(e.Exception, "Other NAudio error");
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
@@ -294,18 +294,18 @@ namespace ClipExplorer
                                 name = name.Replace('.', '-').Replace(' ', '_');
                                 var newfn = Path.Join(Common.OutPath, $"{name}.txt");
                                 _player.Export(newfn, _audioFileReader);
-                                _logger.LogInfo($"Exported to {newfn}");
+                                _logger.Info($"Exported to {newfn}");
                             }
                             break;
 
                         default:
-                            _logger.LogError($"Ooops: {stext}");
+                            _logger.Error($"Ooops: {stext}");
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"{ex.Message}");
+                    _logger.Error($"{ex.Message}");
                 }
             }
         }

@@ -64,8 +64,8 @@ namespace ClipExplorer
             di.Create();
 
             // Init logging.
-            LogManager.MinLevelFile = Level.Debug;
-            LogManager.MinLevelNotif = Level.Info;
+            LogManager.MinLevelFile = LogLevel.Debug;
+            LogManager.MinLevelNotif = LogLevel.Info;
             LogManager.LogEvent += LogManager_LogEvent;
             LogManager.Run();
 
@@ -98,7 +98,6 @@ namespace ClipExplorer
 
             // Debug stuff.
             //btnDebug.Visible = false;
-            //btnDebug.Click += (_, __) => { LogMessage("DBG", $"X:{Location.X} Y:{Location.Y}"); };
             //btnDebug.Click += (_, __) => { chkPlay.Checked = true; };
             btnDebug.Click += (_, __) => { DumpDevices(); };
 
@@ -106,12 +105,10 @@ namespace ClipExplorer
             Point loc = new(chkPlay.Left, chkPlay.Bottom + 5);
             _audioExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
             _audioExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
-            //_audioExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             Controls.Add(_audioExplorer); // TODO combine child and parent toolstrips? also midi.
 
             _midiExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
             _midiExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
-            //_midiExplorer.Log += (sdr, args) => { LogMessage(sdr, args.Category, args.Message); };
             Controls.Add(_midiExplorer);
 
             _explorer = _midiExplorer;
@@ -123,22 +120,22 @@ namespace ClipExplorer
         /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
-            _logger.LogInfo($"OK to log now!!");
+            _logger.Info($"OK to log now!!");
 
             if(!_audioExplorer.Valid)
             {
-                _logger.LogError($"Something wrong with your audio output device:{Common.Settings.WavOutDevice}");
+                _logger.Error($"Something wrong with your audio output device:{Common.Settings.WavOutDevice}");
             }
 
             if (!_midiExplorer.Valid)
             {
-                _logger.LogError($"Something wrong with your midi output device:{Common.Settings.MidiOutDevice}");
+                _logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiOutDevice}");
             }
 
             // Initialize tree from user settings.
             InitNavigator();
 
-            _logger.LogInfo("Hello. C=clear, W=wrap");
+            _logger.Info("Hello. C=clear, W=wrap");
 
 
             // Look for filename passed in.
@@ -190,7 +187,7 @@ namespace ClipExplorer
             // Usually come from a different thread.
             if(IsHandleCreated)
             {
-                this.InvokeIfRequired(_ => { txtViewer.AppendLine($"> {e.Message}"); });
+                this.InvokeIfRequired(_ => { txtViewer.AppendLine($"{e.Message}"); });
             }
         }
 
@@ -202,12 +199,12 @@ namespace ClipExplorer
             for (int id = -1; id < WaveOut.DeviceCount; id++)
             {
                 var cap = WaveOut.GetCapabilities(id);
-                _logger.LogInfo($"WaveOut {id} {cap.ProductName}");
+                _logger.Info($"WaveOut {id} {cap.ProductName}");
             }
             for (int id = -1; id < WaveIn.DeviceCount; id++)
             {
                 var cap = WaveIn.GetCapabilities(id);
-                _logger.LogInfo($"WaveIn {id} {cap.ProductName}");
+                _logger.Info($"WaveIn {id} {cap.ProductName}");
             }
         }
 
@@ -222,7 +219,7 @@ namespace ClipExplorer
             {
                 // Unhook.
                 chkPlay.CheckedChanged -= ChkPlay_CheckedChanged;
-                //_logger.LogDebug($"state:{state}  chkPlay{chkPlay.Checked}  btnLoop{btnLoop.Checked}  Playing:{_explorer.Playing}");
+                //_logger.Debug($"state:{state}  chkPlay{chkPlay.Checked}  btnLoop{btnLoop.Checked}  Playing:{_explorer.Playing}");
 
                 try
                 {
@@ -292,7 +289,7 @@ namespace ClipExplorer
 
             UpdateState(ExplorerState.Stop);
 
-            _logger.LogInfo($"Opening file: {fn}");
+            _logger.Info($"Opening file: {fn}");
 
             using (new WaitCursor())
             {
@@ -309,7 +306,7 @@ namespace ClipExplorer
                         }
                         else
                         {
-                            _logger.LogError("Your audio device is invalid.");
+                            _logger.Error("Your audio device is invalid.");
                             ok = false;
                         }
                     }
@@ -323,13 +320,13 @@ namespace ClipExplorer
                         }
                         else
                         {
-                            _logger.LogError("Your midi device is invalid.");
+                            _logger.Error("Your midi device is invalid.");
                             ok = false;
                         }
                     }
                     else
                     {
-                        _logger.LogError($"Invalid file type: {fn}");
+                        _logger.Error($"Invalid file type: {fn}");
                         ok = false;
                     }
 
@@ -343,7 +340,7 @@ namespace ClipExplorer
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Couldn't open the file: {fn} because: {ex.Message}");
+                    _logger.Error($"Couldn't open the file: {fn} because: {ex.Message}");
                     _fn = "";
                     SetText();
                     ok = false;
@@ -380,7 +377,7 @@ namespace ClipExplorer
             }
             catch (DirectoryNotFoundException)
             {
-                _logger.LogWarn("No tree directories");
+                _logger.Warn("No tree directories");
             }
         }
 
@@ -555,7 +552,7 @@ namespace ClipExplorer
         }
         #endregion
 
-        #region Info
+        #region Misc
         /// <summary>
         /// All about me.
         /// </summary>
@@ -564,47 +561,6 @@ namespace ClipExplorer
             MiscUtils.ShowReadme("ClipExplorer");
         }
 
-        ///// <summary>
-        ///// Something you should know.
-        ///// </summary>
-        ///// <param name="cat"></param>
-        ///// <param name="msg"></param>
-        //void LogMessage(string cat, string msg)
-        //{
-        //    int catSize = 3;
-        //    cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-
-        //    // May come from a different thread.
-        //    this.InvokeIfRequired(_ =>
-        //    {
-        //        // string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
-        //        string s = $"> {cat} {msg}";
-        //        txtViewer.AppendLine(s);
-        //    });
-        //}
-
-
-        // /// <summary>
-        // /// Something you should know.
-        // /// </summary>
-        // /// <param name="sender"></param>
-        // /// <param name="ea"></param>
-        // void LogMessage(object? sender, string cat, string msg) //orig
-        // {
-        //     int catSize = 3;
-        //     cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-
-        //     // May come from a different thread.
-        //     this.InvokeIfRequired(_ =>
-        //     {
-        //         //string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
-        //         string s = $"> {cat} ({((Control)sender!).Name}) {msg}";
-        //         txtViewer.AppendLine(s);
-        //     });
-        // }
-        #endregion
-
-        #region Misc
         /// <summary>
         /// Utility for header.
         /// </summary>
