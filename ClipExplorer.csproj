@@ -19,10 +19,6 @@
         <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
         <ApplicationIcon>Resources\zebra.ico</ApplicationIcon>
         <!-- en none -->
-
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <AnalysisMode>Default</AnalysisMode>
-        
     </PropertyGroup>
     
     <ItemGroup>
