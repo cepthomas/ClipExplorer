@@ -152,21 +152,21 @@ namespace ClipExplorer
                 // Init new stuff with contents of file/pattern.
                 lbPatterns.Items.Clear();
 
-                if(_mdata.AllPatterns.Count == 0)
+                if(_mdata.NumPatterns == 0)
                 {
                     _logger.Error($"Something wrong with this file: {fn}");
                     ok = false;
                 }
-                else if(_mdata.AllPatterns.Count == 1) // plain midi
+                else if(_mdata.NumPatterns == 1) // plain midi
                 {
-                    var pinfo = _mdata.AllPatterns[0];
-                    LoadPattern(pinfo);
+                    var pinfo = _mdata.GetPattern(0);
+                    LoadPattern(pinfo!);
                 }
                 else // style - multiple patterns.
                 {
-                    foreach (var p in _mdata.AllPatterns)
+                    foreach (var p in _mdata.GetPatternNames())
                     {
-                        switch (p.PatternName)
+                        switch (p)
                         {
                             // These don't contain a pattern.
                             case "SFF1": // initial patches are in here
@@ -179,7 +179,7 @@ namespace ClipExplorer
                                 break;
 
                             default:
-                                lbPatterns.Items.Add(p.PatternName);
+                                lbPatterns.Items.Add(p);
                                 break;
                         }
                     }
@@ -232,8 +232,8 @@ namespace ClipExplorer
         public bool SettingsChanged()
         {
             bool ok = true;
-            MidiSettings.ZeroBased = Common.Settings.ZeroBased;
-            MidiSettings.Snap = Common.Settings.Snap;
+            MidiSettings.TheSettings.ZeroBased = Common.Settings.ZeroBased;
+            MidiSettings.TheSettings.Snap = Common.Settings.Snap;
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
             return ok;
@@ -329,8 +329,8 @@ namespace ClipExplorer
             {
                 int chnum = i + 1;
 
-                var chEvents = _mdata.AllEvents.
-                    Where(e => e.PatternName == pinfo.PatternName && e.ChannelNumber == chnum && (e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent)).
+                var chEvents = _mdata.GetPattern(pinfo.PatternName)!.Events.
+                    Where(e => e.ChannelNumber == chnum && (e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent)).
                     OrderBy(e => e.AbsoluteTime);
 
                 // Is this channel pertinent?
@@ -377,7 +377,7 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Patterns_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            var pinfo = _mdata.AllPatterns.Where(p => p.PatternName == lbPatterns.SelectedItem.ToString()).First();
+            var pinfo = _mdata.GetPattern(lbPatterns.SelectedItem.ToString()!);
 
             LoadPattern(pinfo!);
 
@@ -460,7 +460,7 @@ namespace ClipExplorer
 
                     case "Pattern":
                         {
-                            if (_mdata.AllPatterns.Count == 1)
+                            if (_mdata.NumPatterns == 1)
                             {
                                 var s = _mdata.ExportGroupedEvents(Common.OutPath, "", channels, true);
                                 _logger.Info($"Exported default to {s}");
@@ -478,7 +478,7 @@ namespace ClipExplorer
 
                     case "Midi":
                         {
-                            if (_mdata.AllPatterns.Count == 1)
+                            if (_mdata.NumPatterns == 1)
                             {
                                 // Use original ppq.
                                 var s = _mdata.ExportMidi(Common.OutPath, "", channels, _mdata.DeltaTicksPerQuarterNote);

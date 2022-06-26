@@ -44,7 +44,7 @@ namespace ClipExplorer
         public Color ControlColor { get; set; } = Color.MediumOrchid;
         #endregion
 
-        #region Midi        
+        #region Midi
         [DisplayName("Midi Output Device")]
         [Description("How to play the midi files.")]
         [Category("Midi")]
