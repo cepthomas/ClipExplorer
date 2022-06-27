@@ -20,7 +20,7 @@ Requires VS2019 and .NET5.
 - Export style files as their component parts.
 - Export current selection(s) and channel(s) to a new midi file. Useful for snipping style patterns.
 - Some midi files with single instruments are sloppy with channel numbers so there are a couple of options for simple remapping.
-- Click on the settings icon to edit your options.
+- Click on the settings icon to edit your options. Note that not all presented audio/midi options pertain to this application.
 - In the log view: C for clear, W for word wrap toggle.
 
 # Third Party
