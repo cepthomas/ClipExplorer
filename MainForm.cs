@@ -10,11 +10,13 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 using NAudio.Midi;
+using NAudio.Wave;
 using NBagOfTricks;
 using NBagOfTricks.Slog;
 using NBagOfUis;
 using MidiLib;
-using NAudio.Wave;
+using AudioLib;
+
 
 namespace ClipExplorer
 {
@@ -56,9 +58,13 @@ namespace ClipExplorer
 
             Icon = Properties.Resources.zebra;
 
-            // Get settings and set up paths.
+            // Set up settings.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
             Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
+            // Tell the libs about their settings.
+            MidiSettings.LibSettings = Common.Settings.MidiSettings;
+            AudioSettings.LibSettings = Common.Settings.AudioSettings;
+            // Set up paths.
             Common.OutPath = Path.Combine(appDir, "out");
             DirectoryInfo di = new(Common.OutPath);
             di.Create();
@@ -124,12 +130,12 @@ namespace ClipExplorer
 
             if(!_audioExplorer.Valid)
             {
-                _logger.Error($"Something wrong with your audio output device:{Common.Settings.WavOutDevice}");
+                _logger.Error($"Something wrong with your audio output device:{Common.Settings.AudioSettings.WavOutDevice}");
             }
 
             if (!_midiExplorer.Valid)
             {
-                _logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiOutDevice}");
+                _logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiSettings.MidiOutDevice}");
             }
 
             // Initialize tree from user settings.
@@ -508,7 +514,7 @@ namespace ClipExplorer
         /// </summary>
         void Settings_Click(object? sender, EventArgs e)
         {
-            var changes = Common.Settings.Edit("User Settings");
+            var changes = Common.Settings.Edit("User Settings", 500);
 
             // Detect changes of interest.
             bool midiChange = false;
@@ -518,11 +524,30 @@ namespace ClipExplorer
 
             foreach (var (name, cat) in changes)
             {
-                restart |= name.EndsWith("Device");
-                restart |= cat == "Cosmetics";
-                midiChange |= cat == "Midi";
-                audioChange |= cat == "Audio";
-                navChange |= cat == "Navigator";
+                switch(name)
+                {
+                    case "WavOutDevice":
+                    case "Latency":
+                    case "MidiInDevice":
+                    case "MidiOutDevice":
+                    case "InternalTimeResolution":
+                    case "PPQ":
+                    case "ControlColor":
+                        restart = true;
+                        break;
+
+                    case "SnapMsec":
+                        audioChange = true;
+                        break;
+
+                    case "TempoResolution":
+                        midiChange = true;
+                        break;
+
+                    case "RootDirs":
+                        navChange = true;
+                        break;
+                }
             }
 
             if (restart)

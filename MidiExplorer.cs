@@ -73,7 +73,7 @@ namespace ClipExplorer
             // Init settings.
             SettingsChanged();
 
-            _player = new(Common.Settings.MidiOutDevice, _allChannels);
+            _player = new(Common.Settings.MidiSettings.MidiOutDevice, _allChannels);
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
@@ -81,7 +81,7 @@ namespace ClipExplorer
             // Time controls.
             barBar.ProgressColor = Common.Settings.ControlColor;
             sldTempo.DrawColor = Common.Settings.ControlColor;
-            sldTempo.Resolution = Common.Settings.TempoResolution;
+            sldTempo.Resolution = Common.Settings.TempoResolution; //TODO1
 
             // Hook up some simple UI handlers.
             btnKillMidi.Click += (_, __) => { _player.KillAll(); };
@@ -90,7 +90,7 @@ namespace ClipExplorer
             barBar.CurrentTimeChanged += (_, __) => { _player.CurrentSubdiv = barBar.Current.TotalSubdivs; };
 
             // Set up timer.
-            sldTempo.Value = Common.Settings.DefaultTempo;
+            sldTempo.Value = Common.Settings.MidiSettings.DefaultTempo;
             SetTimer();
 
             // Init channels and selectors.
@@ -147,7 +147,7 @@ namespace ClipExplorer
                 _allChannels.Reset();
 
                 // Process the file. Set the default tempo from preferences.
-                _mdata.Read(fn, Common.Settings.DefaultTempo, false);
+                _mdata.Read(fn, Common.Settings.MidiSettings.DefaultTempo, false);
 
                 // Init new stuff with contents of file/pattern.
                 lbPatterns.Items.Clear();
@@ -232,8 +232,7 @@ namespace ClipExplorer
         public bool SettingsChanged()
         {
             bool ok = true;
-            MidiSettings.TheSettings.ZeroBased = Common.Settings.ZeroBased;
-            MidiSettings.TheSettings.Snap = Common.Settings.Snap;
+
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
             return ok;
@@ -322,7 +321,7 @@ namespace ClipExplorer
             int y = sldTempo.Top;
 
             // For scaling subdivs to internal.
-            MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, Common.Settings.DefaultTempo);
+            MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, Common.Settings.MidiSettings.DefaultTempo);
             sldTempo.Value = pinfo.Tempo;
 
             for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)

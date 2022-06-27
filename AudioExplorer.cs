@@ -37,9 +37,6 @@ namespace ClipExplorer
         #region Events
         /// <inheritdoc />
         public event EventHandler? PlaybackCompleted;
-
-        ///// <inheritdoc />
-        //public event EventHandler<LogEventArgs>? Log;
         #endregion
 
         #region Properties
@@ -72,7 +69,7 @@ namespace ClipExplorer
             timeBar.CurrentTimeChanged += (_, __) => { if(_audioFileReader is not null) _audioFileReader.CurrentTime = timeBar.Current; };
 
             // Create output device.
-            _player = new(Common.Settings.WavOutDevice, int.Parse(Common.Settings.Latency));
+            _player = new(Common.Settings.AudioSettings.WavOutDevice, int.Parse(Common.Settings.AudioSettings.Latency));
             _player.PlaybackStopped += Player_PlaybackStopped;
 
             Visible = false;
@@ -170,7 +167,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public bool SettingsChanged()
         {
-            timeBar.SnapMsec = Common.Settings.SnapMsec;
+            timeBar.SnapMsec = Common.Settings.AudioSettings.SnapMsec;
             return true;
         }
         #endregion
@@ -293,7 +290,7 @@ namespace ClipExplorer
                                 // Clean the file name.
                                 name = name.Replace('.', '-').Replace(' ', '_');
                                 var newfn = Path.Join(Common.OutPath, $"{name}.txt");
-                                _player.Export(newfn, _audioFileReader);
+                                AudioUtils.Export(newfn, _audioFileReader);
                                 _logger.Info($"Exported to {newfn}");
                             }
                             break;
