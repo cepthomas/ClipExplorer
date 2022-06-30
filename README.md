@@ -9,7 +9,7 @@
 - If midi file type is `1`, all tracks are combined. Because.
 - Tons of styles and info at https://psrtutorial.com/.
 
-Requires VS2019 and .NET5.
+Requires VS2019 and .NET6.
 
 # Usage
 

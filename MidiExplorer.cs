@@ -40,7 +40,7 @@ namespace ClipExplorer
         readonly MmTimerEx _mmTimer = new();
 
         /// <summary>Midi events from the input file.</summary>
-        readonly MidiData _mdata = new();
+        readonly MidiDataFile _mdata = new();
         #endregion
 
         #region Events
@@ -81,7 +81,7 @@ namespace ClipExplorer
             // Time controls.
             barBar.ProgressColor = Common.Settings.ControlColor;
             sldTempo.DrawColor = Common.Settings.ControlColor;
-            sldTempo.Resolution = Common.Settings.TempoResolution; //TODO1
+            sldTempo.Resolution = Common.Settings.TempoResolution;
 
             // Hook up some simple UI handlers.
             btnKillMidi.Click += (_, __) => { _player.KillAll(); };
