@@ -31,7 +31,7 @@ namespace ClipExplorer
         readonly MidiPlayer _player;
 
         /// <summary>The internal channel objects.</summary>
-        readonly ChannelCollection _allChannels = new();
+        readonly ChannelManager _channelManager = new();
 
         /// <summary>All the channel controls.</summary>
         readonly List<PlayerControl> _playerControls = new();
@@ -40,7 +40,7 @@ namespace ClipExplorer
         readonly MmTimerEx _mmTimer = new();
 
         /// <summary>Midi events from the input file.</summary>
-        readonly MidiDataFile _mdata = new();
+        MidiDataFile _mdata = new();
         #endregion
 
         #region Events
@@ -73,7 +73,7 @@ namespace ClipExplorer
             // Init settings.
             SettingsChanged();
 
-            _player = new(Common.Settings.MidiSettings.MidiOutDevice, _allChannels);
+            _player = new(Common.Settings.MidiSettings.MidiOutDevice, _channelManager);
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
@@ -94,7 +94,7 @@ namespace ClipExplorer
             SetTimer();
 
             // Init channels and selectors.
-            _allChannels.ForEach(ch => ch.IsDrums = ch.ChannelNumber == MidiDefs.DEFAULT_DRUM_CHANNEL);
+            _channelManager.ForEach(ch => ch.IsDrums = ch.ChannelNumber == MidiDefs.DEFAULT_DRUM_CHANNEL);
             cmbDrumChannel1.Items.Add("NA");
             cmbDrumChannel2.Items.Add("NA");
             for (int i = 1; i <= MidiDefs.NUM_CHANNELS; i++)
@@ -144,50 +144,50 @@ namespace ClipExplorer
                 // Reset stuff.
                 cmbDrumChannel1.SelectedIndex = MidiDefs.DEFAULT_DRUM_CHANNEL;
                 cmbDrumChannel2.SelectedIndex = 0;
-                _allChannels.Reset();
+                _channelManager.Reset();
+                _mdata = new MidiDataFile();
 
                 // Process the file. Set the default tempo from preferences.
                 _mdata.Read(fn, Common.Settings.MidiSettings.DefaultTempo, false);
 
                 // Init new stuff with contents of file/pattern.
                 lbPatterns.Items.Clear();
+                var pnames = _mdata.GetPatternNames();
 
-                if(_mdata.NumPatterns == 0)
+                switch (pnames.Count)
                 {
-                    _logger.Error($"Something wrong with this file: {fn}");
-                    ok = false;
-                }
-                else if(_mdata.NumPatterns == 1) // plain midi
-                {
-                    var pinfo = _mdata.GetPattern(0);
-                    LoadPattern(pinfo!);
-                }
-                else // style - multiple patterns.
-                {
-                    foreach (var p in _mdata.GetPatternNames())
-                    {
-                        switch (p)
+                    case 0:
+                        _logger.Error($"Something wrong with this file: {fn}");
+                        ok = false;
+                        break;
+
+                    case 1:
+                        var pinfo = _mdata.GetPattern(pnames[0]);
+                        LoadPattern(pinfo!);
+                        break;
+
+                    default: // style has multiple patterns.
+                        pnames.ForEach(pn =>
                         {
-                            // These don't contain a pattern.
-                            case "SFF1": // initial patches are in here
-                            case "SFF2":
-                            case "SInt":
-                                break;
+                            var p = _mdata.GetPattern(pn);
+                            switch (p!.PatternName)
+                            {
+                                // These don't contain a pattern.
+                                case "SFF1":
+                                case "SFF2":
+                                case "SInt": // Initial patches are in here.
+                                    break;
 
-                            case "":
-                                _logger.Error("Well, this should never happen!");
-                                break;
+                                case "":
+                                    _logger.Error("Well, this should never happen!");
+                                    break;
 
-                            default:
-                                lbPatterns.Items.Add(p);
-                                break;
-                        }
-                    }
-
-                    if (lbPatterns.Items.Count > 0)
-                    {
-                        lbPatterns.SelectedIndex = 0;
-                    }
+                                default:
+                                    lbPatterns.Items.Add(p.PatternName);
+                                    break;
+                            }
+                        });
+                        break;
                 }
 
                 Rewind();
@@ -328,14 +328,12 @@ namespace ClipExplorer
             {
                 int chnum = i + 1;
 
-                var chEvents = _mdata.GetPattern(pinfo.PatternName)!.Events.
-                    Where(e => e.ChannelNumber == chnum && (e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent)).
-                    OrderBy(e => e.AbsoluteTime);
+                var chEvents = pinfo.GetFilteredEvents(new() { chnum }).Where(e => e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent);
 
                 // Is this channel pertinent?
                 if (chEvents.Any())
                 {
-                    _allChannels.SetEvents(chnum, chEvents, mt);
+                    _channelManager.SetEvents(chnum, chEvents);
 
                     // Make new control.
                     PlayerControl control = new()
@@ -345,7 +343,7 @@ namespace ClipExplorer
                     };
 
                     // Bind to internal channel object.
-                    _allChannels.Bind(chnum, control);
+                    _channelManager.Bind(chnum, control);
 
                     // Now init the control - after binding!
                     control.Patch = pinfo.Patches[i];
@@ -362,8 +360,8 @@ namespace ClipExplorer
             }
 
             barBar.Start = new(0);
-            barBar.End = new(_allChannels.TotalSubdivs - 1);
-            barBar.Length = new(_allChannels.TotalSubdivs);
+            barBar.End = new(_channelManager.TotalSubdivs - 1);
+            barBar.Length = new(_channelManager.TotalSubdivs);
             barBar.Current = new(0);
 
             UpdateDrumChannels();
@@ -435,63 +433,62 @@ namespace ClipExplorer
 
             try
             {
-                // Collect filters.
+                // Get selected patterns.
                 List<string> patternNames = new();
-                foreach (var p in lbPatterns.CheckedItems)
+                if (lbPatterns.Items.Count == 1)
                 {
-                    patternNames.Add(p.ToString()!);
+                    patternNames.Add(lbPatterns.Items[0].ToString()!);
                 }
-
-                List<int> channels = new();
-                foreach (var cc in _playerControls.Where(c => c.Selected))
+                else if (lbPatterns.CheckedItems.Count > 0)
                 {
-                    channels.Add(cc.ChannelNumber);
+                    foreach (var p in lbPatterns.CheckedItems)
+                    {
+                        patternNames.Add(p.ToString()!);
+                    }
+                }
+                else
+                {
+                    _logger.Warn("Please select at least one pattern");
+                    return;
+                }
+                List<PatternInfo> patterns = new();
+                patternNames.ForEach(p => patterns.Add(_mdata.GetPattern(p)!));
+
+                // Get selected channels.
+                List<Channel> channels = new();
+                _playerControls.Where(cc => cc.Selected).ForEach(cc => channels.Add(cc.BoundChannel));
+                if (!channels.Any()) // grab them all.
+                {
+                    _playerControls.ForEach(cc => channels.Add(cc.BoundChannel));
                 }
 
                 switch (stext)
                 {
                     case "All":
                         {
-                            var s = _mdata.ExportAllEvents(Common.OutPath, channels);
-                            _logger.Info($"Exported to {s}");
+                            var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, "all", "csv");
+                            MidiExport.ExportAllEvents(newfn, patterns, channels, MakeMeta());
+                            _logger.Info($"Exported to {newfn}");
                         }
                         break;
 
                     case "Pattern":
                         {
-                            if (_mdata.NumPatterns == 1)
+                            foreach (var pattern in patterns)
                             {
-                                var s = _mdata.ExportGroupedEvents(Common.OutPath, "", channels, true);
-                                _logger.Info($"Exported default to {s}");
-                            }
-                            else
-                            {
-                                foreach (var patternName in patternNames)
-                                {
-                                    var s = _mdata.ExportGroupedEvents(Common.OutPath, patternName, channels, true);
-                                    _logger.Info($"Exported pattern {patternName} to {s}");
-                                }
+                                var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, pattern.PatternName, "csv");
+                                MidiExport.ExportGroupedEvents(newfn, pattern, channels, MakeMeta(), true); //includeAll
+                                _logger.Info($"Exported pattern {pattern.PatternName} to {newfn}");
                             }
                         }
                         break;
 
                     case "Midi":
+                        foreach (var pattern in patterns)
                         {
-                            if (_mdata.NumPatterns == 1)
-                            {
-                                // Use original ppq.
-                                var s = _mdata.ExportMidi(Common.OutPath, "", channels, _mdata.DeltaTicksPerQuarterNote);
-                                _logger.Info($"Export midi to {s}");
-                            }
-                            else
-                            {
-                                foreach (var patternName in patternNames)
-                                {
-                                    // Use original ppq.
-                                    var s = _mdata.ExportMidi(Common.OutPath, patternName, channels, _mdata.DeltaTicksPerQuarterNote);
-                                    _logger.Info($"Export midi to {s}");
-                                }
-                            }
+                            var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, pattern.PatternName, "mid");
+                            MidiExport.ExportMidi(newfn, pattern, channels, MakeMeta());
+                            _logger.Info($"Export midi to {newfn}");
                         }
                         break;
 
@@ -505,6 +502,42 @@ namespace ClipExplorer
                 _logger.Error($"{ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Create a new clean filename for export. Creates path if it doesn't exist.
+        /// </summary>
+        /// <param name="path">Export path</param>
+        /// <param name="baseFn">Root of the new file name</param>
+        /// <param name="mod">Modifier</param>
+        /// <param name="ext">File extension</param>
+        /// <returns></returns>
+        public string MakeExportFileName(string path, string baseFn, string mod, string ext)
+        {
+            string name = Path.GetFileNameWithoutExtension(baseFn);
+
+            // Clean the file name.
+            name = name.Replace('.', '-').Replace(' ', '_');
+            mod = mod == "" ? "default" : mod.Replace(' ', '_');
+            var newfn = Path.Join(path, $"{name}_{mod}.{ext}");
+            return newfn;
+        }
+
+        /// <summary>
+        /// Utility to contain midi file meta info.
+        /// </summary>
+        /// <returns></returns>
+        Dictionary<string, int> MakeMeta()
+        {
+            Dictionary<string, int> meta = new()
+            {
+                { "MidiFileType", _mdata.MidiFileType },
+                { "DeltaTicksPerQuarterNote", _mdata.DeltaTicksPerQuarterNote },
+                { "NumTracks", _mdata.NumTracks }
+            };
+
+            return meta;
+        }
+
         #endregion
 
         #region Misc functions

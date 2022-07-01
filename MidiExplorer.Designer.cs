@@ -81,7 +81,7 @@ namespace ClipExplorer
             this.lbPatterns.Location = new System.Drawing.Point(10, 198);
             this.lbPatterns.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.lbPatterns.Name = "lbPatterns";
-            this.lbPatterns.Size = new System.Drawing.Size(98, 332);
+            this.lbPatterns.Size = new System.Drawing.Size(98, 376);
             this.lbPatterns.TabIndex = 88;
             this.toolTip.SetToolTip(this.lbPatterns, "Select patterns in style file");
             this.lbPatterns.SelectedIndexChanged += new System.EventHandler(this.Patterns_SelectedIndexChanged);
@@ -242,7 +242,7 @@ namespace ClipExplorer
             this.Controls.Add(this.sldTempo);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MidiExplorer";
-            this.Size = new System.Drawing.Size(594, 544);
+            this.Size = new System.Drawing.Size(594, 585);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);

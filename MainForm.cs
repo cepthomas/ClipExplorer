@@ -54,16 +54,17 @@ namespace ClipExplorer
         /// </summary>
         public MainForm()
         {
-            InitializeComponent();
-
-            Icon = Properties.Resources.zebra;
-
-            // Set up settings.
+            // Must do this first before initializing.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
             Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
             // Tell the libs about their settings.
             MidiSettings.LibSettings = Common.Settings.MidiSettings;
             AudioSettings.LibSettings = Common.Settings.AudioSettings;
+
+            InitializeComponent();
+
+            Icon = Properties.Resources.zebra;
+
             // Set up paths.
             Common.OutPath = Path.Combine(appDir, "out");
             DirectoryInfo di = new(Common.OutPath);
