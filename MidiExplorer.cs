@@ -124,6 +124,9 @@ namespace ClipExplorer
             _player.Run(false);
             _player.Dispose();
 
+            // Wait a bit in case there are some lingering events.
+            System.Threading.Thread.Sleep(100);
+
             if (disposing)
             {
                 components?.Dispose();
