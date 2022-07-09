@@ -18,8 +18,6 @@ namespace ClipExplorer
 {
     /// <summary>
     /// A "good enough" midi player.
-    /// There are some limitations: Windows multimedia timer has 1 msec resolution at best. This causes a trade-off between
-    /// ppq resolution and accuracy. The timer is also inherently wobbly.
     /// </summary>
     public partial class MidiExplorer : UserControl, IExplorer
     {
@@ -27,14 +25,14 @@ namespace ClipExplorer
         /// <summary>My logger.</summary>
         readonly Logger _logger = LogManager.CreateLogger("MidiExplorer");
 
-        /// <summary>Midi player.</summary>
-        readonly MidiPlayer _player;
+        /// <summary>Midi output.</summary>
+        IOutputDevice _outputDevice = new NullOutputDevice();
 
-        /// <summary>The internal channel objects.</summary>
-        readonly ChannelManager _channelManager = new();
+        /// <summary>All the channels - key is user assigned name.</summary>
+        readonly Dictionary<string, Channel> _channels = new();
 
         /// <summary>All the channel controls.</summary>
-        readonly List<PlayerControl> _playerControls = new();
+        readonly List<ChannelControl> _channelControls = new();
 
         /// <summary>The fast timer.</summary>
         readonly MmTimerEx _mmTimer = new();
@@ -46,20 +44,17 @@ namespace ClipExplorer
         #region Events
         /// <inheritdoc />
         public event EventHandler? PlaybackCompleted;
-
-        ///// <inheritdoc />
-        //public event EventHandler<LogEventArgs>? Log;
         #endregion
 
         #region Properties
         /// <inheritdoc />
-        public bool Valid { get { return _player.Valid; } }
+        public bool Valid { get { return _outputDevice.Valid; } }
 
         /// <inheritdoc />
-        public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
+        public double Volume { get; set; }
 
         /// <inheritdoc />
-        public bool Playing { get { return _player.Playing; } }
+        public bool Playing { get { return _mmTimer.Running; } }
         #endregion
 
         #region Lifecycle
@@ -73,8 +68,6 @@ namespace ClipExplorer
             // Init settings.
             SettingsChanged();
 
-            _player = new(Common.Settings.MidiSettings.MidiOutDevice, _channelManager);
-
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
@@ -84,17 +77,22 @@ namespace ClipExplorer
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
             // Hook up some simple UI handlers.
-            btnKillMidi.Click += (_, __) => { _player.KillAll(); };
-            btnLogMidi.Click += (_, __) => { _player.LogMidi = btnLogMidi.Checked; };
+            btnKillMidi.Click += (_, __) => { _channels.Values.ForEach(ch => ch.Kill()); };
+            btnLogMidi.Click += (_, __) => { _outputDevice.LogEnable = btnLogMidi.Checked; };
             sldTempo.ValueChanged += (_, __) => { SetTimer(); };
-            barBar.CurrentTimeChanged += (_, __) => { _player.CurrentSubdiv = barBar.Current.TotalSubdivs; };
 
             // Set up timer.
             sldTempo.Value = Common.Settings.MidiSettings.DefaultTempo;
             SetTimer();
 
+            // Set up output device.
+            _outputDevice = new MidiSender(Common.Settings.MidiSettings.OutputDevice);
+            if (!_outputDevice.Valid)
+            {
+                _logger.Error($"Something wrong with your output device:{_outputDevice.DeviceName}");
+            }
+
             // Init channels and selectors.
-            _channelManager.ForEach(ch => ch.IsDrums = ch.ChannelNumber == MidiDefs.DEFAULT_DRUM_CHANNEL);
             cmbDrumChannel1.Items.Add("NA");
             cmbDrumChannel2.Items.Add("NA");
             for (int i = 1; i <= MidiDefs.NUM_CHANNELS; i++)
@@ -121,8 +119,7 @@ namespace ClipExplorer
             _mmTimer.Stop();
             _mmTimer.Dispose();
 
-            _player.Run(false);
-            _player.Dispose();
+            _outputDevice.Dispose();
 
             // Wait a bit in case there are some lingering events.
             System.Threading.Thread.Sleep(100);
@@ -147,7 +144,6 @@ namespace ClipExplorer
                 // Reset stuff.
                 cmbDrumChannel1.SelectedIndex = MidiDefs.DEFAULT_DRUM_CHANNEL;
                 cmbDrumChannel2.SelectedIndex = 0;
-                _channelManager.Reset();
                 _mdata = new MidiDataFile();
 
                 // Process the file. Set the default tempo from preferences.
@@ -165,8 +161,10 @@ namespace ClipExplorer
                         break;
 
                     case 1:
-                        var pinfo = _mdata.GetPattern(pnames[0]);
-                        LoadPattern(pinfo!);
+                        {
+                            var pinfo = _mdata.GetPattern(pnames[0]);
+                            LoadPattern(pinfo!);
+                        }
                         break;
 
                     default: // style has multiple patterns.
@@ -190,6 +188,11 @@ namespace ClipExplorer
                                     break;
                             }
                         });
+                        {
+                            lbPatterns.SelectedIndex = 0;
+                            var pinfo = _mdata.GetPattern(lbPatterns.Items[0].ToString()!);
+                            LoadPattern(pinfo!);
+                        }
                         break;
                 }
 
@@ -210,22 +213,19 @@ namespace ClipExplorer
         public void Play()
         {
             _mmTimer.Start();
-            _player.Run(true);
         }
 
         /// <inheritdoc />
         public void Stop()
         {
             _mmTimer.Stop();
-            _player.Run(false);
             // Send midi stop all notes just in case.
-            _player.KillAll();
+            _channels.Values.ForEach(ch => ch.Kill());
         }
 
         /// <inheritdoc />
         public void Rewind()
         {
-            _player.CurrentSubdiv = 0;
             barBar.Current = new(0);
         }
         #endregion
@@ -251,8 +251,7 @@ namespace ClipExplorer
             try
             {
                 // Bump time. Check for end of play. Client will take care of transport control.
-                barBar.IncrementCurrent(1);
-                if (_player.DoNextStep())
+                if (DoNextStep())
                 {
                     PlaybackCompleted?.Invoke(this, new EventArgs());
                 }
@@ -261,6 +260,75 @@ namespace ClipExplorer
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Synchronously outputs the next midi events. Does solo/mute.
+        /// This is running on the background thread.
+        /// </summary>
+        /// <returns>True if sequence completed.</returns>
+        public bool DoNextStep()
+        {
+            bool done = false;
+
+            // Any soloes?
+            bool anySolo = _channels.AnySolo();
+
+            // Process each channel.
+            foreach (var ch in _channels.Values)
+            {
+                // Look for events to send. Any explicit solos?
+                if (ch.State == ChannelState.Solo || (!anySolo && ch.State == ChannelState.Normal))
+                {
+                    // Process any sequence steps.
+                    var playEvents = ch.GetEvents(barBar.Current.TotalSubdivs);
+                    foreach (var mevt in playEvents)
+                    {
+                        switch (mevt)
+                        {
+                            case NoteOnEvent evt:
+                                if (ch.IsDrums && evt.Velocity == 0)
+                                {
+                                    // Skip drum noteoffs as windows GM doesn't like them.
+                                }
+                                else
+                                {
+                                    // Adjust volume. Redirect drum channel to default.
+                                    NoteOnEvent ne = new(
+                                        evt.AbsoluteTime,
+                                        ch.IsDrums ? MidiDefs.DEFAULT_DRUM_CHANNEL : evt.Channel,
+                                        evt.NoteNumber,
+                                        Math.Min((int)(evt.Velocity * Volume * ch.Volume), MidiDefs.MAX_MIDI),
+                                        evt.OffEvent is null ? 0 : evt.NoteLength); // Fix NAudio NoteLength bug.
+
+                                    ch.SendEvent(ne);
+                                }
+                                break;
+
+                            case NoteEvent evt: // aka NoteOff
+                                if (ch.IsDrums)
+                                {
+                                    // Skip drum noteoffs as windows GM doesn't like them.
+                                }
+                                else
+                                {
+                                    ch.SendEvent(evt);
+                                }
+                                break;
+
+                            default:
+                                // Everything else as is.
+                                ch.SendEvent(mevt);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            // Bump time. Check for end of play.
+            done = barBar.IncrementCurrent(1);
+
+            return done;
         }
         #endregion
 
@@ -272,36 +340,35 @@ namespace ClipExplorer
         /// <param name="e"></param>
         void Control_ChannelChangeEvent(object? sender, ChannelChangeEventArgs e)
         {
-            PlayerControl chc = (PlayerControl)sender!;
+            Channel channel = ((ChannelControl)sender!).BoundChannel;
 
             if (e.StateChange)
             {
-                switch (chc.State)
+                switch (channel.State)
                 {
                     case ChannelState.Normal:
                         break;
 
                     case ChannelState.Solo:
                         // Mute any other non-solo channels.
-                        for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
+                        _channels.Values.ForEach(ch =>
                         {
-                            int chnum = i + 1;
-                            if (chnum != chc.ChannelNumber && chc.State != ChannelState.Solo)
+                            if (channel.ChannelNumber != ch.ChannelNumber && channel.State != ChannelState.Solo)
                             {
-                                _player.Kill(chnum);
+                                channel.Kill();
                             }
-                        }
+                        });
                         break;
 
                     case ChannelState.Mute:
-                        _player.Kill(chc.ChannelNumber);
+                        channel.Kill();
                         break;
                 }
             }
 
-            if (e.PatchChange && chc.Patch >= 0)
+            if (e.PatchChange && channel.Patch >= 0)
             {
-                _player.SendPatch(chc.ChannelNumber, chc.Patch);
+                channel.SendPatch();
             }
         }
         #endregion
@@ -313,58 +380,84 @@ namespace ClipExplorer
         /// <param name="pinfo"></param>
         void LoadPattern(PatternInfo pinfo)
         {
-            _player.Reset();
+            Stop();
 
-            // Clean out our controls collection.
-            _playerControls.ForEach(c => Controls.Remove(c));
-            _playerControls.Clear();
-
-            // Create the new controls.
-            int x = sldTempo.Right + 5;
-            int y = sldTempo.Top;
-
-            // For scaling subdivs to internal.
-            MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, Common.Settings.MidiSettings.DefaultTempo);
-            sldTempo.Value = pinfo.Tempo;
-
-            for (int i = 0; i < MidiDefs.NUM_CHANNELS; i++)
+            // Clean out our current elements.
+            _channelControls.ForEach(c =>
             {
-                int chnum = i + 1;
+                Controls.Remove(c);
+                c.Dispose();
+            });
+            _channelControls.Clear();
+            _channels.Clear();
 
-                var chEvents = pinfo.GetFilteredEvents(new() { chnum }).Where(e => e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent);
+            // Load the new one.
+            if (pinfo is null)
+            {
+                _logger.Error($"Invalid pattern!");
+            }
+            else
+            {
+                // Create the new controls.
+                int x = sldTempo.Right + 5;
+                int y = sldTempo.Top;
 
-                // Is this channel pertinent?
-                if (chEvents.Any())
+                // For scaling subdivs to internal.
+                MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, Common.Settings.MidiSettings.DefaultTempo);
+                sldTempo.Value = pinfo.Tempo;
+
+                foreach (int chnum in pinfo.ChannelNumbers)
                 {
-                    _channelManager.SetEvents(chnum, chEvents);
+                    // Get events for the channel.
+                    var chEvents = pinfo.GetFilteredEvents(new List<int>() { chnum }).Where(e => e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent);
 
-                    // Make new control.
-                    PlayerControl control = new()
+                    // Is this channel pertinent?
+                    if (chEvents.Any())
                     {
-                        Location = new(x, y),
-                        BorderStyle = BorderStyle.FixedSingle
-                    };
+                        // Make new channel.
+                        Channel channel = new()
+                        {
+                            ChannelName = $"chan{chnum}",
+                            ChannelNumber = chnum,
+                            Device = _outputDevice,
+                            DeviceId = _outputDevice.DeviceName,
+                            Volume = VolumeDefs.DEFAULT,
+                            State = ChannelState.Normal,
+                            Patch = pinfo.Patches[chnum - 1],
+                            IsDrums = chnum == MidiDefs.DEFAULT_DRUM_CHANNEL,
+                            Selected = false,
+                        };
+                        _channels.Add(channel.ChannelName, channel);
+                        channel.SetEvents(chEvents);
 
-                    // Bind to internal channel object.
-                    _channelManager.Bind(chnum, control);
+                        // Make new control and bind to channel.
+                        ChannelControl control = new()
+                        {
+                            Location = new(x, y),
+                            BorderStyle = BorderStyle.FixedSingle,
+                            BoundChannel = channel
+                        };
+                        control.ChannelChangeEvent += Control_ChannelChangeEvent;
+                        Controls.Add(control);
+                        _channelControls.Add(control);
 
-                    // Now init the control - after binding!
-                    control.Patch = pinfo.Patches[i];
-                    control.ChannelChangeEvent += Control_ChannelChangeEvent;
-                    Controls.Add(control);
-                    _playerControls.Add(control);
+                        // Good time to send initial patch.
+                        channel.SendPatch();
 
-                    // Adjust positioning.
-                    y += control.Height + 5;
-
-                    // Send patch maybe. These can change per pattern.
-                    _player.SendPatch(chnum, pinfo.Patches[i]);
+                        // Adjust positioning.
+                        y += control.Height + 5;
+                    }
                 }
+
+                // Set timer.
+                sldTempo.Value = pinfo.Tempo;
             }
 
+            // Update bar.
+            var tot = _channels.TotalSubdivs();
             barBar.Start = new(0);
-            barBar.End = new(_channelManager.TotalSubdivs - 1);
-            barBar.Length = new(_channelManager.TotalSubdivs);
+            barBar.End = new(tot - 1);
+            barBar.Length = new(tot);
             barBar.Current = new(0);
 
             UpdateDrumChannels();
@@ -420,7 +513,7 @@ namespace ClipExplorer
         /// </summary>
         void UpdateDrumChannels()
         {
-            _playerControls.ForEach(ctl => ctl.IsDrums =
+            _channelControls.ForEach(ctl => ctl.IsDrums =
                 (ctl.ChannelNumber == cmbDrumChannel1.SelectedIndex) ||
                 (ctl.ChannelNumber == cmbDrumChannel2.SelectedIndex));
         }
@@ -459,10 +552,10 @@ namespace ClipExplorer
 
                 // Get selected channels.
                 List<Channel> channels = new();
-                _playerControls.Where(cc => cc.Selected).ForEach(cc => channels.Add(cc.BoundChannel));
+                _channelControls.Where(cc => cc.Selected).ForEach(cc => channels.Add(cc.BoundChannel));
                 if (!channels.Any()) // grab them all.
                 {
-                    _playerControls.ForEach(cc => channels.Add(cc.BoundChannel));
+                    _channelControls.ForEach(cc => channels.Add(cc.BoundChannel));
                 }
 
                 switch (stext)
@@ -540,7 +633,6 @@ namespace ClipExplorer
 
             return meta;
         }
-
         #endregion
 
         #region Misc functions

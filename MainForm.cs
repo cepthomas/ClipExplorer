@@ -136,7 +136,7 @@ namespace ClipExplorer
 
             if (!_midiExplorer.Valid)
             {
-                _logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiSettings.MidiOutDevice}");
+                _logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiSettings.OutputDevice}");
             }
 
             // Initialize tree from user settings.
@@ -529,9 +529,8 @@ namespace ClipExplorer
                 {
                     case "WavOutDevice":
                     case "Latency":
-                    case "MidiInDevice":
-                    case "MidiOutDevice":
-                    case "InternalPPQ":
+                    case "InputDevice":
+                    case "OutputDevice":
                     case "ControlColor":
                         restart = true;
                         break;

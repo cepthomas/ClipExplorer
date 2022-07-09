@@ -22,9 +22,6 @@ namespace ClipExplorer
         #region Events
         /// <summary>Client needs to know when playing is done.</summary>
         event EventHandler PlaybackCompleted;
-
-        ///// <summary>Log me please.</summary>
-        //event EventHandler<LogEventArgs> Log;
         #endregion
 
         #region Public Functions
