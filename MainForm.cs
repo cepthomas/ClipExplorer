@@ -71,8 +71,8 @@ namespace ClipExplorer
             di.Create();
 
             // Init logging.
-            LogManager.MinLevelFile = LogLevel.Debug;
-            LogManager.MinLevelNotif = LogLevel.Info;
+            LogManager.MinLevelFile = Common.Settings.FileLogLevel;
+            LogManager.MinLevelNotif = Common.Settings.NotifLogLevel;
             LogManager.LogEvent += LogManager_LogEvent;
             LogManager.Run();
 

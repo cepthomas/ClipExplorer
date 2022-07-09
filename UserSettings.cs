@@ -13,6 +13,7 @@ using NAudio.Wave;
 using NAudio.Midi;
 using NBagOfTricks;
 using NBagOfUis;
+using NBagOfTricks.Slog;
 using MidiLib;
 using AudioLib;
 
@@ -44,6 +45,16 @@ namespace ClipExplorer
         [Description("Adjust tempo in UI.")]
         [Browsable(true)]
         public int TempoResolution { get; set; } = 5;
+
+        [DisplayName("File Log Level")]
+        [Description("Log level for file write.")]
+        [Browsable(true)]
+        public LogLevel FileLogLevel { get; set; } = LogLevel.Trace;
+
+        [DisplayName("File Log Level")]
+        [Description("Log level for UI notification.")]
+        [Browsable(true)]
+        public LogLevel NotifLogLevel { get; set; } = LogLevel.Debug;
 
         [DisplayName("Midi Settings")]
         [Description("Edit midi settings.")]
