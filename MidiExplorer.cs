@@ -48,7 +48,7 @@ namespace ClipExplorer
 
         #region Properties
         /// <inheritdoc />
-        public bool Valid { get { return _outputDevice.Valid; } }
+        public bool Valid { get { return _outputDevice is not NullOutputDevice; } }
 
         /// <inheritdoc />
         public double Volume { get; set; }
@@ -86,7 +86,16 @@ namespace ClipExplorer
             SetTimer();
 
             // Set up output device.
-            _outputDevice = new MidiOutput(Common.Settings.MidiSettings.OutputDevice);
+            foreach (var dev in Common.Settings.MidiSettings.OutputDevices)
+            {
+                switch (dev.DeviceName)
+                {
+                    default:
+                        // Try midi.
+                        _outputDevice = new MidiOutput(dev.DeviceName);
+                        break;
+                }
+            }
             if (!_outputDevice.Valid)
             {
                 _logger.Error($"Something wrong with your output device:{_outputDevice.DeviceName}");

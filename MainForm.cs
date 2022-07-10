@@ -136,7 +136,7 @@ namespace ClipExplorer
 
             if (!_midiExplorer.Valid)
             {
-                _logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiSettings.OutputDevice}");
+                //_logger.Error($"Something wrong with your midi output device:{Common.Settings.MidiSettings.OutputDevice}");
             }
 
             // Initialize tree from user settings.
