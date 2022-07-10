@@ -86,7 +86,7 @@ namespace ClipExplorer
             SetTimer();
 
             // Set up output device.
-            _outputDevice = new MidiSender(Common.Settings.MidiSettings.OutputDevice);
+            _outputDevice = new MidiOutput(Common.Settings.MidiSettings.OutputDevice);
             if (!_outputDevice.Valid)
             {
                 _logger.Error($"Something wrong with your output device:{_outputDevice.DeviceName}");
