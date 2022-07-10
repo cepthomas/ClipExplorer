@@ -88,12 +88,11 @@ namespace ClipExplorer
             // Set up output device.
             foreach (var dev in Common.Settings.MidiSettings.OutputDevices)
             {
-                switch (dev.DeviceName)
+                // Try midi.
+                _outputDevice = new MidiOutput(dev.DeviceName);
+                if (_outputDevice.Valid)
                 {
-                    default:
-                        // Try midi.
-                        _outputDevice = new MidiOutput(dev.DeviceName);
-                        break;
+                    break;
                 }
             }
             if (!_outputDevice.Valid)
