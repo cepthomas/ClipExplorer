@@ -568,22 +568,11 @@ namespace ClipExplorer
 
                 switch (stext)
                 {
-                    case "All":
+                    case "CSV":
                         {
                             var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, "all", "csv");
-                            MidiExport.ExportAllEvents(newfn, patterns, channels, MakeMeta());
+                            MidiExport.ExportCsv(newfn, patterns, channels, MakeMeta());
                             _logger.Info($"Exported to {newfn}");
-                        }
-                        break;
-
-                    case "Pattern":
-                        {
-                            foreach (var pattern in patterns)
-                            {
-                                var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, pattern.PatternName, "csv");
-                                MidiExport.ExportGroupedEvents(newfn, pattern, channels, MakeMeta(), true); //includeAll
-                                _logger.Info($"Exported pattern {pattern.PatternName} to {newfn}");
-                            }
                         }
                         break;
 

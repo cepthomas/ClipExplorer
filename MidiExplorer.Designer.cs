@@ -26,8 +26,7 @@ namespace ClipExplorer
             this.btnClearPatterns = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDown = new System.Windows.Forms.ToolStripDropDownButton();
-            this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.patternToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.csvToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.midiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
@@ -132,29 +131,20 @@ namespace ClipExplorer
             // 
             this.fileDropDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.fileDropDown.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.allToolStripMenuItem,
-            this.patternToolStripMenuItem,
+            this.csvToolStripMenuItem,
             this.midiToolStripMenuItem});
             this.fileDropDown.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDown.Name = "fileDropDown";
             this.fileDropDown.Size = new System.Drawing.Size(66, 25);
             this.fileDropDown.Text = "Export";
             // 
-            // allToolStripMenuItem
+            // csvToolStripMenuItem
             // 
-            this.allToolStripMenuItem.Name = "allToolStripMenuItem";
-            this.allToolStripMenuItem.Size = new System.Drawing.Size(138, 26);
-            this.allToolStripMenuItem.Text = "All";
-            this.allToolStripMenuItem.ToolTipText = "Export all midi events to text file";
-            this.allToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
-            // 
-            // patternToolStripMenuItem
-            // 
-            this.patternToolStripMenuItem.Name = "patternToolStripMenuItem";
-            this.patternToolStripMenuItem.Size = new System.Drawing.Size(138, 26);
-            this.patternToolStripMenuItem.Text = "Pattern";
-            this.patternToolStripMenuItem.ToolTipText = "Export selected patterns to text file";
-            this.patternToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
+            this.csvToolStripMenuItem.Name = "csvToolStripMenuItem";
+            this.csvToolStripMenuItem.Size = new System.Drawing.Size(138, 26);
+            this.csvToolStripMenuItem.Text = "CSV";
+            this.csvToolStripMenuItem.ToolTipText = "Export all midi events to text file";
+            this.csvToolStripMenuItem.Click += new System.EventHandler(this.Export_Click);
             // 
             // midiToolStripMenuItem
             // 
@@ -268,8 +258,7 @@ namespace ClipExplorer
         private System.Windows.Forms.Button btnAllPatterns;
         private System.Windows.Forms.Button btnClearPatterns;
         private ToolStripDropDownButton fileDropDown;
-        private ToolStripMenuItem allToolStripMenuItem;
-        private ToolStripMenuItem patternToolStripMenuItem;
+        private ToolStripMenuItem csvToolStripMenuItem;
         private ToolStripMenuItem midiToolStripMenuItem;
     }
 }
