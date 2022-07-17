@@ -571,7 +571,7 @@ namespace ClipExplorer
                     case "CSV":
                         {
                             var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, "all", "csv");
-                            MidiExport.ExportCsv(newfn, patterns, channels, MakeMeta());
+                            MidiExport.ExportCsv(newfn, patterns, channels, GetGlobal());
                             _logger.Info($"Exported to {newfn}");
                         }
                         break;
@@ -580,7 +580,7 @@ namespace ClipExplorer
                         foreach (var pattern in patterns)
                         {
                             var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, pattern.PatternName, "mid");
-                            MidiExport.ExportMidi(newfn, pattern, channels, MakeMeta());
+                            MidiExport.ExportMidi(newfn, pattern, channels, GetGlobal());
                             _logger.Info($"Export midi to {newfn}");
                         }
                         break;
@@ -619,16 +619,16 @@ namespace ClipExplorer
         /// Utility to contain midi file meta info.
         /// </summary>
         /// <returns></returns>
-        Dictionary<string, int> MakeMeta()
+        Dictionary<string, int> GetGlobal()
         {
-            Dictionary<string, int> meta = new()
+            Dictionary<string, int> global = new()
             {
                 { "MidiFileType", _mdata.MidiFileType },
                 { "DeltaTicksPerQuarterNote", _mdata.DeltaTicksPerQuarterNote },
                 { "NumTracks", _mdata.NumTracks }
             };
 
-            return meta;
+            return global;
         }
         #endregion
 
