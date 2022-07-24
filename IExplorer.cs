@@ -40,7 +40,7 @@ namespace ClipExplorer
         void Rewind();
 
         /// <summary>Settings have been edited.</summary>
-        bool SettingsChanged();
+        bool UpdateSettings();
         #endregion
     }
 }

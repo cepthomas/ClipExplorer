@@ -59,7 +59,7 @@ namespace ClipExplorer
             InitializeComponent();
 
             // Init settings.
-            SettingsChanged();
+            UpdateSettings();
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
@@ -165,7 +165,7 @@ namespace ClipExplorer
 
         #region Misc functions
         /// <inheritdoc />
-        public bool SettingsChanged()
+        public bool UpdateSettings()
         {
             timeBar.SnapMsec = Common.Settings.AudioSettings.SnapMsec;
             return true;

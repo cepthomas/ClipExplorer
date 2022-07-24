@@ -33,11 +33,6 @@ namespace ClipExplorer
         /// <summary>Current file.</summary>
         string _fn = "";
 
-        /// <summary>Supported file types.</summary>
-        readonly string _audioFileTypes = "*.wav;*.mp3;*.m4a;*.flac";
-        readonly string _midiFileTypes = "*.mid";
-        readonly string _styleFileTypes = "*.sty;*.pcs;*.sst;*.prs";
-
         /// <summary>Audio device.</summary>
         readonly AudioExplorer _audioExplorer;
 
@@ -226,7 +221,6 @@ namespace ClipExplorer
             {
                 // Unhook.
                 chkPlay.CheckedChanged -= ChkPlay_CheckedChanged;
-                //_logger.Debug($"state:{state}  chkPlay{chkPlay.Checked}  btnLoop{btnLoop.Checked}  Playing:{_explorer.Playing}");
 
                 try
                 {
@@ -303,7 +297,7 @@ namespace ClipExplorer
                 try
                 {
                     var ext = Path.GetExtension(fn).ToLower();
-                    if (_audioFileTypes.Contains(ext))
+                    if (AudioLibDefs.AUDIO_FILE_TYPES.Contains(ext))
                     {
                         if(_audioExplorer.Valid)
                         {
@@ -317,7 +311,7 @@ namespace ClipExplorer
                             ok = false;
                         }
                     }
-                    else if (_midiFileTypes.Contains(ext) || _styleFileTypes.Contains(ext))
+                    else if (MidiLibDefs.MIDI_FILE_TYPES.Contains(ext) || MidiLibDefs.STYLE_FILE_TYPES.Contains(ext))
                     {
                         if (_midiExplorer.Valid)
                         {
@@ -373,7 +367,7 @@ namespace ClipExplorer
         /// </summary>
         void InitNavigator()
         {
-            var s = _audioFileTypes + _midiFileTypes + _styleFileTypes;
+            var s = AudioLibDefs.AUDIO_FILE_TYPES + MidiLibDefs.MIDI_FILE_TYPES + MidiLibDefs.STYLE_FILE_TYPES;
             ftree.FilterExts = s.SplitByTokens("|;*");
             ftree.RootDirs = Common.Settings.RootDirs;
             ftree.SingleClickSelect = true;
@@ -435,7 +429,7 @@ namespace ClipExplorer
         /// </summary>
         void Open_Click(object? sender, EventArgs e)
         {
-            var fileTypes = $"All files|*.*|Audio Files|{_audioFileTypes}|Midi Files|{_midiFileTypes}|Style Files|{_styleFileTypes}";
+            var fileTypes = $"Audio Files|{AudioLibDefs.AUDIO_FILE_TYPES}|Midi Files|{MidiLibDefs.MIDI_FILE_TYPES}|Style Files|{MidiLibDefs.STYLE_FILE_TYPES}";
             using OpenFileDialog openDlg = new()
             {
                 Filter = fileTypes,
@@ -556,12 +550,12 @@ namespace ClipExplorer
 
             if (midiChange)
             {
-                _midiExplorer?.SettingsChanged();
+                _midiExplorer?.UpdateSettings();
             }
 
             if (audioChange)
             {
-                _audioExplorer?.SettingsChanged();
+                _audioExplorer?.UpdateSettings();
             }
 
             if (navChange)

@@ -26,7 +26,7 @@ namespace ClipExplorer
         readonly Logger _logger = LogManager.CreateLogger("MidiExplorer");
 
         /// <summary>Midi output.</summary>
-        IOutputDevice _outputDevice = new NullOutputDevice();
+        readonly IOutputDevice _outputDevice = new NullOutputDevice();
 
         /// <summary>All the channels - key is user assigned name.</summary>
         readonly Dictionary<string, Channel> _channels = new();
@@ -66,7 +66,7 @@ namespace ClipExplorer
             InitializeComponent();
 
             // Init settings.
-            SettingsChanged();
+            UpdateSettings();
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
@@ -161,50 +161,24 @@ namespace ClipExplorer
                 lbPatterns.Items.Clear();
                 var pnames = _mdata.GetPatternNames();
 
-                switch (pnames.Count)
+                if (pnames.Count > 0)
                 {
-                    case 0:
-                        _logger.Error($"Something wrong with this file: {fn}");
-                        ok = false;
-                        break;
-
-                    case 1:
-                        {
-                            var pinfo = _mdata.GetPattern(pnames[0]);
-                            LoadPattern(pinfo!);
-                        }
-                        break;
-
-                    default: // style has multiple patterns.
-                        pnames.ForEach(pn =>
-                        {
-                            var p = _mdata.GetPattern(pn);
-                            switch (p!.PatternName)
-                            {
-                                // These don't contain a pattern.
-                                case "SFF1":
-                                case "SFF2":
-                                case "SInt": // Initial patches are in here.
-                                    break;
-
-                                case "":
-                                    _logger.Error("Well, this should never happen!");
-                                    break;
-
-                                default:
-                                    lbPatterns.Items.Add(p.PatternName);
-                                    break;
-                            }
-                        });
-                        {
-                            lbPatterns.SelectedIndex = 0;
-                            var pinfo = _mdata.GetPattern(lbPatterns.Items[0].ToString()!);
-                            LoadPattern(pinfo!);
-                        }
-                        break;
+                    pnames.ForEach(pn => { lbPatterns.Items.Add(pn); });
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Something wrong with this file: {fn}");
                 }
 
                 Rewind();
+
+                // Pick first.
+                lbPatterns.SelectedIndex = 0;
+
+                // Set up timer default.
+                sldTempo.Value = 100;
+            
+                midiToolStripMenuItem.Enabled = _mdata.IsStyleFile;
             }
             catch (Exception ex)
             {
@@ -240,13 +214,10 @@ namespace ClipExplorer
 
         #region Misc functions
         /// <inheritdoc />
-        public bool SettingsChanged()
+        public bool UpdateSettings()
         {
-            bool ok = true;
-
             sldTempo.Resolution = Common.Settings.TempoResolution;
-
-            return ok;
+            return true;
         }
         #endregion
 
@@ -414,10 +385,10 @@ namespace ClipExplorer
                 MidiTimeConverter mt = new(_mdata.DeltaTicksPerQuarterNote, Common.Settings.MidiSettings.DefaultTempo);
                 sldTempo.Value = pinfo.Tempo;
 
-                foreach (int chnum in pinfo.ChannelNumbers)
+                foreach(var (number, patch) in pinfo.GetChannels(true, true))
                 {
                     // Get events for the channel.
-                    var chEvents = pinfo.GetFilteredEvents(new List<int>() { chnum }).Where(e => e.MidiEvent is NoteEvent || e.MidiEvent is NoteOnEvent);
+                    var chEvents = pinfo.GetFilteredEvents(new List<int>() { number });
 
                     // Is this channel pertinent?
                     if (chEvents.Any())
@@ -425,14 +396,14 @@ namespace ClipExplorer
                         // Make new channel.
                         Channel channel = new()
                         {
-                            ChannelName = $"chan{chnum}",
-                            ChannelNumber = chnum,
+                            ChannelName = $"chan{number}",
+                            ChannelNumber = number,
                             Device = _outputDevice,
                             DeviceId = _outputDevice.DeviceName,
-                            Volume = VolumeDefs.DEFAULT,
+                            Volume = MidiLibDefs.VOLUME_DEFAULT,
                             State = ChannelState.Normal,
-                            Patch = pinfo.Patches[chnum - 1],
-                            IsDrums = chnum == MidiDefs.DEFAULT_DRUM_CHANNEL,
+                            Patch = patch,
+                            IsDrums = number == MidiDefs.DEFAULT_DRUM_CHANNEL,
                             Selected = false,
                         };
                         _channels.Add(channel.ChannelName, channel);
@@ -566,21 +537,21 @@ namespace ClipExplorer
                     _channelControls.ForEach(cc => channels.Add(cc.BoundChannel));
                 }
 
-                switch (stext)
+                switch (stext.ToLower())
                 {
-                    case "CSV":
+                    case "csv":
                         {
-                            var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, "all", "csv");
-                            MidiExport.ExportCsv(newfn, patterns, channels, GetGlobal());
+                            var newfn = MiscUtils.MakeExportFileName(Common.OutPath, _mdata.FileName, "all", "csv");
+                            MidiExport.ExportCsv(newfn, patterns, channels, _mdata.GetGlobal());
                             _logger.Info($"Exported to {newfn}");
                         }
                         break;
 
-                    case "Midi":
+                    case "midi":
                         foreach (var pattern in patterns)
                         {
-                            var newfn = MakeExportFileName(Common.OutPath, _mdata.FileName, pattern.PatternName, "mid");
-                            MidiExport.ExportMidi(newfn, pattern, channels, GetGlobal());
+                            var newfn = MiscUtils.MakeExportFileName(Common.OutPath, _mdata.FileName, pattern.PatternName, "mid");
+                            MidiExport.ExportMidi(newfn, pattern, channels, _mdata.GetGlobal());
                             _logger.Info($"Export midi to {newfn}");
                         }
                         break;
@@ -594,41 +565,6 @@ namespace ClipExplorer
             {
                 _logger.Error($"{ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// Create a new clean filename for export. Creates path if it doesn't exist.
-        /// </summary>
-        /// <param name="path">Export path</param>
-        /// <param name="baseFn">Root of the new file name</param>
-        /// <param name="mod">Modifier</param>
-        /// <param name="ext">File extension</param>
-        /// <returns></returns>
-        public string MakeExportFileName(string path, string baseFn, string mod, string ext)
-        {
-            string name = Path.GetFileNameWithoutExtension(baseFn);
-
-            // Clean the file name.
-            name = name.Replace('.', '-').Replace(' ', '_');
-            mod = mod == "" ? "default" : mod.Replace(' ', '_');
-            var newfn = Path.Join(path, $"{name}_{mod}.{ext}");
-            return newfn;
-        }
-
-        /// <summary>
-        /// Utility to contain midi file meta info.
-        /// </summary>
-        /// <returns></returns>
-        Dictionary<string, int> GetGlobal()
-        {
-            Dictionary<string, int> global = new()
-            {
-                { "MidiFileType", _mdata.MidiFileType },
-                { "DeltaTicksPerQuarterNote", _mdata.DeltaTicksPerQuarterNote },
-                { "NumTracks", _mdata.NumTracks }
-            };
-
-            return global;
         }
         #endregion
 
