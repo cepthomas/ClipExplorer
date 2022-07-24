@@ -459,22 +459,6 @@ namespace ClipExplorer
                     UpdateState(chkPlay.Checked ? ExplorerState.Stop : ExplorerState.Play);
                     e.Handled = true;
                     break;
-
-                case Keys.C:
-                    if (e.Modifiers == 0)
-                    {
-                        txtViewer.Clear();
-                        e.Handled = true;
-                    }
-                    break;
-
-                case Keys.W:
-                    if (e.Modifiers == 0)
-                    {
-                        txtViewer.WordWrap = !txtViewer.WordWrap;
-                        e.Handled = true;
-                    }
-                    break;
             }
         }
 
