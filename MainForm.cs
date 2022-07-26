@@ -82,8 +82,8 @@ namespace ClipExplorer
             // The text output.
             txtViewer.Font = Font;
             txtViewer.WordWrap = true;
-            txtViewer.Colors.Add("ERR", Color.LightPink);
-            txtViewer.Colors.Add("WRN:", Color.Plum);
+            txtViewer.MatchColors.Add("ERR", Color.LightPink);
+            txtViewer.MatchColors.Add("WRN:", Color.Plum);
 
             // Other UI configs.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
