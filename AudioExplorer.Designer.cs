@@ -37,10 +37,7 @@ namespace ClipExplorer
             this.waveViewerL.DrawColor = System.Drawing.Color.Black;
             this.waveViewerL.Location = new System.Drawing.Point(0, 110);
             this.waveViewerL.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.waveViewerL.Marker1 = -1;
-            this.waveViewerL.Marker2 = -1;
-            this.waveViewerL.MarkerColor = System.Drawing.Color.Black;
-            this.waveViewerL.Mode = AudioLib.WaveViewer.DrawMode.Envelope;
+            this.waveViewerL.Marker = -1;
             this.waveViewerL.Name = "waveViewerL";
             this.waveViewerL.Size = new System.Drawing.Size(586, 62);
             this.waveViewerL.TabIndex = 67;
@@ -54,10 +51,7 @@ namespace ClipExplorer
             this.waveViewerR.DrawColor = System.Drawing.Color.Black;
             this.waveViewerR.Location = new System.Drawing.Point(0, 180);
             this.waveViewerR.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.waveViewerR.Marker1 = -1;
-            this.waveViewerR.Marker2 = -1;
-            this.waveViewerR.MarkerColor = System.Drawing.Color.Black;
-            this.waveViewerR.Mode = AudioLib.WaveViewer.DrawMode.Envelope;
+            this.waveViewerR.Marker = -1;
             this.waveViewerR.Name = "waveViewerR";
             this.waveViewerR.Size = new System.Drawing.Size(586, 62);
             this.waveViewerR.TabIndex = 68;

@@ -23,13 +23,8 @@ Requires VS2022 and .NET6.
 - Click on the settings icon to edit your options. Note that not all presented audio/midi options pertain to this application.
 - In the log view: C for clear, W for word wrap toggle.
 
-# Third Party
+# External Components
 
-This application uses these FOSS components:
 - [NAudio](https://github.com/naudio/NAudio) (Microsoft Public License).
-- Main icon: [Charlotte Schmidt](http://pattedemouche.free.fr/) (Copyright © 2009 of Charlotte Schmidt).
+- Application icon: [Charlotte Schmidt](http://pattedemouche.free.fr/) (Copyright © 2009 of Charlotte Schmidt).
 - Button icons: [Glyphicons Free](http://glyphicons.com/) (CC BY 3.0).
-- [NBagOfTricks](https://github.com/cepthomas/NBagOfTricks/blob/main/README.md)
-- [NBagOfUis](https://github.com/cepthomas/NBagOfUis/blob/main/README.md)
-- [MidiLib](https://github.com/cepthomas/MidiLib/blob/main/README.md).
-- [AudioLib](https://github.com/cepthomas/AudioLib/blob/main/README.md).

@@ -137,9 +137,6 @@ namespace ClipExplorer
             // Initialize tree from user settings.
             InitNavigator();
 
-            _logger.Info("Hello. C=clear, W=wrap");
-
-
             // Look for filename passed in.
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length > 1)

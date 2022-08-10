@@ -102,33 +102,126 @@ namespace ClipExplorer
         {
             bool ok = true;
 
-            using (new WaitCursor())
+            // Clean up first.
+            _audioFileReader?.Dispose();
+            waveViewerL.Reset();
+            waveViewerR.Reset();
+
+            // Create input device.
+            _audioFileReader = new AudioFileReader(fn);
+
+            var sampleChannel = new SampleChannel(_audioFileReader, false);
+            sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+            var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
+            postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+
+            _player.SetProvider(postVolumeMeter);
+
+            //TODO here>>>>>>>>>>>>>>>>>>>>>>>>>>
+            //var vvv = AudioUtils.ReadAll(_audioFileReader);
+            //_clip = new ClipSampleProvider(_filesDir + "ambi_swoosh.flac");
+
+
+
+            /////  ShowClip();
+            if (sampleChannel.WaveFormat.Channels == 2) // stereo
             {
-                // Clean up first.
-                _audioFileReader?.Dispose();
-                waveViewerL.Reset();
-                waveViewerR.Reset();
-
-                // Create input device.
-                _audioFileReader = new AudioFileReader(fn);
-
-                timeBar.Length = _audioFileReader.TotalTime;
-                timeBar.Start = TimeSpan.Zero; 
-                timeBar.End = TimeSpan.Zero;
-                timeBar.Current = TimeSpan.Zero;
-
-                // Create reader.
-                var sampleChannel = new SampleChannel(_audioFileReader, false);
-                sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
-                var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
-
-                _player.Init(postVolumeMeter);
-
-                ShowClip();
+                _audioFileReader.Position = 0; // rewind
+                var provL = new StereoToMonoSampleProvider(_audioFileReader) { LeftVolume = 1.0f, RightVolume = 0.0f };
+                waveViewerL.Values = AudioUtils.ReadAll(provL);
+                
+                _audioFileReader.Position = 0; // rewind
+                var provR = new StereoToMonoSampleProvider(_audioFileReader) { LeftVolume = 0.0f, RightVolume = 1.0f };
+                waveViewerR.Values = AudioUtils.ReadAll(provR);
+            }
+            else // mono
+            {
+                _audioFileReader.Position = 0; // rewind
+                waveViewerL.Values = AudioUtils.ReadAll(_audioFileReader);
             }
 
-            if (!ok)
+            timeBar.Length = _audioFileReader.TotalTime;
+            timeBar.Start = TimeSpan.Zero;
+            timeBar.End = TimeSpan.Zero;
+            timeBar.Current = TimeSpan.Zero;
+
+            _audioFileReader.Position = 0; // rewind
+
+
+
+            //{
+
+            //    //_clip = new ClipSampleProvider(_filesDir + fn);
+            //    //_data = AudioUtils.ReadAll(_clip);
+
+            //    if (_audioFileReader is not null)
+            //    {
+            //        _audioFileReader.Position = 0; // rewind
+            //        var sampleChannel = new SampleChannel(_audioFileReader, false);
+
+            //        // Read all data.
+            //        long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
+            //        var data = new float[len];
+            //        int offset = 0;
+            //        int num = -1;
+
+            //        while (num != 0)
+            //        {
+            //            // This throws for flac and m4a files for unknown reason but works ok.
+            //            try
+            //            {
+            //                num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
+            //                offset += num;
+            //            }
+            //            catch (Exception)
+            //            {
+            //            }
+            //        }
+
+            //        if (sampleChannel.WaveFormat.Channels == 2) // stereo
+            //        {
+            //            long stlen = len / 2;
+            //            var dataL = new float[stlen];
+            //            var dataR = new float[stlen];
+
+            //            for (long i = 0; i < stlen; i++)
+            //            {
+            //                dataL[i] = data[i * 2];
+            //                dataR[i] = data[i * 2 + 1];
+            //            }
+
+            //            waveViewerL.Values = dataL;
+            //            waveViewerR.Init(dataR, 1.0f);
+            //        }
+            //        else // mono
+            //        {
+            //            waveViewerL.Init(data, 1.0f);
+            //            waveViewerR.Init(null, 0);
+            //        }
+
+            //        timeBar.Length = _audioFileReader.TotalTime;
+            //        timeBar.Start = TimeSpan.Zero;
+            //        timeBar.End = TimeSpan.Zero;
+            //        timeBar.Current = TimeSpan.Zero;
+
+            //        _audioFileReader.Position = 0; // rewind
+            //    }
+
+
+
+
+
+
+                ////////////////////////////////////
+
+
+
+
+
+
+
+
+                if (!ok)
             {
                 _audioFileReader?.Dispose();
                 _audioFileReader = null;
@@ -167,7 +260,7 @@ namespace ClipExplorer
         /// <inheritdoc />
         public bool UpdateSettings()
         {
-            timeBar.SnapMsec = Common.Settings.AudioSettings.SnapMsec;
+           // timeBar.SnapMsec = Common.Settings.AudioSettings.SnapMsec;
             return true;
         }
         #endregion
@@ -176,61 +269,61 @@ namespace ClipExplorer
         /// <summary>
         /// Show a clip waveform.
         /// </summary>
-        void ShowClip()
-        {
-            if (_audioFileReader is not null)
-            {
-                _audioFileReader.Position = 0; // rewind
-                var sampleChannel = new SampleChannel(_audioFileReader, false);
+        //void ShowClip()
+        //{
+        //    if (_audioFileReader is not null)
+        //    {
+        //        _audioFileReader.Position = 0; // rewind
+        //        var sampleChannel = new SampleChannel(_audioFileReader, false);
 
-                // Read all data.
-                long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
-                var data = new float[len];
-                int offset = 0;
-                int num = -1;
+        //        // Read all data.
+        //        long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
+        //        var data = new float[len];
+        //        int offset = 0;
+        //        int num = -1;
 
-                while (num != 0)
-                {
-                    // This throws for flac and m4a files for unknown reason but works ok.
-                    try
-                    {
-                        num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
-                        offset += num;
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
+        //        while (num != 0)
+        //        {
+        //            // This throws for flac and m4a files for unknown reason but works ok.
+        //            try
+        //            {
+        //                num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
+        //                offset += num;
+        //            }
+        //            catch (Exception)
+        //            {
+        //            }
+        //        }
 
-                if (sampleChannel.WaveFormat.Channels == 2) // stereo
-                {
-                    long stlen = len / 2;
-                    var dataL = new float[stlen];
-                    var dataR = new float[stlen];
+        //        if (sampleChannel.WaveFormat.Channels == 2) // stereo
+        //        {
+        //            long stlen = len / 2;
+        //            var dataL = new float[stlen];
+        //            var dataR = new float[stlen];
 
-                    for (long i = 0; i < stlen; i++)
-                    {
-                        dataL[i] = data[i * 2];
-                        dataR[i] = data[i * 2 + 1];
-                    }
+        //            for (long i = 0; i < stlen; i++)
+        //            {
+        //                dataL[i] = data[i * 2];
+        //                dataR[i] = data[i * 2 + 1];
+        //            }
 
-                    waveViewerL.Init(dataL, 1.0f);
-                    waveViewerR.Init(dataR, 1.0f);
-                }
-                else // mono
-                {
-                    waveViewerL.Init(data, 1.0f);
-                    waveViewerR.Init(null, 0);
-                }
+        //            waveViewerL.Values = dataL;
+        //            waveViewerR.Init(dataR, 1.0f);
+        //        }
+        //        else // mono
+        //        {
+        //            waveViewerL.Init(data, 1.0f);
+        //            waveViewerR.Init(null, 0);
+        //        }
 
-                timeBar.Length = _audioFileReader.TotalTime;
-                timeBar.Start = TimeSpan.Zero;
-                timeBar.End = TimeSpan.Zero;
-                timeBar.Current = TimeSpan.Zero;
+        //        timeBar.Length = _audioFileReader.TotalTime;
+        //        timeBar.Start = TimeSpan.Zero;
+        //        timeBar.End = TimeSpan.Zero;
+        //        timeBar.Current = TimeSpan.Zero;
 
-                _audioFileReader.Position = 0; // rewind
-            }
-        }
+        //        _audioFileReader.Position = 0; // rewind
+        //    }
+        //}
         #endregion
 
         #region UI event handlers
