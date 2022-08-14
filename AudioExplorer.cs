@@ -27,6 +27,9 @@ namespace ClipExplorer
         /// <summary>Wave output play device.</summary>
         readonly AudioPlayer _player;
 
+        /// <summary>Input device for audio player.</summary>
+        readonly SwappableSampleProvider _waveOutSwapper;
+
         /// <summary>Input device for audio file.</summary>
         AudioFileReader? _audioFileReader;
 
@@ -63,13 +66,14 @@ namespace ClipExplorer
 
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
-            waveViewerL.DrawColor = Color.Black;
-            waveViewerR.DrawColor = Color.Black;
+            waveViewerL.DrawColor = Common.Settings.ControlColor;
+            waveViewerR.DrawColor = Common.Settings.ControlColor;
             timeBar.ProgressColor = Common.Settings.ControlColor;
             timeBar.CurrentTimeChanged += (_, __) => { if(_audioFileReader is not null) _audioFileReader.CurrentTime = timeBar.Current; };
 
             // Create output device.
-            _player = new(Common.Settings.AudioSettings.WavOutDevice, int.Parse(Common.Settings.AudioSettings.Latency));
+            _waveOutSwapper = new();
+            _player = new(Common.Settings.AudioSettings.WavOutDevice, int.Parse(Common.Settings.AudioSettings.Latency), _waveOutSwapper);
             _player.PlaybackStopped += Player_PlaybackStopped;
 
             Visible = false;
@@ -115,119 +119,63 @@ namespace ClipExplorer
             var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
             postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
 
-            _player.SetProvider(postVolumeMeter);
+            // For playing.
+            _waveOutSwapper.SetInput(postVolumeMeter);
 
-            //TODO here>>>>>>>>>>>>>>>>>>>>>>>>>>
-            //var vvv = AudioUtils.ReadAll(_audioFileReader);
-            //_clip = new ClipSampleProvider(_filesDir + "ambi_swoosh.flac");
-
-
-
-            /////  ShowClip();
-            if (sampleChannel.WaveFormat.Channels == 2) // stereo
-            {
-                _audioFileReader.Position = 0; // rewind
-                var provL = new StereoToMonoSampleProvider(_audioFileReader) { LeftVolume = 1.0f, RightVolume = 0.0f };
-                waveViewerL.Values = AudioUtils.ReadAll(provL);
-                
-                _audioFileReader.Position = 0; // rewind
-                var provR = new StereoToMonoSampleProvider(_audioFileReader) { LeftVolume = 0.0f, RightVolume = 1.0f };
-                waveViewerR.Values = AudioUtils.ReadAll(provR);
-            }
-            else // mono
-            {
-                _audioFileReader.Position = 0; // rewind
-                waveViewerL.Values = AudioUtils.ReadAll(_audioFileReader);
-            }
-
-            timeBar.Length = _audioFileReader.TotalTime;
-            timeBar.Start = TimeSpan.Zero;
-            timeBar.End = TimeSpan.Zero;
-            timeBar.Current = TimeSpan.Zero;
-
+            // For seeing.
             _audioFileReader.Position = 0; // rewind
+            ShowWave(_audioFileReader, _audioFileReader.Length);
 
-
-
-            //{
-
-            //    //_clip = new ClipSampleProvider(_filesDir + fn);
-            //    //_data = AudioUtils.ReadAll(_clip);
-
-            //    if (_audioFileReader is not null)
-            //    {
-            //        _audioFileReader.Position = 0; // rewind
-            //        var sampleChannel = new SampleChannel(_audioFileReader, false);
-
-            //        // Read all data.
-            //        long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
-            //        var data = new float[len];
-            //        int offset = 0;
-            //        int num = -1;
-
-            //        while (num != 0)
-            //        {
-            //            // This throws for flac and m4a files for unknown reason but works ok.
-            //            try
-            //            {
-            //                num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
-            //                offset += num;
-            //            }
-            //            catch (Exception)
-            //            {
-            //            }
-            //        }
-
-            //        if (sampleChannel.WaveFormat.Channels == 2) // stereo
-            //        {
-            //            long stlen = len / 2;
-            //            var dataL = new float[stlen];
-            //            var dataR = new float[stlen];
-
-            //            for (long i = 0; i < stlen; i++)
-            //            {
-            //                dataL[i] = data[i * 2];
-            //                dataR[i] = data[i * 2 + 1];
-            //            }
-
-            //            waveViewerL.Values = dataL;
-            //            waveViewerR.Init(dataR, 1.0f);
-            //        }
-            //        else // mono
-            //        {
-            //            waveViewerL.Init(data, 1.0f);
-            //            waveViewerR.Init(null, 0);
-            //        }
-
-            //        timeBar.Length = _audioFileReader.TotalTime;
-            //        timeBar.Start = TimeSpan.Zero;
-            //        timeBar.End = TimeSpan.Zero;
-            //        timeBar.Current = TimeSpan.Zero;
-
-            //        _audioFileReader.Position = 0; // rewind
-            //    }
-
-
-
-
-
-
-                ////////////////////////////////////
-
-
-
-
-
-
-
-
-                if (!ok)
+            if (!ok)
             {
                 _audioFileReader?.Dispose();
                 _audioFileReader = null;
             }
 
             return ok;
+        }
+
+        /// <summary>
+        /// Paint the wave viewer from the provider.
+        /// </summary>
+        /// <param name="prov"></param>
+        /// <param name="length"></param>
+        void ShowWave(ISampleProvider prov, long length)
+        {
+            _waveOutSwapper.SetInput(prov);
+
+            int bytesPerSample = prov.WaveFormat.BitsPerSample / 8;
+            int sclen = (int)(length / bytesPerSample);
+
+            int ht = waveViewerR.Bottom - waveViewerL.Top;
+            int wd = waveViewerL.Width;
+
+            // If it's stereo split into two monos, one viewer per.
+            if (prov.WaveFormat.Channels == 2) // stereo
+            {
+                prov.SetPosition(0);
+                waveViewerL.Size = new(wd, ht / 2);
+                waveViewerL.SampleProvider = new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f };
+
+                prov.SetPosition(0);
+                waveViewerR.Visible = true;
+                waveViewerR.Size = new(wd, ht / 2);
+                waveViewerR.SampleProvider = new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f };
+            }
+            else // mono
+            {
+                waveViewerR.Visible = false;
+                waveViewerL.Size = new(wd, ht);
+                waveViewerL.SampleProvider = prov;
+            }
+
+            prov.SetPosition(0);
+            Text = NAudioEx.GetInfo(prov);
+
+            timeBar.Start = new TimeSpan();
+            timeBar.End = new TimeSpan();
+            //int days, int hours, int minutes, int seconds, int milliseconds
+            timeBar.Length = new(0, 0, 0, 0, 1000 * sclen / prov.WaveFormat.SampleRate); // msec;
         }
         #endregion
 
@@ -263,67 +211,6 @@ namespace ClipExplorer
            // timeBar.SnapMsec = Common.Settings.AudioSettings.SnapMsec;
             return true;
         }
-        #endregion
-
-        #region Private functions
-        /// <summary>
-        /// Show a clip waveform.
-        /// </summary>
-        //void ShowClip()
-        //{
-        //    if (_audioFileReader is not null)
-        //    {
-        //        _audioFileReader.Position = 0; // rewind
-        //        var sampleChannel = new SampleChannel(_audioFileReader, false);
-
-        //        // Read all data.
-        //        long len = _audioFileReader.Length / (_audioFileReader.WaveFormat.BitsPerSample / 8);
-        //        var data = new float[len];
-        //        int offset = 0;
-        //        int num = -1;
-
-        //        while (num != 0)
-        //        {
-        //            // This throws for flac and m4a files for unknown reason but works ok.
-        //            try
-        //            {
-        //                num = _audioFileReader.Read(data, offset, READ_BUFF_SIZE);
-        //                offset += num;
-        //            }
-        //            catch (Exception)
-        //            {
-        //            }
-        //        }
-
-        //        if (sampleChannel.WaveFormat.Channels == 2) // stereo
-        //        {
-        //            long stlen = len / 2;
-        //            var dataL = new float[stlen];
-        //            var dataR = new float[stlen];
-
-        //            for (long i = 0; i < stlen; i++)
-        //            {
-        //                dataL[i] = data[i * 2];
-        //                dataR[i] = data[i * 2 + 1];
-        //            }
-
-        //            waveViewerL.Values = dataL;
-        //            waveViewerR.Init(dataR, 1.0f);
-        //        }
-        //        else // mono
-        //        {
-        //            waveViewerL.Init(data, 1.0f);
-        //            waveViewerR.Init(null, 0);
-        //        }
-
-        //        timeBar.Length = _audioFileReader.TotalTime;
-        //        timeBar.Start = TimeSpan.Zero;
-        //        timeBar.End = TimeSpan.Zero;
-        //        timeBar.Current = TimeSpan.Zero;
-
-        //        _audioFileReader.Position = 0; // rewind
-        //    }
-        //}
         #endregion
 
         #region UI event handlers
@@ -383,7 +270,7 @@ namespace ClipExplorer
                                 // Clean the file name.
                                 name = name.Replace('.', '-').Replace(' ', '_');
                                 var newfn = Path.Join(Common.OutPath, $"{name}.txt");
-                                AudioUtils.Export(newfn, _audioFileReader);
+                                _audioFileReader.Export(newfn);
                                 _logger.Info($"Exported to {newfn}");
                             }
                             break;

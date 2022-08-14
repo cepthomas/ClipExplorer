@@ -414,7 +414,8 @@ namespace ClipExplorer
                         {
                             Location = new(x, y),
                             BorderStyle = BorderStyle.FixedSingle,
-                            BoundChannel = channel
+                            BoundChannel = channel,
+                            SelectedColor = Common.Settings.ControlColor
                         };
                         control.ChannelChangeEvent += Control_ChannelChangeEvent;
                         Controls.Add(control);
