@@ -248,8 +248,6 @@ namespace ClipExplorer
         /// <returns>True if sequence completed.</returns>
         public bool DoNextStep()
         {
-            bool done = false;
-
             // Any soloes?
             bool anySolo = _channels.AnySolo();
 
@@ -305,7 +303,7 @@ namespace ClipExplorer
             }
 
             // Bump time. Check for end of play.
-            done = barBar.IncrementCurrent(1);
+            bool done = barBar.IncrementCurrent(1);
 
             return done;
         }

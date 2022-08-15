@@ -33,8 +33,8 @@ namespace ClipExplorer
         /// <summary>Input device for audio file.</summary>
         AudioFileReader? _audioFileReader;
 
-        /// <summary>Stream read chunk.</summary>
-        const int READ_BUFF_SIZE = 1000000;
+        /// <summary>Clean up if resampled.</summary>
+        string _resampleFile = "";
         #endregion
 
         #region Events
@@ -110,9 +110,24 @@ namespace ClipExplorer
             _audioFileReader?.Dispose();
             waveViewerL.Reset();
             waveViewerR.Reset();
+            if(_resampleFile != "")
+            {
+                File.Delete(_resampleFile);
+                _resampleFile = "";
+            }
 
             // Create input device.
             _audioFileReader = new AudioFileReader(fn);
+
+            // If it doesn't match, create a resampled temp file.
+            if(_audioFileReader.WaveFormat.SampleRate != AudioLibDefs.SAMPLE_RATE)
+            {
+                var ext = Path.GetExtension(fn);
+                _resampleFile = fn.Replace(ext, "_rs" + ext);
+                var resampler = new WdlResamplingSampleProvider(_audioFileReader, AudioLibDefs.SAMPLE_RATE);
+                WaveFileWriter.CreateWaveFile16(_resampleFile, resampler);
+                _audioFileReader = new AudioFileReader(_resampleFile);
+            }
 
             var sampleChannel = new SampleChannel(_audioFileReader, false);
             sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
