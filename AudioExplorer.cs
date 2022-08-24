@@ -120,13 +120,9 @@ namespace ClipExplorer
             _audioFileReader = new AudioFileReader(fn);
 
             // If it doesn't match, create a resampled temp file.
-            if(_audioFileReader.WaveFormat.SampleRate != AudioLibDefs.SAMPLE_RATE)
+            if (_audioFileReader.WaveFormat.SampleRate != AudioLibDefs.SAMPLE_RATE)
             {
-                var ext = Path.GetExtension(fn);
-                _resampleFile = fn.Replace(ext, "_rs" + ext);
-                var resampler = new WdlResamplingSampleProvider(_audioFileReader, AudioLibDefs.SAMPLE_RATE);
-                WaveFileWriter.CreateWaveFile16(_resampleFile, resampler);
-                _audioFileReader = new AudioFileReader(_resampleFile);
+                _audioFileReader = _audioFileReader.Resample();
             }
 
             var sampleChannel = new SampleChannel(_audioFileReader, false);
@@ -168,29 +164,29 @@ namespace ClipExplorer
             // If it's stereo split into two monos, one viewer per.
             if (prov.WaveFormat.Channels == 2) // stereo
             {
-                prov.SetPosition(0);
+                prov.Reset();
                 waveViewerL.Size = new(wd, ht / 2);
-                waveViewerL.SampleProvider = new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f };
+                waveViewerL.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f });
 
-                prov.SetPosition(0);
+                prov.Reset();
                 waveViewerR.Visible = true;
                 waveViewerR.Size = new(wd, ht / 2);
-                waveViewerR.SampleProvider = new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f };
+                waveViewerR.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f });
             }
             else // mono
             {
                 waveViewerR.Visible = false;
                 waveViewerL.Size = new(wd, ht);
-                waveViewerL.SampleProvider = prov;
+                waveViewerL.Init(prov);
             }
 
-            prov.SetPosition(0);
-            Text = NAudioEx.GetInfo(prov);
-
-            timeBar.Start = new TimeSpan();
-            timeBar.End = new TimeSpan();
+            prov.Reset();
+            Text = NAudioEx.GetInfoString(prov);
             //int days, int hours, int minutes, int seconds, int milliseconds
-            timeBar.Length = new(0, 0, 0, 0, 1000 * sclen / prov.WaveFormat.SampleRate); // msec;
+            int msec = 1000 * sclen / prov.WaveFormat.SampleRate;
+            timeBar.Length = new(0, 0, 0, 0, msec);
+            timeBar.Marker1 = new TimeSpan(0, 0, 0, 0, msec / 3);
+            timeBar.Marker2 = new TimeSpan(0, 0, 0, 0, msec / 2);
         }
         #endregion
 
