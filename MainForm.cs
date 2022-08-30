@@ -143,6 +143,7 @@ namespace ClipExplorer
             {
                 OpenFile(args[1]);
             }
+            base.OnLoad(e);
         }
 
         /// <summary>

@@ -32,9 +32,6 @@ namespace ClipExplorer
 
         /// <summary>Input device for audio file.</summary>
         AudioFileReader? _audioFileReader;
-
-        /// <summary>Clean up if resampled.</summary>
-        string _resampleFile = "";
         #endregion
 
         #region Events
@@ -108,13 +105,8 @@ namespace ClipExplorer
 
             // Clean up first.
             _audioFileReader?.Dispose();
-            waveViewerL.Reset();
-            waveViewerR.Reset();
-            if(_resampleFile != "")
-            {
-                File.Delete(_resampleFile);
-                _resampleFile = "";
-            }
+            waveViewerL.Rewind();
+            waveViewerR.Rewind();
 
             // Create input device.
             _audioFileReader = new AudioFileReader(fn);
@@ -122,25 +114,23 @@ namespace ClipExplorer
             // If it doesn't match, create a resampled temp file.
             if (_audioFileReader.WaveFormat.SampleRate != AudioLibDefs.SAMPLE_RATE)
             {
-                _audioFileReader = _audioFileReader.Resample();
+                _logger.Warn("Invalid sample rate for {fn}");
+                ok = false;
             }
 
-            var sampleChannel = new SampleChannel(_audioFileReader, false);
-            sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
-            var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-            postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
-
-            // For playing.
-            _waveOutSwapper.SetInput(postVolumeMeter);
-
-            // For seeing.
-            _audioFileReader.Position = 0; // rewind
-            ShowWave(_audioFileReader, _audioFileReader.Length);
-
-            if (!ok)
+            if(ok)
             {
-                _audioFileReader?.Dispose();
-                _audioFileReader = null;
+                var sampleChannel = new SampleChannel(_audioFileReader, false);
+                sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
+                var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
+                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
+
+                // For playing.
+                _waveOutSwapper.SetInput(postVolumeMeter);
+
+                // For seeing.
+                _audioFileReader.Position = 0; // rewind
+                ShowWave(_audioFileReader, _audioFileReader.Length);
             }
 
             return ok;
@@ -164,11 +154,11 @@ namespace ClipExplorer
             // If it's stereo split into two monos, one viewer per.
             if (prov.WaveFormat.Channels == 2) // stereo
             {
-                prov.Reset();
+                prov.Rewind();
                 waveViewerL.Size = new(wd, ht / 2);
                 waveViewerL.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f });
 
-                prov.Reset();
+                prov.Rewind();
                 waveViewerR.Visible = true;
                 waveViewerR.Size = new(wd, ht / 2);
                 waveViewerR.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f });
@@ -180,7 +170,7 @@ namespace ClipExplorer
                 waveViewerL.Init(prov);
             }
 
-            prov.Reset();
+            prov.Rewind();
             Text = NAudioEx.GetInfoString(prov);
             //int days, int hours, int minutes, int seconds, int milliseconds
             int msec = 1000 * sclen / prov.WaveFormat.SampleRate;
@@ -210,7 +200,7 @@ namespace ClipExplorer
             {
                 _audioFileReader.Position = 0;
             }
-            _player.Rewind();
+            //_player.Rewind();
             timeBar.Current = TimeSpan.Zero;
         }
         #endregion
