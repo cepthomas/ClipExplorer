@@ -77,9 +77,9 @@ namespace ClipExplorer
             sldTempo.Resolution = Common.Settings.TempoResolution;
 
             // Hook up some simple UI handlers.
-            btnKillMidi.Click += (_, __) => { _channels.Values.ForEach(ch => ch.Kill()); };
-            btnLogMidi.Click += (_, __) => { _outputDevice.LogEnable = btnLogMidi.Checked; };
-            sldTempo.ValueChanged += (_, __) => { SetTimer(); };
+            btnKillMidi.Click += (_, __) => _channels.Values.ForEach(ch => ch.Kill());
+            btnLogMidi.Click += (_, __) => _outputDevice.LogEnable = btnLogMidi.Checked;
+            sldTempo.ValueChanged += (_, __) => SetTimer();
 
             // Set up timer.
             sldTempo.Value = Common.Settings.MidiSettings.DefaultTempo;

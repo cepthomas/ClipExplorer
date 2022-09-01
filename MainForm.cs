@@ -94,22 +94,32 @@ namespace ClipExplorer
             sldVolume.Value = Common.Settings.Volume;
 
             // Hook up some simple UI handlers.
-            btnRewind.Click += (_, __) => { UpdateState(ExplorerState.Rewind); };
+            btnRewind.Click += (_, __) => UpdateState(ExplorerState.Rewind);
 
             chkPlay.CheckedChanged += ChkPlay_CheckedChanged;
 
             // Debug stuff.
             //btnDebug.Visible = false;
-            //btnDebug.Click += (_, __) => { chkPlay.Checked = true; };
-            btnDebug.Click += (_, __) => { DumpDevices(); };
+            //btnDebug.Click += (_, __) => chkPlay.Checked = true;
+            btnDebug.Click += (_, __) => DumpDevices();
 
             // Create devices.
             Point loc = new(chkPlay.Left, chkPlay.Bottom + 5);
-            _audioExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
+            _audioExplorer = new()
+            {
+                Location = loc,
+                Volume = Common.Settings.Volume,
+                BorderStyle = BorderStyle.FixedSingle
+            };
             _audioExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
             Controls.Add(_audioExplorer); // TODO combine child and parent toolstrips? also midi.
 
-            _midiExplorer = new() { Location = loc, Volume = Common.Settings.Volume, BorderStyle = BorderStyle.FixedSingle };
+            _midiExplorer = new()
+            {
+                Location = loc,
+                Volume = Common.Settings.Volume,
+                BorderStyle = BorderStyle.FixedSingle
+            };
             _midiExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
             Controls.Add(_midiExplorer);
 

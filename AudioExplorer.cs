@@ -66,7 +66,13 @@ namespace ClipExplorer
             waveViewerL.DrawColor = Common.Settings.ControlColor;
             waveViewerR.DrawColor = Common.Settings.ControlColor;
             timeBar.ProgressColor = Common.Settings.ControlColor;
-            timeBar.CurrentTimeChanged += (_, __) => { if(_audioFileReader is not null) _audioFileReader.CurrentTime = timeBar.Current; };
+            timeBar.CurrentTimeChanged += (_, __) =>
+            {
+                if (_audioFileReader is not null)
+                {
+                    _audioFileReader.CurrentTime = timeBar.Current;
+                }
+            };
 
             // Create output device.
             _waveOutSwapper = new();
