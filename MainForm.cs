@@ -58,8 +58,6 @@ namespace ClipExplorer
 
             InitializeComponent();
 
-            Icon = Properties.Resources.zebra;
-
             // Set up paths.
             Common.OutPath = Path.Combine(appDir, "out");
             DirectoryInfo di = new(Common.OutPath);
