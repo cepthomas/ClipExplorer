@@ -111,8 +111,6 @@ namespace ClipExplorer
 
             // Clean up first.
             _audioFileReader?.Dispose();
-            waveViewerL.Rewind();
-            waveViewerR.Rewind();
 
             // Create input device.
             _audioFileReader = new AudioFileReader(fn);

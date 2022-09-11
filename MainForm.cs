@@ -466,6 +466,7 @@ namespace ClipExplorer
                     e.Handled = true;
                     break;
             }
+            base.OnKeyDown(e);
         }
 
         /// <summary>
