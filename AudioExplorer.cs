@@ -158,11 +158,11 @@ namespace ClipExplorer
             // If it's stereo split into two monos, one viewer per.
             if (prov.WaveFormat.Channels == 2) // stereo
             {
-                prov.Rewind();
+                prov.SetPosition(0);
                 waveViewerL.Size = new(wd, ht / 2);
                 waveViewerL.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f });
 
-                prov.Rewind();
+                prov.SetPosition(0);
                 waveViewerR.Visible = true;
                 waveViewerR.Size = new(wd, ht / 2);
                 waveViewerR.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f });
@@ -174,7 +174,7 @@ namespace ClipExplorer
                 waveViewerL.Init(prov);
             }
 
-            prov.Rewind();
+            prov.SetPosition(0);
             Text = NAudioEx.GetInfoString(prov);
             //int days, int hours, int minutes, int seconds, int milliseconds
             int msec = 1000 * sclen / prov.WaveFormat.SampleRate;
