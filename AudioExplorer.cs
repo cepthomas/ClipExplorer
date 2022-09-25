@@ -65,14 +65,15 @@ namespace ClipExplorer
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
             waveViewerL.DrawColor = Common.Settings.ControlColor;
             waveViewerR.DrawColor = Common.Settings.ControlColor;
-            timeBar.ProgressColor = Common.Settings.ControlColor;
-            timeBar.CurrentTimeChanged += (_, __) =>
-            {
-                if (_audioFileReader is not null)
-                {
-                    _audioFileReader.CurrentTime = timeBar.Current;
-                }
-            };
+// TODO1 this timeBar:
+//timeBar.ProgressColor = Common.Settings.ControlColor;
+//timeBar.CurrentTimeChanged += (_, __) =>
+//{
+//    if (_audioFileReader is not null)
+//    {
+//        _audioFileReader.CurrentTime = timeBar.Current;
+//    }
+//};
 
             // Create output device.
             _waveOutSwapper = new();
@@ -145,7 +146,7 @@ namespace ClipExplorer
         /// </summary>
         /// <param name="prov"></param>
         /// <param name="length"></param>
-        void ShowWave(ISampleProvider prov, long length)
+        void ShowWave(AudioFileReader prov, long length)
         {
             _waveOutSwapper.SetInput(prov);
 
@@ -158,11 +159,11 @@ namespace ClipExplorer
             // If it's stereo split into two monos, one viewer per.
             if (prov.WaveFormat.Channels == 2) // stereo
             {
-                prov.SetPosition(0);
+                prov.Position = 0;
                 waveViewerL.Size = new(wd, ht / 2);
                 waveViewerL.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f });
 
-                prov.SetPosition(0);
+                prov.Position = 0;
                 waveViewerR.Visible = true;
                 waveViewerR.Size = new(wd, ht / 2);
                 waveViewerR.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f });
@@ -174,13 +175,13 @@ namespace ClipExplorer
                 waveViewerL.Init(prov);
             }
 
-            prov.SetPosition(0);
+            prov.Position = 0;
             Text = NAudioEx.GetInfoString(prov);
             //int days, int hours, int minutes, int seconds, int milliseconds
             int msec = 1000 * sclen / prov.WaveFormat.SampleRate;
-            timeBar.Length = new(0, 0, 0, 0, msec);
-            timeBar.Marker1 = new TimeSpan(0, 0, 0, 0, msec / 3);
-            timeBar.Marker2 = new TimeSpan(0, 0, 0, 0, msec / 2);
+ //           timeBar.Length = new(0, 0, 0, 0, msec);
+            // timeBar.Marker1 = new TimeSpan(0, 0, 0, 0, msec / 3);
+            // timeBar.Marker2 = new TimeSpan(0, 0, 0, 0, msec / 2);
         }
         #endregion
 
@@ -205,7 +206,7 @@ namespace ClipExplorer
                 _audioFileReader.Position = 0;
             }
             //_player.Rewind();
-            timeBar.Current = TimeSpan.Zero;
+//            timeBar.Current = TimeSpan.Zero;
         }
         #endregion
 
@@ -252,7 +253,7 @@ namespace ClipExplorer
         {
             if (_audioFileReader is not null)
             {
-                timeBar.Current = _audioFileReader.CurrentTime;
+//                timeBar.Current = _audioFileReader.CurrentTime;
             }
         }
 

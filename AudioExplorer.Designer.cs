@@ -20,7 +20,6 @@ namespace ClipExplorer
             this.components = new System.ComponentModel.Container();
             this.waveViewerL = new AudioLib.WaveViewer();
             this.waveViewerR = new AudioLib.WaveViewer();
-            this.timeBar = new AudioLib.TimeBar();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDown = new System.Windows.Forms.ToolStripDropDownButton();
@@ -54,23 +53,6 @@ namespace ClipExplorer
             this.waveViewerR.Size = new System.Drawing.Size(586, 62);
             this.waveViewerR.TabIndex = 68;
             this.toolTip.SetToolTip(this.waveViewerR, "Right waveform");
-            // 
-            // timeBar
-            // 
-            this.timeBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.timeBar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.timeBar.FontLarge = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.timeBar.FontSmall = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.timeBar.ForeColor = System.Drawing.Color.Silver;
-            this.timeBar.Location = new System.Drawing.Point(0, 41);
-            this.timeBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.timeBar.MarkerColor = System.Drawing.Color.Black;
-            this.timeBar.Name = "timeBar";
-            this.timeBar.ProgressColor = System.Drawing.Color.White;
-            this.timeBar.Size = new System.Drawing.Size(586, 62);
-            this.timeBar.SnapMsec = 0;
-            this.timeBar.TabIndex = 69;
             // 
             // toolStrip1
             // 
@@ -111,7 +93,6 @@ namespace ClipExplorer
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.toolStrip1);
-            this.Controls.Add(this.timeBar);
             this.Controls.Add(this.waveViewerR);
             this.Controls.Add(this.waveViewerL);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -128,7 +109,6 @@ namespace ClipExplorer
 
         private WaveViewer waveViewerL;
         private WaveViewer waveViewerR;
-        private TimeBar timeBar;
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripDropDownButton fileDropDown;
