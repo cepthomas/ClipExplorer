@@ -1,4 +1,4 @@
-# ClipExplorer
+# ClipExplorer !!! Superceded by Wavicler and Midifrier !!!
 
 - A windows tool for playing audio and midi file clips and Yamaha style files.
 - This is primarily intended to be used for auditioning parts for use in compositions created in a real DAW.
@@ -8,8 +8,7 @@
 - Since midi files and NAudio use 1-based channel numbers, so does this application, except when used as an array index.
 - If midi file type is `1`, all tracks are combined. Because.
 - Tons of styles and info at https://psrtutorial.com/.
-
-Requires VS2022 and .NET6.
+- Requires VS2022 and .NET6.
 
 # Usage
 

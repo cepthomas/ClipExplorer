@@ -20,6 +20,7 @@ namespace ClipExplorer
             this.components = new System.ComponentModel.Container();
             this.waveViewerL = new AudioLib.WaveViewer();
             this.waveViewerR = new AudioLib.WaveViewer();
+            this.progBar = new AudioLib.ProgressBar();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDown = new System.Windows.Forms.ToolStripDropDownButton();
@@ -33,11 +34,11 @@ namespace ClipExplorer
             this.waveViewerL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveViewerL.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.waveViewerL.DrawColor = System.Drawing.Color.Black;
+            this.waveViewerL.Gain = 1F;
             this.waveViewerL.Location = new System.Drawing.Point(0, 110);
             this.waveViewerL.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.waveViewerL.Name = "waveViewerL";
-            this.waveViewerL.Size = new System.Drawing.Size(586, 62);
+            this.waveViewerL.Size = new System.Drawing.Size(586, 140);
             this.waveViewerL.TabIndex = 67;
             this.toolTip.SetToolTip(this.waveViewerL, "Left waveform");
             // 
@@ -46,13 +47,28 @@ namespace ClipExplorer
             this.waveViewerR.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.waveViewerR.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.waveViewerR.DrawColor = System.Drawing.Color.Black;
-            this.waveViewerR.Location = new System.Drawing.Point(0, 180);
+            this.waveViewerR.Gain = 1F;
+            this.waveViewerR.Location = new System.Drawing.Point(0, 258);
             this.waveViewerR.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.waveViewerR.Name = "waveViewerR";
-            this.waveViewerR.Size = new System.Drawing.Size(586, 62);
+            this.waveViewerR.Size = new System.Drawing.Size(586, 140);
             this.waveViewerR.TabIndex = 68;
             this.toolTip.SetToolTip(this.waveViewerR, "Right waveform");
+            // 
+            // progBar
+            // 
+            this.progBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progBar.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.progBar.FontLarge = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.progBar.FontSmall = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.progBar.ForeColor = System.Drawing.Color.Silver;
+            this.progBar.Location = new System.Drawing.Point(0, 41);
+            this.progBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.progBar.Name = "progBar";
+            this.progBar.Size = new System.Drawing.Size(586, 62);
+            this.progBar.TabIndex = 69;
+            this.progBar.Thumbnail = null;
             // 
             // toolStrip1
             // 
@@ -93,11 +109,12 @@ namespace ClipExplorer
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.toolStrip1);
+            this.Controls.Add(this.progBar);
             this.Controls.Add(this.waveViewerR);
             this.Controls.Add(this.waveViewerL);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "AudioExplorer";
-            this.Size = new System.Drawing.Size(589, 248);
+            this.Size = new System.Drawing.Size(589, 406);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -109,6 +126,7 @@ namespace ClipExplorer
 
         private WaveViewer waveViewerL;
         private WaveViewer waveViewerR;
+        private ProgressBar progBar;
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripDropDownButton fileDropDown;

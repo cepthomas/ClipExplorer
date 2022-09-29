@@ -11,6 +11,7 @@ using System.IO;
 using System.Diagnostics;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NAudio.Gui;
 using NBagOfTricks.Slog;
 using NBagOfUis;
 using AudioLib;
@@ -32,6 +33,9 @@ namespace ClipExplorer
 
         /// <summary>Input device for audio file.</summary>
         AudioFileReader? _audioFileReader;
+
+        /// <summary>Use time as basis.</summary>
+        TimeOps _timeOps = new();
         #endregion
 
         #region Events
@@ -61,19 +65,22 @@ namespace ClipExplorer
             // Init settings.
             UpdateSettings();
 
+            Globals.ConverterOps = _timeOps;
+
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
+
             waveViewerL.DrawColor = Common.Settings.ControlColor;
             waveViewerR.DrawColor = Common.Settings.ControlColor;
-// TODO1 this timeBar:
-//timeBar.ProgressColor = Common.Settings.ControlColor;
-//timeBar.CurrentTimeChanged += (_, __) =>
-//{
-//    if (_audioFileReader is not null)
-//    {
-//        _audioFileReader.CurrentTime = timeBar.Current;
-//    }
-//};
+
+            progBar.ProgressColor = Common.Settings.ControlColor;
+            progBar.CurrentChanged += (_, __) =>
+            {
+                if (_audioFileReader is not null)
+                {
+                    _audioFileReader.CurrentTime = new(0, 0, 0, 0, _timeOps.SampleToMsec(progBar.Current));
+                }
+            };
 
             // Create output device.
             _waveOutSwapper = new();
@@ -116,72 +123,49 @@ namespace ClipExplorer
             // Create input device.
             _audioFileReader = new AudioFileReader(fn);
 
-            // If it doesn't match, create a resampled temp file.
+            // If it doesn't match, bail. Should create a resampled temp file.
             if (_audioFileReader.WaveFormat.SampleRate != AudioLibDefs.SAMPLE_RATE)
             {
                 _logger.Warn("Invalid sample rate for {fn}");
                 ok = false;
             }
 
-            if(ok)
+            if (ok)
             {
-                var sampleChannel = new SampleChannel(_audioFileReader, false);
-                sampleChannel.PreVolumeMeter += SampleChannel_PreVolumeMeter;
-                var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
-                postVolumeMeter.StreamVolume += PostVolumeMeter_StreamVolume;
-
-                // For playing.
+                var postVolumeMeter = new MeteringSampleProvider(_audioFileReader);
+                postVolumeMeter.StreamVolume += (_, __) => { progBar.Current = _timeOps.MsecToSample((float)_audioFileReader.CurrentTime.TotalMilliseconds); };
                 _waveOutSwapper.SetInput(postVolumeMeter);
 
-                // For seeing.
                 _audioFileReader.Position = 0; // rewind
-                ShowWave(_audioFileReader, _audioFileReader.Length);
+                int bytesPerSample = _audioFileReader.WaveFormat.BitsPerSample / 8;
+                int sclen = (int)(_audioFileReader.Length / bytesPerSample);
+
+                int ht = waveViewerR.Bottom - waveViewerL.Top;
+                int wd = waveViewerL.Width;
+
+                // If it's stereo split into two monos, one viewer per.
+                if (_audioFileReader.WaveFormat.Channels == 2) // stereo
+                {
+                    waveViewerR.Visible = true;
+
+                    _audioFileReader.Position = 0;
+                    waveViewerL.Init(new StereoToMonoSampleProvider(_audioFileReader) { LeftVolume = 1.0f, RightVolume = 0.0f });
+
+                    _audioFileReader.Position = 0;
+                    waveViewerR.Init(new StereoToMonoSampleProvider(_audioFileReader) { LeftVolume = 0.0f, RightVolume = 1.0f });
+                }
+                else // mono
+                {
+                    waveViewerR.Visible = false;
+                    waveViewerL.Init(_audioFileReader);
+                }
+
+                _audioFileReader.Position = 0;
+                Text = _audioFileReader.GetInfoString();
+                progBar.Length = sclen;
             }
 
             return ok;
-        }
-
-        /// <summary>
-        /// Paint the wave viewer from the provider.
-        /// </summary>
-        /// <param name="prov"></param>
-        /// <param name="length"></param>
-        void ShowWave(AudioFileReader prov, long length)
-        {
-            _waveOutSwapper.SetInput(prov);
-
-            int bytesPerSample = prov.WaveFormat.BitsPerSample / 8;
-            int sclen = (int)(length / bytesPerSample);
-
-            int ht = waveViewerR.Bottom - waveViewerL.Top;
-            int wd = waveViewerL.Width;
-
-            // If it's stereo split into two monos, one viewer per.
-            if (prov.WaveFormat.Channels == 2) // stereo
-            {
-                prov.Position = 0;
-                waveViewerL.Size = new(wd, ht / 2);
-                waveViewerL.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 1.0f, RightVolume = 0.0f });
-
-                prov.Position = 0;
-                waveViewerR.Visible = true;
-                waveViewerR.Size = new(wd, ht / 2);
-                waveViewerR.Init(new StereoToMonoSampleProvider(prov) { LeftVolume = 0.0f, RightVolume = 1.0f });
-            }
-            else // mono
-            {
-                waveViewerR.Visible = false;
-                waveViewerL.Size = new(wd, ht);
-                waveViewerL.Init(prov);
-            }
-
-            prov.Position = 0;
-            Text = NAudioEx.GetInfoString(prov);
-            //int days, int hours, int minutes, int seconds, int milliseconds
-            int msec = 1000 * sclen / prov.WaveFormat.SampleRate;
- //           timeBar.Length = new(0, 0, 0, 0, msec);
-            // timeBar.Marker1 = new TimeSpan(0, 0, 0, 0, msec / 3);
-            // timeBar.Marker2 = new TimeSpan(0, 0, 0, 0, msec / 2);
         }
         #endregion
 
@@ -205,8 +189,7 @@ namespace ClipExplorer
             {
                 _audioFileReader.Position = 0;
             }
-            //_player.Rewind();
-//            timeBar.Current = TimeSpan.Zero;
+            progBar.Current = 0;
         }
         #endregion
 
@@ -214,7 +197,6 @@ namespace ClipExplorer
         /// <inheritdoc />
         public bool UpdateSettings()
         {
-           // timeBar.SnapMsec = Common.Settings.AudioSettings.SnapMsec;
             return true;
         }
         #endregion
@@ -233,28 +215,6 @@ namespace ClipExplorer
             }
 
             PlaybackCompleted?.Invoke(this, new EventArgs());
-        }
-
-        /// <summary>
-        /// Hook for processing.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void SampleChannel_PreVolumeMeter(object? sender, StreamVolumeEventArgs e)
-        {
-        }
-
-        /// <summary>
-        /// Hook for processing.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void PostVolumeMeter_StreamVolume(object? sender, StreamVolumeEventArgs e)
-        {
-            if (_audioFileReader is not null)
-            {
-//                timeBar.Current = _audioFileReader.CurrentTime;
-            }
         }
 
         /// <summary>

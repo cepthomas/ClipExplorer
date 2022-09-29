@@ -110,7 +110,7 @@ namespace ClipExplorer
                 BorderStyle = BorderStyle.FixedSingle
             };
             _audioExplorer.PlaybackCompleted += (_, __) => { this.InvokeIfRequired(_ => { UpdateState(ExplorerState.Complete); }); };
-            Controls.Add(_audioExplorer); // TODO combine child and parent toolstrips? also midi.
+            Controls.Add(_audioExplorer);
 
             _midiExplorer = new()
             {
