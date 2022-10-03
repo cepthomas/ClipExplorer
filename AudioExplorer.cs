@@ -48,7 +48,7 @@ namespace ClipExplorer
         public bool Valid { get { return _player.Valid; } }
 
         /// <inheritdoc />
-        public double Volume { get { return _player.Volume; } set { _player.Volume = value; } }
+        public double Volume { get { return _player.Volume; } set { _player.Volume = (float)value; } }
 
         /// <inheritdoc />
         public bool Playing { get { return _player.Playing; } }
@@ -70,8 +70,8 @@ namespace ClipExplorer
             // Init UI.
             toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
 
-            waveViewerL.DrawColor = Common.Settings.ControlColor;
-            waveViewerR.DrawColor = Common.Settings.ControlColor;
+            waveViewerL.WaveColor = Common.Settings.ControlColor;
+            waveViewerR.WaveColor = Common.Settings.ControlColor;
 
             progBar.ProgressColor = Common.Settings.ControlColor;
             progBar.CurrentChanged += (_, __) =>
