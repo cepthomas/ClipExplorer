@@ -21,7 +21,7 @@ using AudioLib;
 namespace ClipExplorer
 {
     [Serializable]
-    public sealed class UserSettings : Settings
+    public sealed class UserSettings : SettingsCore
     {
         #region Persisted Editable Properties
         [DisplayName("Root Directories")]

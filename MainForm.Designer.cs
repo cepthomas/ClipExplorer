@@ -170,7 +170,6 @@
             this.ftree.Location = new System.Drawing.Point(8, 32);
             this.ftree.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.ftree.Name = "ftree";
-            this.ftree.SingleClickSelect = true;
             this.ftree.Size = new System.Drawing.Size(527, 536);
             this.ftree.TabIndex = 89;
             this.ftree.FileSelectedEvent += new System.EventHandler<string>(this.Navigator_FileSelectedEvent);

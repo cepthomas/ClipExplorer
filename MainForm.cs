@@ -51,7 +51,7 @@ namespace ClipExplorer
         {
             // Must do this first before initializing.
             string appDir = MiscUtils.GetAppDataDir("ClipExplorer", "Ephemera");
-            Common.Settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
+            Common.Settings = (UserSettings)SettingsCore.Load(appDir, typeof(UserSettings));
             // Tell the libs about their settings.
             MidiSettings.LibSettings = Common.Settings.MidiSettings;
             AudioSettings.LibSettings = Common.Settings.AudioSettings;
@@ -374,9 +374,9 @@ namespace ClipExplorer
         void InitNavigator()
         {
             var s = AudioLibDefs.AUDIO_FILE_TYPES + MidiLibDefs.MIDI_FILE_TYPES + MidiLibDefs.STYLE_FILE_TYPES;
-            ftree.FilterExts = s.SplitByTokens("|;*");
-            ftree.RootDirs = Common.Settings.RootDirs;
-            ftree.SingleClickSelect = true;
+            ftree.Settings.FilterExts = s.SplitByTokens("|;*");
+            ftree.Settings.RootDirs = Common.Settings.RootDirs;
+            ftree.Settings.SingleClickSelect = true;
 
             try
             {
@@ -500,7 +500,7 @@ namespace ClipExplorer
         /// </summary>
         void Settings_Click(object? sender, EventArgs e)
         {
-            var changes = Common.Settings.Edit("User Settings", 500);
+            var changes = SettingsEditor.Edit(Common.Settings, "User Settings", 500);
 
             // Detect changes of interest.
             bool midiChange = false;
